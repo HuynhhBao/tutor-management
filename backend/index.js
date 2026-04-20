@@ -189,25 +189,18 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login endpoint
+// Login endpoint (chỉ dành cho users - không cho admin)
 app.post('/api/auth/login', async (req, res) => {
-  const { email, username, password } = req.body;
-  const identifier = email || username;
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng nhập email và mật khẩu' });
+  }
 
   try {
-    let user = null;
-    let role = 'user';
-
-    if (identifier.includes('@')) {
-      const result = await pool.query('SELECT * FROM users WHERE email = $1', [identifier]);
-      user = result.rows[0];
-    }
-
-    if (!user) {
-      const result = await pool.query('SELECT * FROM admins WHERE username = $1', [identifier]);
-      user = result.rows[0];
-      if (user) role = user.role;
-    }
+    // Chỉ tìm trong bảng users
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
 
     if (!user) {
       return res.status(401).json({ status: 'error', message: 'Tài khoản không tồn tại' });
@@ -219,24 +212,70 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email || user.username, role },
+      { id: user.id, email: user.email, role: 'user' },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '7d' }
     );
 
+    // Không set maxAge/expires → trở thành session cookie
+    // Trình duyệt sẽ tự xóa cookie khi đóng (không còn lưu đăng nhập)
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000
     });
 
     res.json({ 
       status: 'ok', 
-      user: { id: user.id, email: user.email || user.username, fullName: user.full_name, role } 
+      user: { id: user.id, email: user.email, fullName: user.full_name, role: 'user' } 
     });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
+  }
+});
+
+// Admin Login endpoint (chỉ dành cho admins - không cho user thường)
+app.post('/api/auth/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng nhập tên đăng nhập và mật khẩu' });
+  }
+
+  try {
+    // Chỉ tìm trong bảng admins
+    const result = await pool.query('SELECT * FROM admins WHERE username = $1', [username]);
+    const admin = result.rows[0];
+
+    if (!admin) {
+      return res.status(401).json({ status: 'error', message: 'Tài khoản quản trị không tồn tại' });
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ status: 'error', message: 'Mật khẩu không chính xác' });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, email: admin.username, role: admin.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Session cookie - tự xóa khi đóng trình duyệt
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    res.json({
+      status: 'ok',
+      user: { id: admin.id, email: admin.username, fullName: admin.full_name, role: admin.role }
+    });
+  } catch (err) {
+    console.error('Admin login error:', err);
     res.status(500).json({ status: 'error', message: 'Lỗi server' });
   }
 });
