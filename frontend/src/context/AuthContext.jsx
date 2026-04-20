@@ -36,18 +36,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (identifier, password) => {
-    // Send either email or username as identifier
-    const body = identifier.includes('@') 
-      ? { email: identifier, password } 
-      : { username: identifier, password };
-
+  const login = async (email, password) => {
     const response = await fetch('http://localhost:3000/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
       credentials: 'include',
     });
 
@@ -74,7 +67,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setUserFromLogin: setUser }}>
       {children}
     </AuthContext.Provider>
   );
