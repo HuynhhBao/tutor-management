@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const isAdmin = location.pathname.startsWith('/admin');
+  const from = location.state?.from?.pathname || (isAdmin ? '/admin' : '/');
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,23 +21,13 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await login(email, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Successful login
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/');
+      if (result.success) {
+        // Redirect to intended page or dashboard
+        navigate(from, { replace: true });
       } else {
-        // Handle specific error messages from backend
-        setError(data.message || 'Đăng nhập thất bại');
+        setError(result.message || 'Đăng nhập thất bại');
       }
     } catch (err) {
       setError('Không thể kết nối đến server');
@@ -58,10 +54,10 @@ const LoginPage = () => {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-          Đăng nhập hệ thống
+          {isAdmin ? 'Đăng nhập Quản trị' : 'Đăng nhập hệ thống'}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          Vui lòng đăng nhập để tiếp tục sử dụng dịch vụ
+          {isAdmin ? 'Vui lòng sử dụng tài khoản quản trị để tiếp tục' : 'Vui lòng đăng nhập để tiếp tục sử dụng dịch vụ'}
         </p>
       </div>
 
@@ -76,19 +72,19 @@ const LoginPage = () => {
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Email
+                Email / Tên đăng nhập
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                  placeholder="Nhập email của bạn"
+                  placeholder={isAdmin ? 'Tên đăng nhập admin' : 'Email hoặc tên đăng nhập'}
                 />
               </div>
             </div>
@@ -143,26 +139,28 @@ const LoginPage = () => {
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-slate-500">Chưa có tài khoản?</span>
-              </div>
-            </div>
-
+          {!isAdmin && (
             <div className="mt-6">
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-              >
-                Đăng ký ngay
-              </button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-slate-500">Chưa có tài khoản?</span>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={() => navigate('/register')}
+                  className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                >
+                  Đăng ký ngay
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
