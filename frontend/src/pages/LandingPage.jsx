@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, CheckCircle2, Search, BookOpen, Clock, Users, Award, Heart, Monitor, BookMarked, Code, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
