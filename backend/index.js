@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +18,18 @@ const { Pool } = pkg;
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// In-memory OTP store: email -> { otp, expiresAt }
+const otpStore = new Map();
+
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -324,6 +337,123 @@ app.get('/api/health', async (req, res) => {
     res.json({ status: 'ok', db_time: result.rows[0].now });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Could not connect to database' });
+  }
+});
+
+// --- Forgot Password Endpoints ---
+
+// Step 1: Send OTP to email
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng nhập email' });
+  }
+
+  try {
+    // Check if email exists in users table
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Email không tồn tại trong hệ thống' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    // Store OTP
+    otpStore.set(email, { otp, expiresAt });
+
+    // Send email
+    await transporter.sendMail({
+      from: `"GiaSuPro" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: '🔐 Mã OTP đặt lại mật khẩu - GiaSuPro',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background: #f9fafb; border-radius: 12px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #7c3aed; margin: 0; font-size: 28px;">🎓 GiaSuPro</h1>
+          </div>
+          <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h2 style="color: #1e293b; margin-top: 0;">Đặt lại mật khẩu</h2>
+            <p style="color: #475569;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+            <p style="color: #475569;">Mã OTP của bạn là:</p>
+            <div style="background: #f1f5f9; border: 2px dashed #7c3aed; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0;">
+              <span style="font-size: 40px; font-weight: bold; letter-spacing: 10px; color: #7c3aed;">${otp}</span>
+            </div>
+            <p style="color: #ef4444; font-weight: bold;">⏰ Mã này có hiệu lực trong <strong>5 phút</strong></p>
+            <p style="color: #94a3b8; font-size: 13px;">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+          </div>
+          <p style="color: #cbd5e1; font-size: 12px; text-align: center; margin-top: 20px;">© 2025 GiaSuPro. All rights reserved.</p>
+        </div>
+      `,
+    });
+
+    res.json({ status: 'ok', message: 'Mã OTP đã được gửi đến email của bạn' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ status: 'error', message: 'Không thể gửi email, vui lòng thử lại' });
+  }
+});
+
+// Step 2: Verify OTP
+app.post('/api/auth/verify-otp', (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ status: 'error', message: 'Thiếu thông tin xác thực' });
+  }
+
+  const record = otpStore.get(email);
+
+  if (!record) {
+    return res.status(400).json({ status: 'error', message: 'Mã OTP không hợp lệ hoặc đã được sử dụng' });
+  }
+
+  if (Date.now() > record.expiresAt) {
+    otpStore.delete(email);
+    return res.status(400).json({ status: 'error', message: 'Mã OTP đã hết hạn, vui lòng yêu cầu mã mới' });
+  }
+
+  if (record.otp !== otp) {
+    return res.status(400).json({ status: 'error', message: 'Mã OTP không chính xác' });
+  }
+
+  // Mark OTP as verified (keep in store but mark verified)
+  otpStore.set(email, { ...record, verified: true });
+
+  res.json({ status: 'ok', message: 'Xác thực OTP thành công' });
+});
+
+// Step 3: Reset password
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ status: 'error', message: 'Thiếu thông tin' });
+  }
+
+  const record = otpStore.get(email);
+  if (!record || !record.verified) {
+    return res.status(400).json({ status: 'error', message: 'Phiên đặt lại mật khẩu không hợp lệ' });
+  }
+
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({ status: 'error', message: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ in hoa và ký tự đặc biệt' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email]);
+
+    // Clear OTP from store
+    otpStore.delete(email);
+
+    res.json({ status: 'ok', message: 'Đặt lại mật khẩu thành công' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
   }
 });
 
