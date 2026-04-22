@@ -122,9 +122,14 @@ const LoginPage = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-purple-600 hover:text-purple-500">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="font-medium text-purple-600 hover:text-purple-500 bg-none border-none cursor-pointer p-0"
+                  style={{ background: 'none', border: 'none' }}
+                >
                   Quên mật khẩu?
-                </a>
+                </button>
               </div>
             </div>
 
