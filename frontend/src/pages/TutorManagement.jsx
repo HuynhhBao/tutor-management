@@ -19,7 +19,7 @@ export default function TutorManagement() {
   const fetchTutors = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/tutors');
+      const response = await fetch('http://localhost:3001/api/tutors');
       const data = await response.json();
       if (data.status === 'ok') {
         setTutors(data.data);
@@ -56,7 +56,7 @@ export default function TutorManagement() {
     if (!window.confirm('Bạn có chắc chắn muốn xóa gia sư này?')) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/api/tutors/${id}`, {
+      const response = await fetch(`http://localhost:3001/api/tutors/${id}`, {
         method: 'DELETE',
       });
 
@@ -74,8 +74,8 @@ export default function TutorManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const url = editingId 
-      ? `http://localhost:3000/api/tutors/${editingId}`
-      : 'http://localhost:3000/api/tutors';
+      ? `http://localhost:3001/api/tutors/${editingId}`
+      : 'http://localhost:3001/api/tutors';
     const method = editingId ? 'PUT' : 'POST';
 
     try {

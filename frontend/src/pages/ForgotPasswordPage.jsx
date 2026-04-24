@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react';
 
-const TOTAL_SECONDS = 5 * 60; // 5 minutes
+const TOTAL_SECONDS = 1 * 60; // 1 minute
 const SESSION_KEY = 'forgotPasswordSession';
 
 const ForgotPasswordPage = () => {
@@ -85,7 +85,8 @@ const ForgotPasswordPage = () => {
   useEffect(() => {
     if (initialStep === 2) {
       if (initialTimeLeft === 0) {
-        setError('Mã OTP đã hết hạn, vui lòng yêu cầu mã mới');
+        // Even if resend timer is 0, the code might still be valid for 5 mins
+        // We just let the user know they can resend if needed
       } else {
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
       }
@@ -107,7 +108,7 @@ const ForgotPasswordPage = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/auth/forgot-password', {
+      const res = await fetch('http://localhost:3001/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -166,13 +167,10 @@ const ForgotPasswordPage = () => {
       setError('Vui lòng nhập đủ 6 chữ số OTP');
       return;
     }
-    if (timeLeft === 0) {
-      setError('Mã OTP đã hết hạn, vui lòng yêu cầu mã mới');
-      return;
-    }
+    /* Frontend no longer blocks after 1 min since backend allows 5 mins */
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/auth/verify-otp', {
+      const res = await fetch('http://localhost:3001/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp: otpCode }),
@@ -208,7 +206,7 @@ const ForgotPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/auth/reset-password', {
+      const res = await fetch('http://localhost:3001/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: newPassword }),
@@ -232,7 +230,7 @@ const ForgotPasswordPage = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3000/api/auth/forgot-password', {
+      const res = await fetch('http://localhost:3001/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -375,7 +373,8 @@ const ForgotPasswordPage = () => {
                   <ShieldCheck size={22} color="white" />
                 </div>
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', margin: '0 0 6px' }}>Nhập mã OTP</h3>
-                <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 6px' }}>Mã 6 chữ số đã được gửi đến</p>
+                <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 4px' }}>Mã 6 chữ số có hiệu lực trong 5 phút</p>
+                <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 6px' }}>Mã đã được gửi đến</p>
                 <p style={{ fontSize: '14px', fontWeight: '600', color: '#7c3aed', margin: '0 0 24px' }}>{email}</p>
               </div>
 
@@ -407,7 +406,7 @@ const ForgotPasswordPage = () => {
               {/* Countdown timer */}
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b' }}>Thời gian còn lại</span>
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>Gửi lại mã sau</span>
                   <span style={{ fontSize: '16px', fontWeight: '700', color: timeLeft <= 60 ? '#ef4444' : '#7c3aed', fontVariantNumeric: 'tabular-nums' }}>
                     {formatTime(timeLeft)}
                   </span>
@@ -425,8 +424,8 @@ const ForgotPasswordPage = () => {
 
               <button
                 type="submit"
-                disabled={loading || timeLeft === 0}
-                style={{ width: '100%', padding: '12px', background: (loading || timeLeft === 0) ? '#c4b5fd' : 'linear-gradient(135deg, #7c3aed, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: (loading || timeLeft === 0) ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginBottom: '12px', fontFamily: 'inherit' }}
+                disabled={loading}
+                style={{ width: '100%', padding: '12px', background: loading ? '#c4b5fd' : 'linear-gradient(135deg, #7c3aed, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginBottom: '12px', fontFamily: 'inherit' }}
               >
                 {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
               </button>
