@@ -29,9 +29,21 @@ export const initDb = async () => {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         full_name VARCHAR(255) NOT NULL,
+        phone_number VARCHAR(20),
         password VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Ensure phone_number column exists if table was already created
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='phone_number') THEN
+          ALTER TABLE users ADD COLUMN phone_number VARCHAR(20);
+        END IF;
+      END
+      $$;
     `);
 
     await pool.query(`

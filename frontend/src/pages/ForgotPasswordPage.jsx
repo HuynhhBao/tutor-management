@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock, ShieldCheck, Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 const TOTAL_SECONDS = 1 * 60; // 1 minute
 const SESSION_KEY = 'forgotPasswordSession';
@@ -474,6 +475,7 @@ const ForgotPasswordPage = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                <PasswordStrengthIndicator password={newPassword} />
               </div>
 
               <div style={{ marginBottom: '20px' }}>

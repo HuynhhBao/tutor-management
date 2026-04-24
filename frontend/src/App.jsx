@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ProfilePage from './pages/user/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -22,6 +23,16 @@ function App() {
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['user', 'admin', 'staff']} redirectPath="/login">
+                <div className="min-h-screen bg-gray-50">
+                  <ProfilePage />
+                </div>
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Admin Routes - Protected */}
           <Route 
@@ -37,6 +48,7 @@ function App() {
             <Route path="students" element={<div className="p-6">Quản lý Học viên (Đang phát triển)</div>} />
             <Route path="classes" element={<div className="p-6">Sắp xếp Lớp học (Đang phát triển)</div>} />
             <Route path="finance" element={<div className="p-6">Tài chính (Đang phát triển)</div>} />
+            <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 

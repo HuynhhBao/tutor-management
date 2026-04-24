@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock, User, CheckCircle } from 'lucide-react';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -151,6 +152,7 @@ const RegisterPage = () => {
               <p className="mt-1 text-xs text-slate-500 italic">
                 * Tối thiểu 8 ký tự, gồm chữ in hoa và ký tự đặc biệt
               </p>
+              <PasswordStrengthIndicator password={password} />
             </div>
 
             <div>
