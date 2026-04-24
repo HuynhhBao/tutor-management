@@ -139,7 +139,7 @@ router.get('/me', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     let userResult;
-    if (decoded.role === 'admin' || decoded.role === 'staff') {
+    if (decoded.role === 'admin' || decoded.role === 'tutor') {
       userResult = await pool.query('SELECT id, username as email, full_name, role FROM admins WHERE id = $1', [decoded.id]);
     } else {
       userResult = await pool.query('SELECT id, email, full_name, phone_number FROM users WHERE id = $1', [decoded.id]);
@@ -175,7 +175,7 @@ router.put('/update-profile', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Họ tên không được để trống' });
     }
 
-    if (decoded.role === 'admin' || decoded.role === 'staff') {
+    if (decoded.role === 'admin' || decoded.role === 'tutor') {
       await pool.query('UPDATE admins SET full_name = $1 WHERE id = $2', [fullName, decoded.id]);
     } else {
       await pool.query('UPDATE users SET full_name = $1, phone_number = $2 WHERE id = $3', [fullName, phoneNumber, decoded.id]);
@@ -200,7 +200,7 @@ router.put('/change-password', async (req, res) => {
     const { currentPassword, newPassword } = req.body;
 
     let userResult;
-    if (decoded.role === 'admin' || decoded.role === 'staff') {
+    if (decoded.role === 'admin' || decoded.role === 'tutor') {
       userResult = await pool.query('SELECT * FROM admins WHERE id = $1', [decoded.id]);
     } else {
       userResult = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
@@ -222,7 +222,7 @@ router.put('/change-password', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    if (decoded.role === 'admin' || decoded.role === 'staff') {
+    if (decoded.role === 'admin' || decoded.role === 'tutor') {
       await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
     } else {
       await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
