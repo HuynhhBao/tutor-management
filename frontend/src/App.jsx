@@ -26,7 +26,7 @@ function App() {
           <Route 
             path="/profile" 
             element={
-              <ProtectedRoute allowedRoles={['user', 'admin', 'staff']} redirectPath="/login">
+              <ProtectedRoute allowedRoles={['user', 'admin', 'tutor']} redirectPath="/login">
                 <div className="min-h-screen bg-gray-50">
                   <ProfilePage />
                 </div>
@@ -38,7 +38,7 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute allowedRoles={['admin', 'staff']} redirectPath="/admin/login">
+              <ProtectedRoute allowedRoles={['admin']} redirectPath="/admin/login">
                 <Layout />
               </ProtectedRoute>
             }
