@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, CheckCircle2, Search, BookOpen, Clock, Users, Award, Heart, Monitor, BookMarked, Code, LogOut, User } from 'lucide-react';
+import { GraduationCap, CheckCircle2, Search, BookOpen, Clock, Users, Award, Heart, Monitor, BookMarked, Code, LogOut, User, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import UserAccountMenu from '../components/UserAccountMenu';
+import { useState } from 'react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -27,18 +30,24 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg text-purple-700 font-medium text-sm">
+              <div className="flex items-center gap-4 relative">
+                <div 
+                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg text-purple-700 font-medium text-sm cursor-pointer hover:bg-purple-100 transition-colors group"
+                  onClick={() => setShowMenu(!showMenu)}
+                >
                   <User className="h-4 w-4" />
                   <span>Chào, {user.fullName}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} />
                 </div>
-                <button 
-                  onClick={handleLogout}
-                  className="text-slate-500 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
-                  title="Đăng xuất"
-                >
-                  <LogOut className="h-5 w-5" />
-                </button>
+                
+                {showMenu && (
+                  <UserAccountMenu 
+                    user={user} 
+                    onLogout={handleLogout} 
+                    onClose={() => setShowMenu(false)} 
+                    position="top"
+                  />
+                )}
               </div>
             ) : (
               <>

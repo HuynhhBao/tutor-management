@@ -76,7 +76,7 @@ router.post('/login', async (req, res) => {
 
     res.json({ 
       status: 'ok', 
-      user: { id: user.id, email: user.email, fullName: user.full_name, role: 'user' } 
+      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: 'user' } 
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -142,7 +142,7 @@ router.get('/me', async (req, res) => {
     if (decoded.role === 'admin' || decoded.role === 'staff') {
       userResult = await pool.query('SELECT id, username as email, full_name, role FROM admins WHERE id = $1', [decoded.id]);
     } else {
-      userResult = await pool.query('SELECT id, email, full_name FROM users WHERE id = $1', [decoded.id]);
+      userResult = await pool.query('SELECT id, email, full_name, phone_number FROM users WHERE id = $1', [decoded.id]);
     }
 
     const user = userResult.rows[0];
@@ -152,10 +152,85 @@ router.get('/me', async (req, res) => {
 
     res.json({ 
       status: 'ok', 
-      user: { id: user.id, email: user.email, fullName: user.full_name, role: user.role || 'user' } 
+      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user' } 
     });
   } catch (err) {
     res.status(401).json({ status: 'error', message: 'Invalid token' });
+  }
+});
+
+// Update profile endpoint
+router.put('/update-profile', async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Not authenticated' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { fullName, phoneNumber } = req.body;
+
+    if (!fullName) {
+      return res.status(400).json({ status: 'error', message: 'Họ tên không được để trống' });
+    }
+
+    if (decoded.role === 'admin' || decoded.role === 'staff') {
+      await pool.query('UPDATE admins SET full_name = $1 WHERE id = $2', [fullName, decoded.id]);
+    } else {
+      await pool.query('UPDATE users SET full_name = $1, phone_number = $2 WHERE id = $3', [fullName, phoneNumber, decoded.id]);
+    }
+
+    res.json({ status: 'ok', message: 'Cập nhật hồ sơ thành công' });
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
+  }
+});
+
+// Change password endpoint
+router.put('/change-password', async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Not authenticated' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { currentPassword, newPassword } = req.body;
+
+    let userResult;
+    if (decoded.role === 'admin' || decoded.role === 'staff') {
+      userResult = await pool.query('SELECT * FROM admins WHERE id = $1', [decoded.id]);
+    } else {
+      userResult = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
+    }
+
+    const user = userResult.rows[0];
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'Người dùng không tồn tại' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ status: 'error', message: 'Mật khẩu hiện tại không chính xác' });
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({ status: 'error', message: 'Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ in hoa và ký tự đặc biệt' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (decoded.role === 'admin' || decoded.role === 'staff') {
+      await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
+    } else {
+      await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
+    }
+
+    res.json({ status: 'ok', message: 'Đổi mật khẩu thành công' });
+  } catch (err) {
+    res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
   }
 });
 
