@@ -82,6 +82,16 @@ export const initDb = async () => {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tutor_applications (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL,
+        cv_image_url VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization error:', err);

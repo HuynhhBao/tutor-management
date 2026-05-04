@@ -1,16 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import DashboardOverview from './pages/DashboardOverview';
-import TutorManagement from './pages/TutorManagement';
+import Layout from './components/layout/Layout';
+import DashboardOverview from './pages/Admin/DashboardOverview';
+import TutorManagement from './pages/Admin/TutorManagement';
 import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ProfilePage from './pages/user/ProfilePage';
+import LoginPage from './pages/Auth/LoginPage';
+import AdminLoginPage from './pages/Auth/AdminLoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
+import ProfilePage from './pages/User/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
