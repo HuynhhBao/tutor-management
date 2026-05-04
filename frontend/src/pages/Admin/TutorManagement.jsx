@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MoreVertical, Edit2, Trash2, Star, CheckCircle, XCircle, GraduationCap, User, BookOpen, UserCircle, Loader2, Clock, Mail, MapPin, CalendarDays, ExternalLink } from 'lucide-react';
+import { Search, Filter, MoreVertical, Edit2, Trash2, Star, CheckCircle, XCircle, GraduationCap, User, BookOpen, UserCircle, Loader2, Clock, Mail, MapPin, CalendarDays, ExternalLink, KeyRound } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 export default function TutorManagement() {
@@ -10,6 +10,7 @@ export default function TutorManagement() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
     gender: 'Nam',
     age: '',
     subject: '',
@@ -23,6 +24,11 @@ export default function TutorManagement() {
   const [approvingAppId, setApprovingAppId] = useState(null);
   const [interviewData, setInterviewData] = useState({ time: '', address: '' });
   const [approveStatus, setApproveStatus] = useState({ loading: false, error: '' });
+
+  const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
+  const [grantingTutorId, setGrantingTutorId] = useState(null);
+  const [grantUsername, setGrantUsername] = useState('');
+  const [grantStatus, setGrantStatus] = useState({ loading: false, error: '' });
 
   const fetchTutors = async () => {
     setLoading(true);
@@ -71,6 +77,7 @@ export default function TutorManagement() {
     setEditingId(tutor.id);
     setFormData({
       fullName: tutor.full_name,
+      email: tutor.email || '',
       gender: tutor.gender,
       age: tutor.age,
       subject: tutor.subjects,
@@ -117,7 +124,7 @@ export default function TutorManagement() {
       if (response.ok) {
         setIsModalOpen(false);
         setEditingId(null);
-        setFormData({ fullName: '', gender: 'Nam', age: '', subject: '', qualification: '' });
+        setFormData({ fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' });
         fetchTutors(); // Refresh list
       } else {
         alert(`Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
@@ -191,6 +198,42 @@ export default function TutorManagement() {
       }
     } catch (err) {
       alert('Không thể kết nối đến server');
+    }
+  };
+
+  const handleGrantClick = (tutor) => {
+    if (!tutor.email) {
+      alert('Gia sư này chưa có địa chỉ email. Vui lòng chỉnh sửa gia sư và thêm email trước khi cấp tài khoản.');
+      return;
+    }
+    setGrantingTutorId(tutor.id);
+    setGrantUsername('');
+    setGrantStatus({ loading: false, error: '' });
+    setIsGrantModalOpen(true);
+  };
+
+  const handleGrantSubmit = async (e) => {
+    e.preventDefault();
+    if (!grantUsername) {
+      setGrantStatus({ loading: false, error: 'Vui lòng nhập tên tài khoản' });
+      return;
+    }
+    setGrantStatus({ loading: true, error: '' });
+    try {
+      const response = await fetch(`http://localhost:3001/api/tutors/${grantingTutorId}/grant-account`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: grantUsername })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setIsGrantModalOpen(false);
+        alert('Đã cấp tài khoản và gửi email thông báo thành công!');
+      } else {
+        setGrantStatus({ loading: false, error: data.message || 'Lỗi cấp tài khoản' });
+      }
+    } catch (err) {
+      setGrantStatus({ loading: false, error: 'Không thể kết nối đến server' });
     }
   };
 
@@ -288,6 +331,7 @@ export default function TutorManagement() {
                           <div className="ml-3">
                             <p className="font-medium text-gray-900">{tutor.full_name}</p>
                             <p className="text-xs text-gray-500">ID: TS-{tutor.id.toString().padStart(4, '0')} • {tutor.gender}, {tutor.age} tuổi</p>
+                            {tutor.email && <p className="text-xs text-gray-400 mt-0.5">{tutor.email}</p>}
                           </div>
                         </div>
                       </td>
@@ -321,6 +365,13 @@ export default function TutorManagement() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          <button 
+                            onClick={() => handleGrantClick(tutor)}
+                            className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" 
+                            title="Cấp tài khoản"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={() => handleEdit(tutor)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
@@ -445,7 +496,7 @@ export default function TutorManagement() {
         onClose={() => {
           setIsModalOpen(false);
           setEditingId(null);
-          setFormData({ fullName: '', gender: 'Nam', age: '', subject: '', qualification: '' });
+          setFormData({ fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' });
         }} 
         title={editingId ? "Chỉnh sửa gia sư" : "Thêm gia sư mới"}
       >
@@ -464,6 +515,23 @@ export default function TutorManagement() {
                 onChange={handleInputChange}
                 className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="Nguyễn Văn A"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Mail className="w-4 h-4 text-slate-400" />
+              </span>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                placeholder="email@example.com (Không bắt buộc)"
               />
             </div>
           </div>
@@ -544,7 +612,7 @@ export default function TutorManagement() {
               onClick={() => {
                 setIsModalOpen(false);
                 setEditingId(null);
-                setFormData({ fullName: '', gender: 'Nam', age: '', subject: '', qualification: '' });
+                setFormData({ fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' });
               }}
               className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors"
             >
@@ -555,6 +623,60 @@ export default function TutorManagement() {
               className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-bold hover:bg-primary-700 transition-colors shadow-sm"
             >
               {editingId ? "Cập nhật" : "Lưu gia sư"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Grant Account Modal */}
+      <Modal
+        isOpen={isGrantModalOpen}
+        onClose={() => {
+          setIsGrantModalOpen(false);
+          setGrantingTutorId(null);
+          setGrantUsername('');
+          setGrantStatus({ loading: false, error: '' });
+        }}
+        title="Cấp Tài Khoản Gia Sư"
+      >
+        <form onSubmit={handleGrantSubmit} className="space-y-4">
+          {grantStatus.error && (
+            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+              {grantStatus.error}
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Tên tài khoản (Username)</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <UserCircle className="w-4 h-4 text-slate-400" />
+              </span>
+              <input
+                type="text"
+                required
+                value={grantUsername}
+                onChange={(e) => setGrantUsername(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                placeholder="Nhập tên đăng nhập cho gia sư"
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-2 italic">* Mật khẩu sẽ được sinh ngẫu nhiên. Tài khoản và mật khẩu sẽ được gửi trực tiếp đến email của gia sư.</p>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsGrantModalOpen(false)}
+              className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={grantStatus.loading}
+              className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+            >
+              {grantStatus.loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Tạo & Gửi Email
             </button>
           </div>
         </form>

@@ -11,6 +11,8 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ProfilePage from './pages/User/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import TutorLayout from './components/layout/TutorLayout';
+import TutorDashboard from './pages/Tutor/TutorDashboard';
 
 function App() {
   return (
@@ -50,6 +52,22 @@ function App() {
             <Route path="finance" element={<div className="p-6">Tài chính (Đang phát triển)</div>} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Route>
+
+          {/* Tutor Routes - Protected */}
+          <Route 
+            path="/tutor-dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['tutor']} redirectPath="/login">
+                <TutorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TutorDashboard />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="my-classes" element={<div className="p-6">Lớp của tôi (Đang phát triển)</div>} />
+            <Route path="available" element={<div className="p-6">Tìm lớp mới (Đang phát triển)</div>} />
+            <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
 
           {/* Fallback Route */}

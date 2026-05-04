@@ -72,6 +72,7 @@ export const initDb = async () => {
       CREATE TABLE IF NOT EXISTS tutors (
         id SERIAL PRIMARY KEY,
         full_name VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
         gender VARCHAR(50),
         age INTEGER,
         subjects VARCHAR(255),
@@ -82,12 +83,33 @@ export const initDb = async () => {
       )
     `);
 
+    // Ensure email column exists if table was already created
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='email') THEN
+          ALTER TABLE tutors ADD COLUMN email VARCHAR(255);
+        END IF;
+      END
+      $$;
+    `);
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tutor_applications (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) NOT NULL,
         cv_image_url VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS tutor_accounts (
+        id SERIAL PRIMARY KEY,
+        tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
