@@ -10,7 +10,7 @@ export default function UserAccountMenu({ user, onLogout, onClose, position = 'b
     ? 'slide-in-from-bottom-4' 
     : 'slide-in-from-top-4';
 
-  const roleLabel = user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'staff' ? 'Nhân viên' : 'Tài khoản cá nhân';
+  const roleLabel = user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'tutor' ? 'Gia sư' : 'Tài khoản cá nhân';
 
   return (
     <div className={`absolute ${positionClasses} w-60 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in ${animationClass} duration-300`}>

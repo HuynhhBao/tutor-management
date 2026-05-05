@@ -1,16 +1,18 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import DashboardOverview from './pages/DashboardOverview';
-import TutorManagement from './pages/TutorManagement';
+import Layout from './components/layout/Layout';
+import DashboardOverview from './pages/Admin/DashboardOverview';
+import TutorManagement from './pages/Admin/TutorManagement';
 import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ProfilePage from './pages/user/ProfilePage';
+import LoginPage from './pages/Auth/LoginPage';
+import AdminLoginPage from './pages/Auth/AdminLoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
+import ProfilePage from './pages/User/ProfilePage';
 import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import TutorLayout from './components/layout/TutorLayout';
+import TutorDashboard from './pages/Tutor/TutorDashboard';
 
 function App() {
   return (
@@ -26,7 +28,7 @@ function App() {
           <Route 
             path="/profile" 
             element={
-              <ProtectedRoute allowedRoles={['user', 'admin', 'staff']} redirectPath="/login">
+              <ProtectedRoute allowedRoles={['user', 'admin', 'tutor']} redirectPath="/login">
                 <div className="min-h-screen bg-gray-50">
                   <ProfilePage />
                 </div>
@@ -38,7 +40,7 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute allowedRoles={['admin', 'staff']} redirectPath="/admin/login">
+              <ProtectedRoute allowedRoles={['admin']} redirectPath="/admin/login">
                 <Layout />
               </ProtectedRoute>
             }
@@ -50,6 +52,22 @@ function App() {
             <Route path="finance" element={<div className="p-6">Tài chính (Đang phát triển)</div>} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Route>
+
+          {/* Tutor Routes - Protected */}
+          <Route 
+            path="/tutor-dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['tutor']} redirectPath="/login">
+                <TutorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TutorDashboard />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="my-classes" element={<div className="p-6">Lớp của tôi (Đang phát triển)</div>} />
+            <Route path="available" element={<div className="p-6">Tìm lớp mới (Đang phát triển)</div>} />
+            <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
 
           {/* Fallback Route */}
