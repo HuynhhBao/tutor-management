@@ -127,6 +127,55 @@ router.post('/admin/login', async (req, res) => {
   }
 });
 
+// Tutor Login endpoint
+router.post('/login-tutor', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng nhập tên đăng nhập và mật khẩu' });
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT a.*, t.full_name, t.email as tutor_email 
+      FROM tutor_accounts a 
+      JOIN tutors t ON a.tutor_id = t.id 
+      WHERE a.username = $1
+    `, [username]);
+    
+    const account = result.rows[0];
+
+    if (!account) {
+      return res.status(401).json({ status: 'error', message: 'Tài khoản gia sư không tồn tại' });
+    }
+
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(401).json({ status: 'error', message: 'Mật khẩu không chính xác' });
+    }
+
+    const token = jwt.sign(
+      { id: account.tutor_id, accountId: account.id, username: account.username, role: 'tutor' },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    res.json({
+      status: 'ok',
+      user: { id: account.tutor_id, accountId: account.id, username: account.username, fullName: account.full_name, email: account.tutor_email, role: 'tutor' }
+    });
+  } catch (err) {
+    console.error('Tutor login error:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
+  }
+});
+
 // Get current user endpoint
 router.get('/me', async (req, res) => {
   const token = req.cookies.token;
@@ -141,6 +190,13 @@ router.get('/me', async (req, res) => {
     let userResult;
     if (decoded.role === 'admin' || decoded.role === 'tutor') {
       userResult = await pool.query('SELECT id, username as email, full_name, role FROM admins WHERE id = $1', [decoded.id]);
+    } else if (decoded.role === 'tutor') {
+      userResult = await pool.query(`
+        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email 
+        FROM tutors t 
+        JOIN tutor_accounts a ON t.id = a.tutor_id 
+        WHERE t.id = $1
+      `, [decoded.id]);
     } else {
       userResult = await pool.query('SELECT id, email, full_name, phone_number FROM users WHERE id = $1', [decoded.id]);
     }
@@ -150,10 +206,17 @@ router.get('/me', async (req, res) => {
       return res.status(401).json({ status: 'error', message: 'User not found' });
     }
 
-    res.json({ 
-      status: 'ok', 
-      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user' } 
-    });
+    if (decoded.role === 'tutor') {
+      res.json({ 
+        status: 'ok', 
+        user: { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor' } 
+      });
+    } else {
+      res.json({ 
+        status: 'ok', 
+        user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user' } 
+      });
+    }
   } catch (err) {
     res.status(401).json({ status: 'error', message: 'Invalid token' });
   }
@@ -202,6 +265,8 @@ router.put('/change-password', async (req, res) => {
     let userResult;
     if (decoded.role === 'admin' || decoded.role === 'tutor') {
       userResult = await pool.query('SELECT * FROM admins WHERE id = $1', [decoded.id]);
+    } else if (decoded.role === 'tutor') {
+      userResult = await pool.query('SELECT * FROM tutor_accounts WHERE tutor_id = $1', [decoded.id]);
     } else {
       userResult = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
     }
@@ -224,6 +289,8 @@ router.put('/change-password', async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     if (decoded.role === 'admin' || decoded.role === 'tutor') {
       await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
+    } else if (decoded.role === 'tutor') {
+      await pool.query('UPDATE tutor_accounts SET password = $1 WHERE tutor_id = $2', [hashedPassword, decoded.id]);
     } else {
       await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
     }

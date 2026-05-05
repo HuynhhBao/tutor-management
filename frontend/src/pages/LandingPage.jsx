@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, CheckCircle2, Search, BookOpen, Clock, Users, Award, Heart, Monitor, BookMarked, Code, LogOut, User, ChevronDown } from 'lucide-react';
+import { GraduationCap, CheckCircle2, Search, BookOpen, Clock, Users, Award, Heart, Monitor, BookMarked, Code, LogOut, User, ChevronDown, Upload, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UserAccountMenu from '../components/UserAccountMenu';
 import { useState } from 'react';
@@ -9,6 +9,43 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [applyEmail, setApplyEmail] = useState('');
+  const [applyCvFile, setApplyCvFile] = useState(null);
+  const [applyStatus, setApplyStatus] = useState({ loading: false, error: '', success: false });
+
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    if (!applyEmail || !applyCvFile) {
+      setApplyStatus({ ...applyStatus, error: 'Vui lòng điền đủ email và chọn file CV' });
+      return;
+    }
+
+    setApplyStatus({ loading: true, error: '', success: false });
+    
+    const formData = new FormData();
+    formData.append('email', applyEmail);
+    formData.append('cvImage', applyCvFile);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/tutors/apply', {
+        method: 'POST',
+        body: formData, // Don't set Content-Type, browser will set it with boundary
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setApplyStatus({ loading: false, error: '', success: true });
+        setApplyEmail('');
+        setApplyCvFile(null);
+        setTimeout(() => setIsApplyModalOpen(false), 2000);
+      } else {
+        setApplyStatus({ loading: false, error: data.message || 'Có lỗi xảy ra', success: false });
+      }
+    } catch (err) {
+      setApplyStatus({ loading: false, error: 'Không thể kết nối đến server', success: false });
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -260,7 +297,7 @@ const LandingPage = () => {
                   </li>
                 </ul>
                 <button 
-                  onClick={handleRequireLogin}
+                  onClick={() => setIsApplyModalOpen(true)}
                   className="mt-auto w-full bg-purple-600 hover:bg-purple-700 text-white py-3.5 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5"
                 >
                   Đăng ký làm gia sư
@@ -349,6 +386,100 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+      {/* Apply Modal */}
+      {isApplyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-purple-600" />
+                Ứng tuyển làm gia sư
+              </h3>
+              <button 
+                onClick={() => setIsApplyModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {applyStatus.success ? (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Nộp hồ sơ thành công!</h4>
+                  <p className="text-slate-600 text-sm">Chúng tôi đã nhận được hồ sơ của bạn. Hãy kiểm tra email thường xuyên để nhận lịch phỏng vấn nhé.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleApplySubmit} className="space-y-5">
+                  {applyStatus.error && (
+                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                      {applyStatus.error}
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Email liên hệ
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={applyEmail}
+                      onChange={(e) => setApplyEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      placeholder="example@gmail.com"
+                    />
+                    <p className="text-xs text-slate-500 mt-1.5">* Chúng tôi sẽ gửi lịch phỏng vấn qua email này</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Hình ảnh CV / Thẻ sinh viên / Bằng cấp
+                    </label>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:bg-slate-50 transition-colors relative cursor-pointer" onClick={() => document.getElementById('cv-upload').click()}>
+                      <div className="space-y-2 text-center">
+                        <Upload className="mx-auto h-8 w-8 text-slate-400" />
+                        <div className="flex text-sm text-slate-600 justify-center">
+                          <label htmlFor="cv-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none">
+                            <span>Tải ảnh lên</span>
+                            <input id="cv-upload" name="cv-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => setApplyCvFile(e.target.files[0])} />
+                          </label>
+                          <p className="pl-1">hoặc kéo thả vào đây</p>
+                        </div>
+                        <p className="text-xs text-slate-500">PNG, JPG, GIF lên tới 5MB</p>
+                      </div>
+                    </div>
+                    {applyCvFile && (
+                      <div className="mt-2 text-sm text-purple-600 flex items-center gap-1.5 bg-purple-50 py-1.5 px-3 rounded-lg border border-purple-100">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{applyCvFile.name}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={applyStatus.loading}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold shadow-sm transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {applyStatus.loading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      'Gửi hồ sơ ứng tuyển'
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
