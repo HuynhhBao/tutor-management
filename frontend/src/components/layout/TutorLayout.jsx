@@ -31,7 +31,7 @@ const TutorLayout = () => {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center cursor-pointer" onClick={() => navigate('/tutor-dashboard')}>
                 <GraduationCap className="h-8 w-8 text-purple-600" />
-                <span className="ml-2 text-xl font-bold text-slate-900 hidden sm:block">GiaSuPro</span>
+                <span className="ml-2 text-xl font-bold text-slate-900 hidden sm:block">EduMatch</span>
               </div>
               
               {/* Desktop Menu */}
