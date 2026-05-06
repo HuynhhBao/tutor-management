@@ -21,6 +21,7 @@ const LandingPage = () => {
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState('');
   const [cvPreviewUrl, setCvPreviewUrl] = useState(null);
+  const [cvLightboxOpen, setCvLightboxOpen] = useState(false);
 
   const resetApplyModal = () => {
     setApplyEmail('');
@@ -593,31 +594,29 @@ const LandingPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="relative rounded-xl overflow-hidden border border-slate-200 group">
-                        <img
-                          src={cvPreviewUrl}
-                          alt="CV Preview"
-                          className="w-full max-h-48 object-contain bg-slate-50 cursor-pointer"
-                          onClick={() => window.open(cvPreviewUrl, '_blank')}
-                          title="Click để xem ảnh to hơn"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => window.open(cvPreviewUrl, '_blank')}
-                            className="bg-white text-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-100 transition"
-                          >
-                            🔍 Xem ảnh
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleRemoveCv}
-                            className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition"
-                          >
-                            🗑 Xóa ảnh
-                          </button>
+                      <div className="mt-1 flex items-center gap-2 px-3 py-2.5 bg-purple-50 border border-purple-200 rounded-xl">
+                        <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                         </div>
-                        <p className="text-xs text-slate-500 text-center py-2 bg-white border-t border-slate-100">{applyCvFile.name}</p>
+                        <span className="flex-1 text-sm text-slate-700 truncate font-medium" title={applyCvFile.name}>
+                          {applyCvFile.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCvLightboxOpen(true)}
+                          title="Xem ảnh"
+                          className="flex-shrink-0 p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCv}
+                          title="Xóa ảnh"
+                          className="flex-shrink-0 p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -639,6 +638,31 @@ const LandingPage = () => {
                 </form>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CV Lightbox */}
+      {cvLightboxOpen && cvPreviewUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setCvLightboxOpen(false)}
+        >
+          <div
+            className="relative max-w-3xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setCvLightboxOpen(false)}
+              className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-white text-slate-700 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-100 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src={cvPreviewUrl}
+              alt="CV Preview"
+              className="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+            />
           </div>
         </div>
       )}
