@@ -56,7 +56,7 @@ const LoginPage = () => {
         <div className="flex justify-center">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-10 w-10 text-purple-600" />
-            <span className="text-3xl font-bold text-slate-900">GiaSuPro</span>
+            <span className="text-3xl font-bold text-slate-900">EduMatch</span>
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">

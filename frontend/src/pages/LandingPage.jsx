@@ -14,10 +14,83 @@ const LandingPage = () => {
   const [applyCvFile, setApplyCvFile] = useState(null);
   const [applyStatus, setApplyStatus] = useState({ loading: false, error: '', success: false });
 
+  // OTP state
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [cvPreviewUrl, setCvPreviewUrl] = useState(null);
+  const [cvLightboxOpen, setCvLightboxOpen] = useState(false);
+
+  const resetApplyModal = () => {
+    setApplyEmail('');
+    setApplyCvFile(null);
+    setCvPreviewUrl(null);
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpValue('');
+    setOtpError('');
+    setApplyStatus({ loading: false, error: '', success: false });
+  };
+
+  const handleSendOtp = async () => {
+    if (!applyEmail.endsWith('@gmail.com')) {
+      setOtpError('Chỉ chấp nhận email @gmail.com');
+      return;
+    }
+    setOtpLoading(true);
+    setOtpError('');
+    try {
+      const res = await fetch('http://localhost:3001/api/tutors/apply/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: applyEmail }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOtpSent(true);
+      } else {
+        setOtpError(data.message || 'Không thể gửi mã');
+      }
+    } catch {
+      setOtpError('Không thể kết nối đến server');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    if (otpValue.length === 6) {
+      setOtpVerified(true);
+      setOtpError('');
+    } else {
+      setOtpError('Vui lòng nhập đủ 6 số');
+    }
+  };
+
+  const handleCvChange = (file) => {
+    if (!file) return;
+    setApplyCvFile(file);
+    const url = URL.createObjectURL(file);
+    setCvPreviewUrl(url);
+  };
+
+  const handleRemoveCv = () => {
+    setApplyCvFile(null);
+    if (cvPreviewUrl) URL.revokeObjectURL(cvPreviewUrl);
+    setCvPreviewUrl(null);
+    document.getElementById('cv-upload').value = '';
+  };
+
   const handleApplySubmit = async (e) => {
     e.preventDefault();
     if (!applyEmail || !applyCvFile) {
       setApplyStatus({ ...applyStatus, error: 'Vui lòng điền đủ email và chọn file CV' });
+      return;
+    }
+    if (!otpVerified) {
+      setApplyStatus({ ...applyStatus, error: 'Vui lòng xác minh email trước khi nộp hồ sơ' });
       return;
     }
 
@@ -26,19 +99,19 @@ const LandingPage = () => {
     const formData = new FormData();
     formData.append('email', applyEmail);
     formData.append('cvImage', applyCvFile);
+    formData.append('otp', otpValue);
 
     try {
       const response = await fetch('http://localhost:3001/api/tutors/apply', {
         method: 'POST',
-        body: formData, // Don't set Content-Type, browser will set it with boundary
+        body: formData,
       });
 
       const data = await response.json();
       if (response.ok) {
         setApplyStatus({ loading: false, error: '', success: true });
-        setApplyEmail('');
-        setApplyCvFile(null);
-        setTimeout(() => setIsApplyModalOpen(false), 2000);
+        resetApplyModal();
+        setTimeout(() => setIsApplyModalOpen(false), 2500);
       } else {
         setApplyStatus({ loading: false, error: data.message || 'Có lỗi xảy ra', success: false });
       }
@@ -63,7 +136,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <GraduationCap className="h-8 w-8 text-purple-600" />
-            <span className="text-xl font-bold text-slate-900">GiaSuPro</span>
+            <span className="text-xl font-bold text-slate-900">EduMatch</span>
           </div>
           <div className="flex items-center gap-4">
             {user ? (
@@ -352,7 +425,7 @@ const LandingPage = () => {
       <footer className="bg-[#1a1f2c] text-slate-400 py-16 px-4">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div>
-            <h3 className="text-white font-bold text-xl mb-6">GiaSuPro</h3>
+            <h3 className="text-white font-bold text-xl mb-6">EduMatch</h3>
             <p className="text-slate-400 leading-relaxed">
               Nền tảng kết nối gia sư và học viên hàng đầu Việt Nam
             </p>
@@ -396,7 +469,7 @@ const LandingPage = () => {
                 Ứng tuyển làm gia sư
               </h3>
               <button 
-                onClick={() => setIsApplyModalOpen(false)}
+                onClick={() => { setIsApplyModalOpen(false); resetApplyModal(); }}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors"
               >
                 <X className="h-5 w-5" />
@@ -420,50 +493,138 @@ const LandingPage = () => {
                     </div>
                   )}
                   
+                  {/* Email + OTP section */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Email liên hệ
+                      Email liên hệ <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="email"
-                      required
-                      value={applyEmail}
-                      onChange={(e) => setApplyEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      placeholder="example@gmail.com"
-                    />
-                    <p className="text-xs text-slate-500 mt-1.5">* Chúng tôi sẽ gửi lịch phỏng vấn qua email này</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        required
+                        value={applyEmail}
+                        disabled={otpSent}
+                        onChange={(e) => { setApplyEmail(e.target.value); setOtpError(''); }}
+                        className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        placeholder="example@gmail.com"
+                      />
+                      {!otpSent ? (
+                        <button
+                          type="button"
+                          disabled={!applyEmail || otpLoading}
+                          onClick={handleSendOtp}
+                          className="px-3 py-2 bg-purple-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        >
+                          {otpLoading ? '...' : 'Gửi mã'}
+                        </button>
+                      ) : !otpVerified ? (
+                        <button
+                          type="button"
+                          onClick={() => { setOtpSent(false); setOtpValue(''); setOtpError(''); }}
+                          className="px-3 py-2 border border-slate-300 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-50 transition-colors whitespace-nowrap"
+                        >
+                          Đổi email
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1.5">* Chỉ chấp nhận email @gmail.com</p>
+                    {otpError && <p className="text-xs text-red-500 mt-1">{otpError}</p>}
                   </div>
 
+                  {/* OTP input */}
+                  {otpSent && !otpVerified && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Nhập mã xác nhận 6 số <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={otpValue}
+                          onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                          className="flex-1 px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-center tracking-widest font-mono text-lg"
+                          placeholder="_ _ _ _ _ _"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOtp}
+                          className="px-3 py-2 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors whitespace-nowrap"
+                        >
+                          Xác nhận
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1.5">Kiểm tra hộp thư (kể cả Spam) để lấy mã. Mã có hiệu lực 5 phút.</p>
+                    </div>
+                  )}
+
+                  {otpVerified && (
+                    <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      Email đã được xác minh!
+                    </div>
+                  )}
+
+                  {/* CV Upload */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      Hình ảnh CV / Thẻ sinh viên / Bằng cấp
+                      Hình ảnh CV / Thẻ sinh viên / Bằng cấp <span className="text-red-500">*</span>
                     </label>
-                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:bg-slate-50 transition-colors relative cursor-pointer" onClick={() => document.getElementById('cv-upload').click()}>
-                      <div className="space-y-2 text-center">
-                        <Upload className="mx-auto h-8 w-8 text-slate-400" />
-                        <div className="flex text-sm text-slate-600 justify-center">
-                          <label htmlFor="cv-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none">
-                            <span>Tải ảnh lên</span>
-                            <input id="cv-upload" name="cv-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => setApplyCvFile(e.target.files[0])} />
-                          </label>
-                          <p className="pl-1">hoặc kéo thả vào đây</p>
+
+                    {!applyCvFile ? (
+                      <div
+                        className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:bg-slate-50 transition-colors relative cursor-pointer"
+                        onClick={() => document.getElementById('cv-upload').click()}
+                      >
+                        <div className="space-y-2 text-center">
+                          <Upload className="mx-auto h-8 w-8 text-slate-400" />
+                          <div className="flex text-sm text-slate-600 justify-center">
+                            <span className="font-medium text-purple-600 hover:text-purple-500">Tải ảnh lên</span>
+                            <p className="pl-1">hoặc kéo thả vào đây</p>
+                          </div>
+                          <p className="text-xs text-slate-500">PNG, JPG lên tới 5MB</p>
                         </div>
-                        <p className="text-xs text-slate-500">PNG, JPG, GIF lên tới 5MB</p>
+                        <input
+                          id="cv-upload"
+                          name="cv-upload"
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={(e) => handleCvChange(e.target.files[0])}
+                        />
                       </div>
-                    </div>
-                    {applyCvFile && (
-                      <div className="mt-2 text-sm text-purple-600 flex items-center gap-1.5 bg-purple-50 py-1.5 px-3 rounded-lg border border-purple-100">
-                        <CheckCircle2 className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{applyCvFile.name}</span>
+                    ) : (
+                      <div className="mt-1 flex items-center gap-2 px-3 py-2.5 bg-purple-50 border border-purple-200 rounded-xl">
+                        <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        </div>
+                        <span className="flex-1 text-sm text-slate-700 truncate font-medium" title={applyCvFile.name}>
+                          {applyCvFile.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCvLightboxOpen(true)}
+                          title="Xem ảnh"
+                          className="flex-shrink-0 p-1.5 text-slate-500 hover:text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRemoveCv}
+                          title="Xóa ảnh"
+                          className="flex-shrink-0 p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        </button>
                       </div>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    disabled={applyStatus.loading}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold shadow-sm transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    disabled={applyStatus.loading || !otpVerified || !applyCvFile}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold shadow-sm transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {applyStatus.loading ? (
                       <>
@@ -477,6 +638,31 @@ const LandingPage = () => {
                 </form>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CV Lightbox */}
+      {cvLightboxOpen && cvPreviewUrl && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setCvLightboxOpen(false)}
+        >
+          <div
+            className="relative max-w-3xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setCvLightboxOpen(false)}
+              className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-white text-slate-700 rounded-full flex items-center justify-center shadow-lg hover:bg-slate-100 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src={cvPreviewUrl}
+              alt="CV Preview"
+              className="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+            />
           </div>
         </div>
       )}
