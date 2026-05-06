@@ -274,7 +274,7 @@ const ForgotPasswordPage = () => {
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
             <GraduationCap size={36} color="#7c3aed" />
-            <span style={{ fontSize: '28px', fontWeight: '800', color: '#1e293b' }}>GiaSuPro</span>
+            <span style={{ fontSize: '28px', fontWeight: '800', color: '#1e293b' }}>EduMatch</span>
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: '0 0 4px' }}>Quên mật khẩu</h2>
           <p style={{ fontSize: '14px', color: '#64748b', margin: 0 }}>Khôi phục quyền truy cập tài khoản của bạn</p>

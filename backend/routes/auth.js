@@ -329,13 +329,13 @@ router.post('/forgot-password', async (req, res) => {
     otpStore.set(email, { otp, expiresAt });
 
     await transporter.sendMail({
-      from: `"GiaSuPro" <${process.env.EMAIL_USER}>`,
+      from: `"EduMatch" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: '🔐 Mã OTP đặt lại mật khẩu - GiaSuPro',
+      subject: '🔐 Mã OTP đặt lại mật khẩu - EduMatch',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background: #f9fafb; border-radius: 12px;">
           <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #7c3aed; margin: 0; font-size: 28px;">🎓 GiaSuPro</h1>
+            <h1 style="color: #7c3aed; margin: 0; font-size: 28px;">🎓 EduMatch</h1>
           </div>
           <div style="background: white; border-radius: 12px; padding: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
             <h2 style="color: #1e293b; margin-top: 0;">Đặt lại mật khẩu</h2>
@@ -347,7 +347,7 @@ router.post('/forgot-password', async (req, res) => {
             <p style="color: #ef4444; font-weight: bold;">⏰ Mã này có hiệu lực trong <strong>5 phút</strong></p>
             <p style="color: #94a3b8; font-size: 13px;">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
           </div>
-          <p style="color: #cbd5e1; font-size: 12px; text-align: center; margin-top: 20px;">© 2025 GiaSuPro. All rights reserved.</p>
+          <p style="color: #cbd5e1; font-size: 12px; text-align: center; margin-top: 20px;">© 2025 EduMatch. All rights reserved.</p>
         </div>
       `,
     });
