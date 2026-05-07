@@ -23,7 +23,8 @@ jobs:
           fetch-depth: 0 # Cần full history để SonarCloud phân tích blame & new code
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Tự động có sẵn, dùng để comment PR
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Token bạn thêm vào GitHub Secrets
+          SONAR_HOST_URL: https://sonarcloud.io     # Bắt buộc với action mới
