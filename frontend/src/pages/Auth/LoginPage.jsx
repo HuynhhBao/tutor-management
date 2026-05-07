@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [activeTab, setActiveTab] = useState('user'); // 'user' or 'tutor'
+
   const isAdmin = location.pathname.startsWith('/admin');
   const from = location.state?.from?.pathname || (isAdmin ? '/admin' : '/');
 
@@ -21,11 +23,15 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, isAdmin ? 'admin' : activeTab);
 
       if (result.success) {
         // Redirect to intended page or dashboard
-        navigate(from, { replace: true });
+        if (!isAdmin && activeTab === 'tutor') {
+          navigate('/tutor-dashboard', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else {
         setError(result.message || 'Đăng nhập thất bại');
       }
@@ -50,7 +56,7 @@ const LoginPage = () => {
         <div className="flex justify-center">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-10 w-10 text-purple-600" />
-            <span className="text-3xl font-bold text-slate-900">GiaSuPro</span>
+            <span className="text-3xl font-bold text-slate-900">EduMatch</span>
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
@@ -62,6 +68,31 @@ const LoginPage = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {!isAdmin && (
+          <div className="flex p-1 bg-slate-200/50 rounded-xl mb-6">
+            <button
+              onClick={() => setActiveTab('user')}
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                activeTab === 'user' 
+                  ? 'bg-white text-purple-600 shadow-sm ring-1 ring-slate-900/5' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              Học viên / Phụ huynh
+            </button>
+            <button
+              onClick={() => setActiveTab('tutor')}
+              className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                activeTab === 'tutor' 
+                  ? 'bg-white text-purple-600 shadow-sm ring-1 ring-slate-900/5' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              Gia sư
+            </button>
+          </div>
+        )}
+
         <div className="bg-white py-8 px-4 shadow-sm border border-slate-200 sm:rounded-2xl sm:px-10">
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
@@ -72,19 +103,19 @@ const LoginPage = () => {
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                Email / Tên đăng nhập
+                {activeTab === 'tutor' ? 'Tên đăng nhập (Username)' : 'Email'}
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  type="text"
+                  type={activeTab === 'tutor' ? 'text' : 'email'}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                  placeholder={isAdmin ? 'Tên đăng nhập admin' : 'Email hoặc tên đăng nhập'}
+                  placeholder={isAdmin ? 'Tên đăng nhập admin' : (activeTab === 'tutor' ? 'Nhập tên đăng nhập được cấp' : 'Nhập địa chỉ email')}
                 />
               </div>
             </div>
@@ -144,7 +175,7 @@ const LoginPage = () => {
             </div>
           </form>
 
-          {!isAdmin && (
+          {!isAdmin && activeTab === 'user' && (
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -164,6 +195,15 @@ const LoginPage = () => {
                   Đăng ký ngay
                 </button>
               </div>
+            </div>
+          )}
+
+          {!isAdmin && activeTab === 'tutor' && (
+            <div className="mt-6 bg-blue-50 text-blue-800 p-4 rounded-xl text-sm border border-blue-100 flex gap-3 items-start">
+              <div className="flex-shrink-0 mt-0.5">
+                <GraduationCap className="w-5 h-5 text-blue-600" />
+              </div>
+              <p>Tài khoản Gia sư do Quản trị viên cấp sau khi phỏng vấn thành công. Nếu bạn chưa có tài khoản, vui lòng đăng ký ở trang chủ.</p>
             </div>
           )}
         </div>

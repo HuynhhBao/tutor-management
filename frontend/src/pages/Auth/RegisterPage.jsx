@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock, User, CheckCircle } from 'lucide-react';
-import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -74,7 +73,7 @@ const RegisterPage = () => {
         <div className="flex justify-center">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-10 w-10 text-purple-600" />
-            <span className="text-3xl font-bold text-slate-900">GiaSuPro</span>
+            <span className="text-3xl font-bold text-slate-900">EduMatch</span>
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
@@ -152,7 +151,6 @@ const RegisterPage = () => {
               <p className="mt-1 text-xs text-slate-500 italic">
                 * Tối thiểu 8 ký tự, gồm chữ in hoa và ký tự đặc biệt
               </p>
-              <PasswordStrengthIndicator password={password} />
             </div>
 
             <div>

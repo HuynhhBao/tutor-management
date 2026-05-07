@@ -6,11 +6,9 @@ import {
   UserSquare, 
   CalendarDays, 
   Wallet,
-  LogOut,
-  ChevronUp
+  LogOut
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import UserAccountMenu from './UserAccountMenu';
+import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
   { path: '/admin', name: 'Tổng quan', icon: LayoutDashboard },
@@ -22,7 +20,6 @@ const menuItems = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
-  const [showMenu, setShowMenu] = useState(false);
   const [stats, setStats] = useState({ totalTutors: 0, pendingApplications: 0 });
 
   useEffect(() => {
@@ -38,9 +35,15 @@ export default function Sidebar() {
       }
     };
     fetchStats();
-    // Optional: set up an interval to poll for updates
     const interval = setInterval(fetchStats, 60000); // 1 minute
-    return () => clearInterval(interval);
+    
+    // Listen for cross-component updates
+    window.addEventListener('tutorStatsChanged', fetchStats);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('tutorStatsChanged', fetchStats);
+    };
   }, []);
 
   return (
@@ -77,34 +80,25 @@ export default function Sidebar() {
         })}
       </nav>
       
-      <div className="p-4 border-t border-gray-200 relative">
-        {showMenu && (
-          <UserAccountMenu 
-            user={user} 
-            onLogout={logout} 
-            onClose={() => setShowMenu(false)} 
-          />
-        )}
-        <button 
-          className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowMenu(!showMenu);
-          }}
-        >
-          <div className="flex items-center overflow-hidden">
-            <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold uppercase shadow-sm group-hover:scale-105 transition-transform">
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold uppercase">
               {user?.fullName?.charAt(0) || 'U'}
             </div>
-            <div className="ml-3 text-left overflow-hidden">
-              <p className="text-sm font-bold text-gray-800 truncate">{user?.fullName || 'Người dùng'}</p>
+            <div className="ml-3 overflow-hidden">
+              <p className="text-sm font-medium text-gray-700 truncate">{user?.fullName || 'Người dùng'}</p>
               <p className="text-xs text-gray-500 truncate">{user?.email || 'Chưa đăng nhập'}</p>
             </div>
           </div>
-          <div className={`text-gray-400 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`}>
-            <ChevronUp className="w-4 h-4" />
-          </div>
-        </button>
+          <button 
+            onClick={logout}
+            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Đăng xuất"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </aside>
   );
