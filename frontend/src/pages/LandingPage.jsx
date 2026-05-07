@@ -72,7 +72,7 @@ const LandingPage = () => {
       const data = await response.json();
       if (response.ok) {
         setApplyStep(2);
-        setOtpCountdown(300); // 5 minutes
+        setOtpCountdown(60); // 1 minute resend timer
       } else {
         setApplyError(data.message);
       }
