@@ -38,3 +38,10 @@ backend/build/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Test Coverage
+coverage/
+*.lcov
+
+# SonarCloud scanner cache
+.scannerwork/
