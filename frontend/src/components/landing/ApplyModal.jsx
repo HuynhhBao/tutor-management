@@ -13,6 +13,7 @@ const ApplyModal = ({
   previewUrls, 
   loading, 
   error, 
+  otpCountdown,
   onSendOtp, 
   onSubmit, 
   onFileChange, 
@@ -55,10 +56,12 @@ const ApplyModal = ({
                 />
                 <button
                   onClick={onSendOtp}
-                  disabled={loading || !email.endsWith('@gmail.com')}
+                  disabled={loading || !email.endsWith('@gmail.com') || otpCountdown > 0}
                   className="px-4 py-3 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl font-bold text-xs transition-colors whitespace-nowrap disabled:opacity-50"
                 >
-                  {loading && step === 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : (step === 2 ? 'Gửi lại' : 'Gửi mã')}
+                  {loading && step === 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                   (otpCountdown > 0 ? `Gửi lại (${Math.floor(otpCountdown / 60)}:${(otpCountdown % 60).toString().padStart(2, '0')})` : 
+                   (step === 2 ? 'Gửi lại' : 'Gửi mã'))}
                 </button>
               </div>
               <p className="text-[11px] text-slate-500 italic">* Chúng tôi sẽ gửi lịch phỏng vấn qua email này</p>

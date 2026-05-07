@@ -5,12 +5,28 @@ import ApplicationTable from '../../components/admin/ApplicationTable';
 import TutorFormModal from '../../components/admin/TutorFormModal';
 import GrantAccountModal from '../../components/admin/GrantAccountModal';
 import ApproveModal from '../../components/admin/ApproveModal';
+import { API_BASE_URL } from '../../utils/constants';
+import { formatDateTime } from '../../utils/formatters';
 
 const EMPTY_FORM = { fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' };
 
 export default function TutorManagement() {
   const [activeTab, setActiveTab] = useState('tutors'); // 'tutors' | 'applications'
   const [searchTerm, setSearchTerm] = useState('');
+  const [stats, setStats] = useState({ totalTutors: 0, pendingApplications: 0 });
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tutors/stats`);
+      const data = await response.json();
+      if (data.status === 'ok') {
+        setStats(data.data);
+        window.dispatchEvent(new Event('tutorStatsChanged'));
+      }
+    } catch (err) {
+      console.error('Error fetching tutor stats:', err);
+    }
+  };
 
   // --- Tutors ---
   const [tutors, setTutors] = useState([]);
@@ -37,7 +53,7 @@ export default function TutorManagement() {
   const fetchTutors = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3001/api/tutors');
+      const response = await fetch(`${API_BASE_URL}/tutors`);
       const data = await response.json();
       if (data.status === 'ok') setTutors(data.data);
     } catch (err) { console.error('Error fetching tutors:', err); }
@@ -47,7 +63,7 @@ export default function TutorManagement() {
   const fetchApplications = async () => {
     setLoadingApps(true);
     try {
-      const response = await fetch('http://localhost:3001/api/tutors/applications');
+      const response = await fetch(`${API_BASE_URL}/tutors/applications`);
       const data = await response.json();
       if (data.status === 'ok') setApplications(data.data);
     } catch (err) { console.error('Error fetching applications:', err); }
@@ -57,6 +73,10 @@ export default function TutorManagement() {
   useEffect(() => {
     activeTab === 'tutors' ? fetchTutors() : fetchApplications();
   }, [activeTab]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [applications]); // Re-fetch stats when applications change
 
   // --- Tutor handlers ---
   const handleEdit = (tutor) => {
@@ -68,7 +88,7 @@ export default function TutorManagement() {
   const handleDelete = async (id) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa gia sư này?')) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/tutors/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE_URL}/tutors/${id}`, { method: 'DELETE' });
       if (response.ok) fetchTutors();
       else alert('Có lỗi xảy ra khi xóa gia sư');
     } catch { alert('Không thể kết nối đến server'); }
@@ -76,7 +96,7 @@ export default function TutorManagement() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = editingId ? `http://localhost:3001/api/tutors/${editingId}` : 'http://localhost:3001/api/tutors';
+    const url = editingId ? `${API_BASE_URL}/tutors/${editingId}` : `${API_BASE_URL}/tutors`;
     const method = editingId ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
@@ -88,11 +108,6 @@ export default function TutorManagement() {
   const closeFormModal = () => { setIsModalOpen(false); setEditingId(null); setFormData(EMPTY_FORM); };
 
   // --- Application handlers ---
-  const formatDateTime = (datetimeStr) => {
-    if (!datetimeStr) return '';
-    return new Date(datetimeStr).toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
-
   const handleApproveClick = (appId) => {
     setApprovingAppId(appId);
     setInterviewData({ time: '', address: '' });
@@ -105,7 +120,7 @@ export default function TutorManagement() {
     if (!interviewData.time || !interviewData.address) { setApproveStatus({ loading: false, error: 'Vui lòng nhập đủ thời gian và địa điểm' }); return; }
     setApproveStatus({ loading: true, error: '' });
     try {
-      const response = await fetch(`http://localhost:3001/api/tutors/applications/${approvingAppId}/approve`, {
+      const response = await fetch(`${API_BASE_URL}/tutors/applications/${approvingAppId}/approve`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interviewTime: formatDateTime(interviewData.time), interviewAddress: interviewData.address }),
@@ -116,10 +131,15 @@ export default function TutorManagement() {
     } catch { setApproveStatus({ loading: false, error: 'Không thể kết nối đến server' }); }
   };
 
-  const handleRejectClick = async (appId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối và xóa hồ sơ này? Ứng viên sẽ nhận được email thông báo từ chối.')) return;
+  const handleRejectClick = async (appId, status) => {
+    const isApproved = status === 'approved';
+    const confirmMsg = isApproved 
+      ? 'Bạn có chắc chắn muốn từ chối ứng viên này vì không đạt phỏng vấn? Hệ thống sẽ gửi email thông báo kết quả phỏng vấn.'
+      : 'Bạn có chắc chắn muốn từ chối và xóa hồ sơ này? Ứng viên sẽ nhận được email thông báo từ chối CV.';
+      
+    if (!window.confirm(confirmMsg)) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/tutors/applications/${appId}/reject`, { method: 'DELETE' });
+      const response = await fetch(`${API_BASE_URL}/tutors/applications/${appId}/reject`, { method: 'DELETE' });
       const data = await response.json();
       if (response.ok) { fetchApplications(); alert('Đã từ chối và gửi email thông báo thành công!'); }
       else alert(data.message || 'Lỗi từ chối hồ sơ');
@@ -140,7 +160,7 @@ export default function TutorManagement() {
     if (!grantUsername) { setGrantStatus({ loading: false, error: 'Vui lòng nhập tên tài khoản' }); return; }
     setGrantStatus({ loading: true, error: '' });
     try {
-      const response = await fetch(`http://localhost:3001/api/tutors/${grantingTutorId}/grant-account`, {
+      const response = await fetch(`${API_BASE_URL}/tutors/${grantingTutorId}/grant-account`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: grantUsername }),
@@ -170,8 +190,15 @@ export default function TutorManagement() {
       <div className="flex border-b border-gray-200">
         {['tutors', 'applications'].map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`py-3 px-6 font-medium text-sm border-b-2 transition-colors ${activeTab === tab ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-            {tab === 'tutors' ? 'Danh sách Gia sư' : 'Hồ sơ Ứng tuyển'}
+            className={`relative py-3 px-6 font-medium text-sm border-b-2 transition-colors ${activeTab === tab ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            <div className="flex items-center gap-2">
+              <span>{tab === 'tutors' ? 'Danh sách Gia sư' : 'Hồ sơ Ứng tuyển'}</span>
+              {tab === 'applications' && stats.pendingApplications > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                  {stats.pendingApplications}
+                </span>
+              )}
+            </div>
           </button>
         ))}
       </div>

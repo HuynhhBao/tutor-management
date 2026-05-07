@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LandingHeader from '../components/landing/LandingHeader';
@@ -31,6 +31,18 @@ const LandingPage = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
   const [applyError, setApplyError] = useState('');
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Countdown timer for OTP
+  useEffect(() => {
+    let timer;
+    if (otpCountdown > 0) {
+      timer = setInterval(() => {
+        setOtpCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpCountdown]);
 
   // Handlers
   const handleRequireLogin = () => {
@@ -58,8 +70,12 @@ const LandingPage = () => {
         body: JSON.stringify({ email: applyEmail }),
       });
       const data = await response.json();
-      if (response.ok) setApplyStep(2);
-      else setApplyError(data.message);
+      if (response.ok) {
+        setApplyStep(2);
+        setOtpCountdown(300); // 5 minutes
+      } else {
+        setApplyError(data.message);
+      }
     } catch {
       setApplyError('Lỗi kết nối server');
     } finally {
@@ -194,6 +210,7 @@ const LandingPage = () => {
         previewUrls={previewUrls}
         loading={applyLoading}
         error={applyError}
+        otpCountdown={otpCountdown}
         onSendOtp={handleSendApplyOtp}
         onSubmit={handleSubmitApplication}
         onFileChange={handleFileChange}

@@ -126,7 +126,11 @@ export const submitApplication = async (req, res) => {
 // GET /api/tutors/applications
 export const getApplications = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM tutor_applications ORDER BY created_at DESC');
+    const result = await pool.query(`
+      SELECT * FROM tutor_applications 
+      WHERE email NOT IN (SELECT email FROM tutors WHERE email IS NOT NULL)
+      ORDER BY created_at DESC
+    `);
     res.json({ status: 'ok', data: result.rows });
   } catch (err) {
     console.error('Error fetching applications:', err);
@@ -196,11 +200,24 @@ export const rejectApplication = async (req, res) => {
 
     await pool.query('DELETE FROM tutor_applications WHERE id = $1', [id]);
 
-    transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: application.email,
-      subject: 'EduMatch - Thông báo kết quả ứng tuyển Gia Sư',
-      html: `
+    let emailHtml = '';
+    let emailSubject = '';
+
+    if (application.status === 'approved') {
+      emailSubject = 'EduMatch - Thông báo kết quả phỏng vấn Gia Sư';
+      emailHtml = `
+        <h3>Chào bạn,</h3>
+        <p>Cảm ơn bạn đã dành thời gian tham gia buổi phỏng vấn gia sư cùng EduMatch.</p>
+        <p>Sau khi đánh giá năng lực và các tiêu chí sư phạm, chúng tôi rất tiếc phải thông báo rằng bạn <strong>chưa đạt yêu cầu</strong> trong đợt tuyển dụng lần này.</p>
+        <p>EduMatch đánh giá cao sự nhiệt tình của bạn. Chúng tôi hy vọng sẽ có cơ hội hợp tác với bạn trong tương lai khi bạn đã tích lũy thêm kinh nghiệm.</p>
+        <p>Chúc bạn nhiều sức khỏe và thành công!</p>
+        <br/>
+        <p>Trân trọng,</p>
+        <p><strong>Đội ngũ EduMatch</strong></p>
+      `;
+    } else {
+      emailSubject = 'EduMatch - Thông báo kết quả hồ sơ ứng tuyển Gia Sư';
+      emailHtml = `
         <h3>Chào bạn,</h3>
         <p>Cảm ơn bạn đã quan tâm và gửi hồ sơ ứng tuyển làm gia sư tại hệ thống EduMatch.</p>
         <p>Sau khi xem xét kỹ lưỡng hồ sơ và năng lực của bạn, chúng tôi rất tiếc phải thông báo rằng hồ sơ của bạn <strong>hiện tại chưa phù hợp</strong> với các tiêu chí tuyển dụng của hệ thống.</p>
@@ -209,7 +226,14 @@ export const rejectApplication = async (req, res) => {
         <br/>
         <p>Trân trọng,</p>
         <p><strong>Đội ngũ EduMatch</strong></p>
-      `
+      `;
+    }
+
+    transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: application.email,
+      subject: emailSubject,
+      html: emailHtml
     }, (error, info) => {
       if (error) console.error('Error sending rejection email:', error);
       else console.log('Rejection email sent:', info.response);

@@ -1,5 +1,29 @@
 import pool from '../config/db.js';
 
+// GET /api/tutors/stats
+export const getTutorStats = async (req, res) => {
+  try {
+    const [tutorsResult, pendingResult] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM tutors'),
+      pool.query(`
+        SELECT COUNT(*) FROM tutor_applications 
+        WHERE status = 'pending' 
+        AND email NOT IN (SELECT email FROM tutors WHERE email IS NOT NULL)
+      `),
+    ]);
+    res.json({
+      status: 'ok',
+      data: {
+        totalTutors: parseInt(tutorsResult.rows[0].count, 10),
+        pendingApplications: parseInt(pendingResult.rows[0].count, 10),
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching tutor stats:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
+  }
+};
+
 // GET /api/tutors
 export const getAllTutors = async (req, res) => {
   try {
