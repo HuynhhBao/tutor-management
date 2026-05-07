@@ -14,9 +14,6 @@ const GrantAccountModal = ({ isOpen, grantUsername, setGrantUsername, grantStatu
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Tên tài khoản (Username)</label>
         <div className="relative">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <UserCircle className="w-4 h-4 text-slate-400" />
-          </span>
           <input
             type="text"
             required
@@ -25,6 +22,9 @@ const GrantAccountModal = ({ isOpen, grantUsername, setGrantUsername, grantStatu
             className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
             placeholder="Nhập tên đăng nhập cho gia sư"
           />
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <UserCircle className="w-4 h-4 text-slate-400" />
+          </span>
         </div>
         <p className="text-xs text-slate-500 mt-2 italic">
           * Mật khẩu sẽ được sinh ngẫu nhiên. Tài khoản và mật khẩu sẽ được gửi trực tiếp đến email của gia sư.

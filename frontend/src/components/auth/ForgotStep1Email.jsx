@@ -14,9 +14,6 @@ const ForgotStep1Email = ({ email, setEmail, loading, onSubmit }) => (
     <div style={{ marginBottom: '20px' }}>
       <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Địa chỉ email</label>
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-          <Mail size={18} />
-        </div>
         <input
           id="forgot-email"
           type="email"
@@ -28,6 +25,9 @@ const ForgotStep1Email = ({ email, setEmail, loading, onSubmit }) => (
           onFocus={e => e.target.style.borderColor = '#7c3aed'}
           onBlur={e => e.target.style.borderColor = '#e2e8f0'}
         />
+        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 10 }}>
+          <Mail size={18} />
+        </div>
       </div>
     </div>
 
