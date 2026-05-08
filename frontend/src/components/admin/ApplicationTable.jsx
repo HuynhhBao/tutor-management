@@ -8,7 +8,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
 
   return (
     <table className="w-full text-left text-sm">
-      <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+      <thead className="bg-slate-100 text-gray-500 border-b border-gray-100">
         <tr>
           <th className="px-6 py-4 font-semibold">ID</th>
           <th className="px-6 py-4 font-semibold">Email Liên Hệ</th>
@@ -29,7 +29,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
           </tr>
         ) : filtered.length > 0 ? (
           filtered.map((app) => (
-            <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
+            <tr key={app.id} className="hover:bg-slate-100/80 transition-colors">
               <td className="px-6 py-4 font-medium text-gray-900">APP-{app.id}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center text-slate-700">

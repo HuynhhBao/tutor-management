@@ -11,7 +11,7 @@ const TutorSearchPage = () => {
           <input 
             type="text" 
             placeholder="Tìm theo tên, môn học hoặc kỹ năng..."
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
       </div>
@@ -27,7 +27,7 @@ const TutorSearchPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Môn học</label>
-                <select className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                <select className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm">
                   <option>Tất cả môn học</option>
                   <option>Toán học</option>
                   <option>Ngữ văn</option>
@@ -36,7 +36,7 @@ const TutorSearchPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Khu vực</label>
-                <select className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                <select className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm">
                   <option>Tất cả khu vực</option>
                   <option>Quận 1</option>
                   <option>Quận 7</option>

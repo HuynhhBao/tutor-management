@@ -87,7 +87,7 @@ const TutorFormModal = ({ isOpen, editingId, formData, onChange, onSubmit, onClo
 
       <div className="flex gap-3 pt-4">
         <button type="button" onClick={onClose}
-          className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">
+          className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors">
           Hủy
         </button>
         <button type="submit"
