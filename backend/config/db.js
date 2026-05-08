@@ -1,7 +1,7 @@
 import pkg from 'pg';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -113,6 +113,20 @@ export const initDb = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Ensure avatar_url column exists in all relevant tables
+    const tablesToUpdate = ['users', 'admins', 'tutors'];
+    for (const table of tablesToUpdate) {
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='${table}' AND column_name='avatar_url') THEN
+            EXECUTE 'ALTER TABLE ${table} ADD COLUMN avatar_url VARCHAR(255)';
+          END IF;
+        END
+        $$;
+      `);
+    }
 
     console.log('Database initialized successfully');
   } catch (err) {

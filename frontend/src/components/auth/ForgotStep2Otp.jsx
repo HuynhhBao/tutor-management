@@ -9,13 +9,13 @@ const ForgotStep2Otp = ({
 }) => (
   <form onSubmit={onSubmit}>
     <div style={{ marginBottom: '8px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #7c3aed, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #2563eb, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
         <ShieldCheck size={22} color="white" />
       </div>
       <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', margin: '0 0 6px' }}>Nhập mã OTP</h3>
       <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 4px' }}>Mã 6 chữ số có hiệu lực trong 5 phút</p>
       <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 6px' }}>Mã đã được gửi đến</p>
-      <p style={{ fontSize: '14px', fontWeight: '600', color: '#7c3aed', margin: '0 0 24px' }}>{email}</p>
+      <p style={{ fontSize: '14px', fontWeight: '600', color: '#2563eb', margin: '0 0 24px' }}>{email}</p>
     </div>
 
     {/* 6 ô OTP */}
@@ -33,12 +33,12 @@ const ForgotStep2Otp = ({
           onKeyDown={e => onOtpKeyDown(idx, e)}
           style={{
             width: '48px', height: '56px', textAlign: 'center', fontSize: '22px', fontWeight: '700',
-            border: `2px solid ${digit ? '#7c3aed' : '#e2e8f0'}`,
+            border: `2px solid ${digit ? '#2563eb' : '#e2e8f0'}`,
             borderRadius: '12px', outline: 'none', background: digit ? '#faf5ff' : 'white',
             color: '#1e293b', transition: 'all 0.2s', fontFamily: 'inherit',
           }}
-          onFocus={e => e.target.style.borderColor = '#7c3aed'}
-          onBlur={e => e.target.style.borderColor = digit ? '#7c3aed' : '#e2e8f0'}
+          onFocus={e => e.target.style.borderColor = '#2563eb'}
+          onBlur={e => e.target.style.borderColor = digit ? '#2563eb' : '#e2e8f0'}
         />
       ))}
     </div>
@@ -47,14 +47,14 @@ const ForgotStep2Otp = ({
     <div style={{ marginBottom: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
         <span style={{ fontSize: '13px', color: '#64748b' }}>Gửi lại mã sau</span>
-        <span style={{ fontSize: '16px', fontWeight: '700', color: timeLeft <= 60 ? '#ef4444' : '#7c3aed', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: '16px', fontWeight: '700', color: timeLeft <= 60 ? '#ef4444' : '#2563eb', fontVariantNumeric: 'tabular-nums' }}>
           {formatTime(timeLeft)}
         </span>
       </div>
       <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '99px', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${progressPercent}%`,
-          background: timeLeft <= 60 ? '#ef4444' : 'linear-gradient(90deg, #7c3aed, #a855f7)',
+          background: timeLeft <= 60 ? '#ef4444' : 'linear-gradient(90deg, #2563eb, #a855f7)',
           borderRadius: '99px', transition: 'width 1s linear, background 0.3s',
         }} />
       </div>
@@ -63,7 +63,7 @@ const ForgotStep2Otp = ({
     <button
       type="submit"
       disabled={loading}
-      style={{ width: '100%', padding: '12px', background: loading ? '#c4b5fd' : 'linear-gradient(135deg, #7c3aed, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginBottom: '12px', fontFamily: 'inherit' }}
+      style={{ width: '100%', padding: '12px', background: loading ? '#c4b5fd' : 'linear-gradient(135deg, #2563eb, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginBottom: '12px', fontFamily: 'inherit' }}
     >
       {loading ? 'Đang xác thực...' : 'Xác nhận OTP'}
     </button>
@@ -72,7 +72,7 @@ const ForgotStep2Otp = ({
       type="button"
       onClick={onResend}
       disabled={loading || timeLeft > 0}
-      style={{ width: '100%', padding: '10px', background: 'none', color: (loading || timeLeft > 0) ? '#c4b5fd' : '#7c3aed', border: `1.5px solid ${(loading || timeLeft > 0) ? '#e2e8f0' : '#7c3aed'}`, borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: (loading || timeLeft > 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontFamily: 'inherit' }}
+      style={{ width: '100%', padding: '10px', background: 'none', color: (loading || timeLeft > 0) ? '#c4b5fd' : '#2563eb', border: `1.5px solid ${(loading || timeLeft > 0) ? '#e2e8f0' : '#2563eb'}`, borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: (loading || timeLeft > 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontFamily: 'inherit' }}
     >
       <RefreshCw size={15} />
       {timeLeft > 0 ? `Gửi lại sau ${formatTime(timeLeft)}` : 'Gửi lại mã OTP'}

@@ -174,7 +174,7 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-purple-100 selection:text-purple-700">
+    <div className="min-h-screen bg-slate-100/50 font-sans selection:bg-blue-200 selection:text-blue-800">
       <LandingHeader 
         user={user} 
         showMenu={showMenu} 

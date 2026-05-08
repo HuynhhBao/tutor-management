@@ -69,7 +69,7 @@ export const login = async (req, res) => {
 
     res.json({
       status: 'ok',
-      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: 'user' }
+      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: 'user', avatarUrl: user.avatar_url }
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -112,7 +112,7 @@ export const adminLogin = async (req, res) => {
 
     res.json({
       status: 'ok',
-      user: { id: admin.id, email: admin.username, fullName: admin.full_name, role: admin.role }
+      user: { id: admin.id, email: admin.username, fullName: admin.full_name, role: admin.role, avatarUrl: admin.avatar_url }
     });
   } catch (err) {
     console.error('Admin login error:', err);
@@ -161,7 +161,7 @@ export const tutorLogin = async (req, res) => {
 
     res.json({
       status: 'ok',
-      user: { id: account.tutor_id, accountId: account.id, username: account.username, fullName: account.full_name, email: account.tutor_email, role: 'tutor' }
+      user: { id: account.tutor_id, accountId: account.id, username: account.username, fullName: account.full_name, email: account.tutor_email, role: 'tutor', avatarUrl: account.avatar_url }
     });
   } catch (err) {
     console.error('Tutor login error:', err);
@@ -182,16 +182,16 @@ export const getMe = async (req, res) => {
 
     let userResult;
     if (decoded.role === 'admin' || decoded.role === 'staff') {
-      userResult = await pool.query('SELECT id, username as email, full_name, role FROM admins WHERE id = $1', [decoded.id]);
+      userResult = await pool.query('SELECT id, username as email, full_name, role, avatar_url FROM admins WHERE id = $1', [decoded.id]);
     } else if (decoded.role === 'tutor') {
       userResult = await pool.query(`
-        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email 
+        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email, t.avatar_url 
         FROM tutors t 
         JOIN tutor_accounts a ON t.id = a.tutor_id 
         WHERE t.id = $1
       `, [decoded.id]);
     } else {
-      userResult = await pool.query('SELECT id, email, full_name, phone_number FROM users WHERE id = $1', [decoded.id]);
+      userResult = await pool.query('SELECT id, email, full_name, phone_number, avatar_url FROM users WHERE id = $1', [decoded.id]);
     }
 
     const user = userResult.rows[0];
@@ -202,15 +202,16 @@ export const getMe = async (req, res) => {
     if (decoded.role === 'tutor') {
       res.json({
         status: 'ok',
-        user: { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor' }
+        user: { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor', avatarUrl: user.avatar_url }
       });
     } else {
       res.json({
         status: 'ok',
-        user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user' }
+        user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user', avatarUrl: user.avatar_url }
       });
     }
   } catch (err) {
+    console.error('Get profile error:', err);
     res.status(401).json({ status: 'error', message: 'Invalid token' });
   }
 };
@@ -239,6 +240,38 @@ export const updateProfile = async (req, res) => {
 
     res.json({ status: 'ok', message: 'Cập nhật hồ sơ thành công' });
   } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
+  }
+};
+
+// PUT /api/auth/update-avatar
+export const updateAvatar = async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ status: 'error', message: 'Not authenticated' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const avatarUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!avatarUrl) {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng chọn ảnh' });
+    }
+
+    if (decoded.role === 'admin' || decoded.role === 'staff') {
+      await pool.query('UPDATE admins SET avatar_url = $1 WHERE id = $2', [avatarUrl, decoded.id]);
+    } else if (decoded.role === 'tutor') {
+      await pool.query('UPDATE tutors SET avatar_url = $1 WHERE id = $2', [avatarUrl, decoded.id]);
+    } else {
+      await pool.query('UPDATE users SET avatar_url = $1 WHERE id = $2', [avatarUrl, decoded.id]);
+    }
+
+    res.json({ status: 'ok', message: 'Cập nhật ảnh đại diện thành công', avatarUrl });
+  } catch (err) {
+    console.error('Update avatar error:', err);
     res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
   }
 };
@@ -290,6 +323,7 @@ export const changePassword = async (req, res) => {
 
     res.json({ status: 'ok', message: 'Đổi mật khẩu thành công' });
   } catch (err) {
+    console.error('Change password error:', err);
     res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
   }
 };

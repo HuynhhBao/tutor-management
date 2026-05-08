@@ -9,11 +9,11 @@ const WalletPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Card */}
         <div className="lg:col-span-1">
-          <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-purple-100 relative overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-3xl text-white shadow-xl shadow-blue-100 relative overflow-hidden">
             <div className="relative z-10">
-              <p className="text-purple-100 text-sm font-medium mb-1">Số dư hiện tại</p>
+              <p className="text-blue-100 text-sm font-medium mb-1">Số dư hiện tại</p>
               <h2 className="text-4xl font-bold mb-8">0đ</h2>
-              <button className="w-full py-3 bg-white text-purple-600 font-bold rounded-xl hover:bg-purple-50 transition-colors flex items-center justify-center gap-2">
+              <button className="w-full py-3 bg-white text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center gap-2">
                 <Plus className="w-5 h-5" />
                 Nạp tiền ngay
               </button>

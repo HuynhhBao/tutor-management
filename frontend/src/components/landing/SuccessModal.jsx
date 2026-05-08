@@ -20,7 +20,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
 
           <button
             onClick={onClose}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-purple-200 transition-all hover:-translate-y-0.5"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
           >
             Đóng thông báo
           </button>

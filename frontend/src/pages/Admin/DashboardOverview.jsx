@@ -4,7 +4,7 @@ import { Users, UserSquare, PlayCircle, DollarSign, ArrowUpRight, Clock } from '
 const stats = [
   { title: 'Tổng số gia sư', value: '0', icon: Users, change: '--', color: 'text-blue-600', bg: 'bg-blue-100' },
   { title: 'Học viên', value: '0', icon: UserSquare, change: '--', color: 'text-green-600', bg: 'bg-green-100' },
-  { title: 'Lớp đang chạy', value: '0', icon: PlayCircle, change: '--', color: 'text-purple-600', bg: 'bg-purple-100' },
+  { title: 'Lớp đang chạy', value: '0', icon: PlayCircle, change: '--', color: 'text-blue-600', bg: 'bg-blue-100' },
   { title: 'Doanh thu tháng', value: '0', icon: DollarSign, change: '--', color: 'text-orange-600', bg: 'bg-orange-100' },
 ];
 
@@ -51,7 +51,7 @@ export default function DashboardOverview() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-500">
+            <thead className="bg-slate-100 text-gray-500">
               <tr>
                 <th className="px-6 py-3 font-medium">Mã lớp</th>
                 <th className="px-6 py-3 font-medium">Gia sư</th>
@@ -64,7 +64,7 @@ export default function DashboardOverview() {
             <tbody className="divide-y divide-gray-100">
               {recentClasses.length > 0 ? (
                 recentClasses.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-100 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900">{item.id}</td>
                     <td className="px-6 py-4 text-gray-700">{item.tutor}</td>
                     <td className="px-6 py-4">

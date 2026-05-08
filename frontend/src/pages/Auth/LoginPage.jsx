@@ -48,11 +48,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-slate-500 hover:text-purple-600 mb-8 transition-colors absolute top-8 left-8"
+          className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 transition-colors absolute top-8 left-8"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Quay lại trang chủ</span>
@@ -60,7 +60,7 @@ const LoginPage = () => {
 
         <div className="flex justify-center">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-10 w-10 text-purple-600" />
+            <GraduationCap className="h-10 w-10 text-blue-600" />
             <span className="text-3xl font-bold text-slate-900">EduMatch</span>
           </div>
         </div>
@@ -78,7 +78,7 @@ const LoginPage = () => {
             <button
               onClick={() => setActiveTab('user')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === 'user'
-                  ? 'bg-white text-purple-600 shadow-sm ring-1 ring-slate-900/5'
+                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                 }`}
             >
@@ -87,7 +87,7 @@ const LoginPage = () => {
             <button
               onClick={() => setActiveTab('tutor')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === 'tutor'
-                  ? 'bg-white text-purple-600 shadow-sm ring-1 ring-slate-900/5'
+                  ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
                 }`}
             >
@@ -114,7 +114,7 @@ const LoginPage = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder={(() => {
                     if (isAdmin) return 'Tên đăng nhập admin';
                     return activeTab === 'tutor' ? 'Nhập tên đăng nhập được cấp' : 'Nhập địa chỉ email';
@@ -137,7 +137,7 @@ const LoginPage = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="••••••••"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -161,7 +161,7 @@ const LoginPage = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-slate-300 rounded"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900">
                   Ghi nhớ đăng nhập
@@ -172,7 +172,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/forgot-password')}
-                  className="font-medium text-purple-600 hover:text-purple-500 bg-none border-none cursor-pointer p-0"
+                  className="font-medium text-blue-600 hover:text-blue-500 bg-none border-none cursor-pointer p-0"
                   style={{ background: 'none', border: 'none' }}
                 >
                   Quên mật khẩu?
@@ -184,7 +184,7 @@ const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {loading ? 'Đang xử lý...' : 'Đăng nhập'}
               </button>
@@ -206,7 +206,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/register')}
-                  className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                  className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Đăng ký ngay
                 </button>

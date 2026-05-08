@@ -71,14 +71,14 @@ export default function TutorDashboard() {
           <h3 className="text-lg font-semibold text-slate-900">Lớp học sắp tới</h3>
         </div>
         <div className="p-12 text-center">
-          <div className="mx-auto w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
             <Clock className="h-8 w-8 text-slate-400" />
           </div>
           <h4 className="text-base font-medium text-slate-900">Chưa có lịch học nào</h4>
           <p className="mt-1 text-sm text-slate-500">
             Hiện tại bạn chưa nhận lớp nào. Hãy tìm kiếm lớp mới phù hợp với chuyên môn của bạn nhé!
           </p>
-          <button className="mt-6 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors shadow-sm">
+          <button className="mt-6 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors shadow-sm">
             Tìm lớp mới ngay
           </button>
         </div>

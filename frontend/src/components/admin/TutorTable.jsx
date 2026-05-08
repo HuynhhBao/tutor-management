@@ -9,7 +9,7 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
 
   return (
     <table className="w-full text-left text-sm">
-      <thead className="bg-gray-50 text-gray-500 border-b border-gray-100">
+      <thead className="bg-slate-100 text-gray-500 border-b border-gray-100">
         <tr>
           <th className="px-6 py-4 font-semibold">Tên gia sư</th>
           <th className="px-6 py-4 font-semibold">Môn dạy</th>
@@ -30,7 +30,7 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
           </tr>
         ) : filtered.length > 0 ? (
           filtered.map((tutor) => (
-            <tr key={tutor.id} className="hover:bg-gray-50/80 transition-colors">
+            <tr key={tutor.id} className="hover:bg-slate-100/80 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center">
                   <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold uppercase border border-primary-200">
@@ -46,7 +46,7 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
               <td className="px-6 py-4">
                 <div className="flex flex-wrap gap-1">
                   {tutor.subjects.split(',').map(sub => (
-                    <span key={sub} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span key={sub} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-blue-800 border border-indigo-100">
                       {sub.trim()}
                     </span>
                   ))}

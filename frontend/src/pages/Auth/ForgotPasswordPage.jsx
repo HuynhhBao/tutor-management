@@ -39,7 +39,7 @@ const ForgotPasswordPage = () => {
   const getRestoredTimeLeft = (session) => {
     if (!session?.otpSentAt) return TOTAL_SECONDS;
     const remaining = TOTAL_SECONDS - Math.floor((now - session.otpSentAt) / 1000);
-    return remaining > 0 ? remaining : 0;
+    return Math.max(0, remaining);
   };
 
   const initialStep = saved?.step && saved.step <= 3 ? saved.step : 1;
@@ -130,7 +130,7 @@ const ForgotPasswordPage = () => {
   };
 
   const handleOtpPaste = (e) => {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const pasted = e.clipboardData.getData('text').replaceAll(/\D/g, '').slice(0, 6);
     if (pasted.length === 6) { setOtp(pasted.split('')); otpRefs.current[5]?.focus(); }
     e.preventDefault();
   };
@@ -200,12 +200,12 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4ff 0%, #f8f0ff 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #dbeafe 0%, #f8fafc 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
       {/* Nút quay lại */}
       <button
         onClick={() => navigate('/login')}
         style={{ position: 'fixed', top: '24px', left: '24px', display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', transition: 'color 0.2s' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#7c3aed'}
+        onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
         onMouseLeave={e => e.currentTarget.style.color = '#64748b'}
       >
         <ArrowLeft size={16} />
@@ -216,7 +216,7 @@ const ForgotPasswordPage = () => {
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-            <GraduationCap size={36} color="#7c3aed" />
+            <GraduationCap size={36} color="#2563eb" />
             <span style={{ fontSize: '28px', fontWeight: '800', color: '#1e293b' }}>EduMatch</span>
           </div>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1e293b', margin: '0 0 4px' }}>Quên mật khẩu</h2>
@@ -226,7 +226,7 @@ const ForgotPasswordPage = () => {
         <StepIndicator step={step} />
 
         {/* Card */}
-        <div style={{ background: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid rgba(124,58,237,0.08)' }}>
+        <div style={{ background: 'white', borderRadius: '20px', padding: '32px', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid rgba(37,99,235,0.08)' }}>
           {/* Error */}
           {error && (
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', color: '#dc2626', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>

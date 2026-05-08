@@ -62,11 +62,11 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <button 
           onClick={() => navigate('/login')}
-          className="flex items-center gap-2 text-slate-500 hover:text-purple-600 mb-8 transition-colors absolute top-8 left-8"
+          className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 transition-colors absolute top-8 left-8"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Quay lại đăng nhập</span>
@@ -74,7 +74,7 @@ const RegisterPage = () => {
 
         <div className="flex justify-center">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-10 w-10 text-purple-600" />
+            <GraduationCap className="h-10 w-10 text-blue-600" />
             <span className="text-3xl font-bold text-slate-900">EduMatch</span>
           </div>
         </div>
@@ -105,7 +105,7 @@ const RegisterPage = () => {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="Nhập họ và tên"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -124,7 +124,7 @@ const RegisterPage = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="example@gmail.com"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -143,7 +143,7 @@ const RegisterPage = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="••••••••"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -174,7 +174,7 @@ const RegisterPage = () => {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   placeholder="••••••••"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -196,7 +196,7 @@ const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {loading ? 'Đang xử lý...' : 'Đăng ký ngay'}
               </button>
@@ -217,7 +217,7 @@ const RegisterPage = () => {
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                className="w-full flex justify-center py-2.5 px-4 border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
                 Đăng nhập
               </button>
