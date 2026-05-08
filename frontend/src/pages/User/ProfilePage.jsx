@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone } from 'lucide-react';
+import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PasswordStrengthIndicator from '../../components/PasswordStrengthIndicator';
 
@@ -16,7 +16,11 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -103,22 +107,20 @@ export default function ProfilePage() {
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('info')}
-            className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center ${
-              activeTab === 'info'
+            className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center ${activeTab === 'info'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
           >
             <User className="w-4 h-4 mr-2" />
             Thông tin cá nhân
           </button>
           <button
             onClick={() => setActiveTab('password')}
-            className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center ${
-              activeTab === 'password'
+            className={`flex-1 py-4 px-6 text-sm font-medium transition-colors flex items-center justify-center ${activeTab === 'password'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
           >
             <Lock className="w-4 h-4 mr-2" />
             Bảo mật & Mật khẩu
@@ -127,9 +129,8 @@ export default function ProfilePage() {
 
         <div className="p-8">
           {message.text && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center ${
-              message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'
-            }`}>
+            <div className={`mb-6 p-4 rounded-xl flex items-center ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'
+              }`}>
               {message.type === 'success' ? <CheckCircle2 className="w-5 h-5 mr-3" /> : <AlertCircle className="w-5 h-5 mr-3" />}
               <span className="text-sm font-medium">{message.text}</span>
             </div>
@@ -203,26 +204,46 @@ export default function ProfilePage() {
             <form onSubmit={handleChangePassword} className="space-y-6 max-w-md mx-auto">
               <div>
                 <label htmlFor="current-password-input" className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
-                <input
-                  id="current-password-input"
-                  type="password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
+                <div className="relative">
+                  <input
+                    id="current-password-input"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    aria-label={showCurrentPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <label htmlFor="new-password-input" className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
-                <input
-                  id="new-password-input"
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder="Nhập mật khẩu mới"
-                />
+                <div className="relative">
+                  <input
+                    id="new-password-input"
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12"
+                    placeholder="Nhập mật khẩu mới"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    aria-label={showNewPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
                 <p className="mt-2 text-xs text-gray-500">
                   Mật khẩu phải có ít nhất 8 ký tự, bao gồm ít nhất 1 chữ hoa và 1 ký tự đặc biệt.
                 </p>
@@ -230,14 +251,24 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label htmlFor="confirm-password-input" className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
-                <input
-                  id="confirm-password-input"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
+                <div className="relative">
+                  <input
+                    id="confirm-password-input"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                    aria-label={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-end pt-4">
