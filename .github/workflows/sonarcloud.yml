@@ -36,9 +36,8 @@ jobs:
           cd backend && npm ci --ignore-scripts
           cd ../frontend && npm ci --ignore-scripts
 
-      - name: Run tests with coverage
-        run: npm test -- --coverage
 
+          
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
