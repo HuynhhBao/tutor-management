@@ -57,7 +57,7 @@ const LandingPage = () => {
   };
 
   const handleSendApplyOtp = async () => {
-    if (!applyEmail || !applyEmail.endsWith('@gmail.com')) {
+    if (!applyEmail?.endsWith('@gmail.com')) {
       setApplyError('Vui lòng nhập email @gmail.com hợp lệ');
       return;
     }

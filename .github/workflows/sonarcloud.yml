@@ -16,6 +16,7 @@ jobs:
   sonarcloud:
     name: SonarCloud Scan
     runs-on: ubuntu-latest
+
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -23,11 +24,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Cần full history để SonarCloud phân tích blame & new code
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: |
+          cd backend && npm ci --ignore-scripts
+          cd ../frontend && npm ci --ignore-scripts
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Tự động có sẵn, dùng để comment PR
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Token bạn thêm vào GitHub Secrets
-          SONAR_HOST_URL: https://sonarcloud.io     # Bắt buộc với action mới
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
