@@ -36,11 +36,20 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email, password) => {
-    const response = await fetch('http://localhost:3001/api/auth/login', {
+  const login = async (emailOrUsername, password, role = 'user') => {
+    let endpoint = 'http://localhost:3001/api/auth/login';
+    if (role === 'tutor') {
+      endpoint = 'http://localhost:3001/api/auth/login-tutor';
+    }
+
+    const payload = role === 'user' 
+      ? { email: emailOrUsername, password }
+      : { username: emailOrUsername, password };
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
       credentials: 'include',
     });
 
