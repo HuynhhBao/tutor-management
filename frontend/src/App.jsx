@@ -9,18 +9,40 @@ import AdminLoginPage from './pages/Auth/AdminLoginPage';
 import RegisterPage from './pages/Auth/RegisterPage';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ProfilePage from './pages/User/ProfilePage';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TutorLayout from './components/layout/TutorLayout';
 import TutorDashboard from './pages/Tutor/TutorDashboard';
+import StudentLayout from './components/layout/StudentLayout';
+import StudentDashboard from './pages/User/StudentDashboard';
+import TutorSearchPage from './pages/User/TutorSearchPage';
+import HiringHistoryPage from './pages/User/HiringHistoryPage';
+import WalletPage from './pages/User/WalletPage';
+
+// Component to handle root path redirection based on auth state
+const HomeRedirect = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null;
+  
+  if (user) {
+    if (user.role === 'admin') return <Navigate to="/admin" replace />;
+    if (user.role === 'tutor') return <Navigate to="/tutor-dashboard" replace />;
+    return <Navigate to="/student-dashboard" replace />;
+  }
+  
+  return <LandingPage />;
+};
 
 function App() {
+
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<HomeRedirect />} />
+
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -28,7 +50,7 @@ function App() {
           <Route 
             path="/profile" 
             element={
-              <ProtectedRoute allowedRoles={['user', 'admin', 'tutor']} redirectPath="/login">
+              <ProtectedRoute allowedRoles={['user', 'admin', 'tutor']} redirectPath="/">
                 <div className="min-h-screen bg-gray-50">
                   <ProfilePage />
                 </div>
@@ -58,7 +80,7 @@ function App() {
           <Route 
             path="/tutor-dashboard" 
             element={
-              <ProtectedRoute allowedRoles={['tutor']} redirectPath="/login">
+              <ProtectedRoute allowedRoles={['tutor']} redirectPath="/">
                 <TutorLayout />
               </ProtectedRoute>
             }
@@ -69,6 +91,25 @@ function App() {
             <Route path="available" element={<div className="p-6">Tìm lớp mới (Đang phát triển)</div>} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
+
+          {/* Student Routes - Protected */}
+          <Route 
+            path="/student-dashboard" 
+            element={
+              <ProtectedRoute allowedRoles={['user']} redirectPath="/">
+                <StudentLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<StudentDashboard />} />
+            <Route path="search" element={<TutorSearchPage />} />
+            <Route path="history" element={<HiringHistoryPage />} />
+            <Route path="wallet" element={<WalletPage />} />
+            <Route path="chat" element={<div className="p-6">Trò chuyện (Đang phát triển)</div>} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="*" element={<Navigate to="/student-dashboard" replace />} />
+          </Route>
+
 
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -30,13 +30,17 @@ const LoginPage = () => {
         // Redirect to intended page or dashboard
         if (!isAdmin && activeTab === 'tutor') {
           navigate('/tutor-dashboard', { replace: true });
+        } else if (!isAdmin && activeTab === 'user') {
+          navigate('/student-dashboard', { replace: true });
         } else {
           navigate(from, { replace: true });
         }
+
       } else {
         setError(result.message || 'Đăng nhập thất bại');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('Không thể kết nối đến server');
     } finally {
       setLoading(false);
@@ -113,7 +117,11 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 px-3 py-2 border border-slate-300 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                  placeholder={isAdmin ? 'Tên đăng nhập admin' : (activeTab === 'tutor' ? 'Nhập tên đăng nhập được cấp' : 'Nhập địa chỉ email')}
+                  placeholder={
+                    isAdmin 
+                      ? 'Tên đăng nhập admin' 
+                      : (activeTab === 'tutor' ? 'Nhập tên đăng nhập được cấp' : 'Nhập địa chỉ email')
+                  }
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <Mail className="h-5 w-5 text-slate-400" />
@@ -122,11 +130,12 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="password-input" className="block text-sm font-medium text-slate-700">
                 Mật khẩu
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="password-input"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
