@@ -106,8 +106,16 @@ const StudentLayout = () => {
                 <span className="text-slate-500 text-xs">Xin chào,</span>
                 <span className="font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username}</span>
               </div>
-              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold border border-purple-200">
-                {(user?.fullName || user?.username || 'H').charAt(0)}
+              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold border border-purple-200 overflow-hidden shadow-sm">
+                {user?.avatarUrl ? (
+                  <img 
+                    src={`http://localhost:3001${user.avatarUrl}`} 
+                    alt="Avatar" 
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  (user?.fullName || user?.username || 'H').charAt(0)
+                )}
               </div>
               <button 
                 onClick={async () => {
