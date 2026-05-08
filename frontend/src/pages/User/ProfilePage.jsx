@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, Eye, EyeOff, Camera } from 'lucide-react';
+import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, Eye, EyeOff, Camera, X } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
 import PasswordStrengthIndicator from '../../components/PasswordStrengthIndicator';
+import { getCroppedImg } from '../../utils/cropImage';
 
-// --- Sub-components to reduce Cognitive Complexity ---
+// --- Sub-components ---
 
 const AvatarSection = ({ user, onAvatarChange, loading }) => {
   const fileInputRef = useRef(null);
   
-  // Create a default avatar URL based on the user's name if no avatar is set
   const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=6366f1&color=fff&size=128`;
   const avatarSrc = user?.avatarUrl ? `http://localhost:3001${user.avatarUrl}` : defaultAvatar;
 
@@ -36,12 +38,28 @@ const AvatarSection = ({ user, onAvatarChange, loading }) => {
           ref={fileInputRef}
           className="hidden"
           accept="image/*"
-          onChange={onAvatarChange}
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = () => onAvatarChange(reader.result);
+              reader.readAsDataURL(file);
+            }
+          }}
         />
       </div>
       <p className="mt-4 text-sm font-medium text-gray-500">Nhấp vào icon để thay đổi ảnh đại diện</p>
     </div>
   );
+};
+
+AvatarSection.propTypes = {
+  user: PropTypes.shape({
+    fullName: PropTypes.string,
+    avatarUrl: PropTypes.string
+  }),
+  onAvatarChange: PropTypes.func.isRequired,
+  loading: PropTypes.bool
 };
 
 const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNumber, loading, onSubmit, onAvatarChange }) => (
@@ -113,6 +131,19 @@ const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNum
     </form>
   </div>
 );
+
+ProfileInfoForm.propTypes = {
+  user: PropTypes.shape({
+    email: PropTypes.string
+  }),
+  fullName: PropTypes.string,
+  setFullName: PropTypes.func.isRequired,
+  phoneNumber: PropTypes.string,
+  setPhoneNumber: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+  onSubmit: PropTypes.func.isRequired,
+  onAvatarChange: PropTypes.func.isRequired
+};
 
 const ChangePasswordForm = ({ 
   currentPassword, setCurrentPassword, 
@@ -203,6 +234,23 @@ const ChangePasswordForm = ({
   </form>
 );
 
+ChangePasswordForm.propTypes = {
+  currentPassword: PropTypes.string,
+  setCurrentPassword: PropTypes.func.isRequired,
+  newPassword: PropTypes.string,
+  setNewPassword: PropTypes.func.isRequired,
+  confirmPassword: PropTypes.string,
+  setConfirmPassword: PropTypes.func.isRequired,
+  showCurrentPassword: PropTypes.bool,
+  setShowCurrentPassword: PropTypes.func.isRequired,
+  showNewPassword: PropTypes.bool,
+  setShowNewPassword: PropTypes.func.isRequired,
+  showConfirmPassword: PropTypes.bool,
+  setShowConfirmPassword: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+  onSubmit: PropTypes.func.isRequired
+};
+
 // --- Main Component ---
 
 export default function ProfilePage() {
@@ -225,12 +273,22 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  // Crop states
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
   useEffect(() => {
     if (user) {
       setFullName(user.fullName || '');
       setPhoneNumber(user.phoneNumber || '');
     }
   }, [user]);
+
+  const onCropComplete = useCallback((_croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -253,23 +311,28 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: data.message || 'Có lỗi xảy ra' });
       }
     } catch (err) {
+      console.error('Update profile error:', err);
       setMessage({ type: 'error', text: 'Không thể kết nối đến máy chủ' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('avatar', file);
+  const handleAvatarUpload = async () => {
+    if (!imageToCrop || !croppedAreaPixels) return;
 
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
+      // 1. Get the cropped image blob
+      const croppedImageBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      
+      // 2. Prepare FormData
+      const formData = new FormData();
+      formData.append('avatar', croppedImageBlob, 'avatar.jpg');
+
+      // 3. Upload to server
       const response = await fetch('http://localhost:3001/api/auth/update-avatar', {
         method: 'PUT',
         body: formData,
@@ -280,10 +343,12 @@ export default function ProfilePage() {
       if (response.ok) {
         setMessage({ type: 'success', text: 'Cập nhật ảnh đại diện thành công!' });
         setUserFromLogin({ ...user, avatarUrl: data.avatarUrl });
+        setImageToCrop(null); // Close cropper
       } else {
         setMessage({ type: 'error', text: data.message || 'Lỗi khi tải ảnh lên' });
       }
     } catch (err) {
+      console.error('Avatar upload error:', err);
       setMessage({ type: 'error', text: 'Không thể tải ảnh lên' });
     } finally {
       setLoading(false);
@@ -318,6 +383,7 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: data.message || 'Có lỗi xảy ra' });
       }
     } catch (err) {
+      console.error('Change password error:', err);
       setMessage({ type: 'error', text: 'Không thể kết nối đến máy chủ' });
     } finally {
       setLoading(false);
@@ -371,7 +437,7 @@ export default function ProfilePage() {
               phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} 
               loading={loading} 
               onSubmit={handleUpdateProfile}
-              onAvatarChange={handleAvatarChange}
+              onAvatarChange={setImageToCrop}
             />
           ) : (
             <ChangePasswordForm 
@@ -387,6 +453,67 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Image Crop Modal */}
+      {imageToCrop && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl overflow-hidden max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa ảnh đại diện</h3>
+              <button onClick={() => setImageToCrop(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+            
+            <div className="relative flex-1 bg-gray-100 min-h-[400px]">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div>
+                <label htmlFor="zoom-slider" className="block text-sm font-medium text-gray-700 mb-2">Phóng to / Thu nhỏ</label>
+                <input
+                  id="zoom-slider"
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number.parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setImageToCrop(null)}
+                  className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-95"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleAvatarUpload}
+                  disabled={loading}
+                  className="flex-1 py-3 px-6 bg-primary-600 text-white font-bold rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-200 active:scale-95 disabled:opacity-50 flex items-center justify-center"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : 'Áp dụng ảnh'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
