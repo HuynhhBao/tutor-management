@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User, ShieldCheck, LogOut, Settings } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 export default function UserAccountMenu({ user, onLogout, onClose, position = 'bottom' }) {
   const positionClasses = position === 'bottom' 
@@ -10,7 +11,20 @@ export default function UserAccountMenu({ user, onLogout, onClose, position = 'b
     ? 'slide-in-from-bottom-4' 
     : 'slide-in-from-top-4';
 
-  const roleLabel = user?.role === 'admin' ? 'Quản trị viên' : user?.role === 'tutor' ? 'Gia sư' : 'Tài khoản cá nhân';
+  const getRoleLabel = (role) => {
+    if (role === 'admin') return 'Quản trị viên';
+    if (role === 'tutor') return 'Gia sư';
+    return 'Tài khoản cá nhân';
+  };
+
+  const getDashboardPath = (role) => {
+    if (role === 'admin') return '/admin';
+    if (role === 'tutor') return '/tutor-dashboard';
+    return '/student-dashboard';
+  };
+
+  const roleLabel = getRoleLabel(user?.role);
+  const dashboardPath = getDashboardPath(user?.role);
 
   return (
     <div className={`absolute ${positionClasses} w-60 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in ${animationClass} duration-300`}>
@@ -18,6 +32,16 @@ export default function UserAccountMenu({ user, onLogout, onClose, position = 'b
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{roleLabel}</p>
         <p className="text-sm font-medium text-gray-800 mt-0.5 truncate">{user?.fullName}</p>
       </div>
+
+      <Link 
+        to={dashboardPath} 
+        onClick={onClose}
+        className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors font-medium"
+      >
+        <Settings className="w-4 h-4 mr-3" />
+        Bảng điều khiển
+      </Link>
+
       
       <Link 
         to="/profile" 
@@ -52,3 +76,13 @@ export default function UserAccountMenu({ user, onLogout, onClose, position = 'b
     </div>
   );
 }
+
+UserAccountMenu.propTypes = {
+  user: PropTypes.shape({
+    role: PropTypes.string,
+    fullName: PropTypes.string,
+  }),
+  onLogout: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  position: PropTypes.oneOf(['top', 'bottom']),
+};
