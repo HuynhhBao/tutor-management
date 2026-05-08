@@ -16,7 +16,7 @@ const StepIndicator = ({ step }) => {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
               <div style={{
                 width: '32px', height: '32px', borderRadius: '50%',
-                background: isCompleted || isActive ? '#7c3aed' : '#e2e8f0',
+                background: isCompleted || isActive ? '#2563eb' : '#e2e8f0',
                 color: isCompleted || isActive ? 'white' : '#94a3b8',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: '13px', fontWeight: '700',
@@ -27,7 +27,7 @@ const StepIndicator = ({ step }) => {
               </div>
               <span style={{
                 fontSize: '11px',
-                color: isActive || isCompleted ? '#7c3aed' : '#94a3b8',
+                color: isActive || isCompleted ? '#2563eb' : '#94a3b8',
                 marginTop: '4px',
                 fontWeight: isActive ? '600' : '400',
               }}>
@@ -37,7 +37,7 @@ const StepIndicator = ({ step }) => {
             {idx < stepLabels.length - 1 && (
               <div style={{
                 flex: 2, height: '2px',
-                background: step > stepNum ? '#7c3aed' : '#e2e8f0',
+                background: step > stepNum ? '#2563eb' : '#e2e8f0',
                 transition: 'background 0.3s',
                 marginBottom: '16px',
               }} />

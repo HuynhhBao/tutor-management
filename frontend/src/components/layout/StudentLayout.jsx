@@ -58,7 +58,7 @@ const StudentLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
       {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,13 +66,13 @@ const StudentLayout = () => {
             {/* Left side: Logo & Desktop Menu */}
             <div className="flex">
               <button 
-                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-lg" 
+                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" 
                 onClick={() => navigate('/student-dashboard')}
                 aria-label="EduMatch Dashboard"
               >
-                <GraduationCap className="h-8 w-8 text-purple-600" />
+                <GraduationCap className="h-8 w-8 text-blue-600" />
                 <span className="ml-2 text-xl font-bold text-slate-900 hidden sm:block">EduMatch</span>
-                <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded uppercase tracking-wider hidden md:block">
+                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider hidden md:block">
                   Học viên
                 </span>
               </button>
@@ -88,11 +88,11 @@ const StudentLayout = () => {
                       onClick={() => navigate(item.path)}
                       className={`inline-flex items-center px-3 py-2 mt-3 mb-3 rounded-lg text-sm font-medium transition-colors ${
                         isActive 
-                          ? 'bg-purple-50 text-purple-700' 
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
-                      <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-purple-600' : 'text-slate-400'}`} />
+                      <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
                       {item.label}
                     </button>
                   );
@@ -106,7 +106,7 @@ const StudentLayout = () => {
                 <span className="text-slate-500 text-xs">Xin chào,</span>
                 <span className="font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username}</span>
               </div>
-              <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold border border-purple-200 overflow-hidden shadow-sm">
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
                 {user?.avatarUrl ? (
                   <img 
                     src={`http://localhost:3001${user.avatarUrl}`} 
@@ -133,7 +133,7 @@ const StudentLayout = () => {
             <div className="flex items-center lg:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
+                className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
               >
                 {isMobileMenuOpen ? (
                   <X className="block h-6 w-6" />
@@ -161,11 +161,11 @@ const StudentLayout = () => {
                     }}
                     className={`flex items-center w-full pl-3 pr-4 py-3 text-base font-medium border-l-4 ${
                       isActive
-                        ? 'bg-purple-50 border-purple-500 text-purple-700'
-                        : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300'
+                        ? 'bg-blue-100 border-blue-500 text-blue-700'
+                        : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
                     }`}
                   >
-                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-purple-500' : 'text-slate-400'}`} />
+                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`} />
                     {item.label}
                   </button>
                 );
@@ -174,7 +174,7 @@ const StudentLayout = () => {
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold uppercase">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
                     {(user?.fullName || user?.username || 'H').charAt(0)}
                   </div>
                 </div>

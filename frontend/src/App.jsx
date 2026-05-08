@@ -51,7 +51,7 @@ function App() {
             path="/profile" 
             element={
               <ProtectedRoute allowedRoles={['user', 'admin', 'tutor']} redirectPath="/">
-                <div className="min-h-screen bg-gray-50">
+                <div className="min-h-screen bg-slate-100">
                   <ProfilePage />
                 </div>
               </ProtectedRoute>

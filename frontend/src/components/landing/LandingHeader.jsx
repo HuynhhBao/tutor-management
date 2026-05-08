@@ -11,7 +11,7 @@ const LandingHeader = ({ user, showMenu, setShowMenu, onLogout, onRequireLogin }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-          <GraduationCap className="h-8 w-8 text-purple-600" />
+          <GraduationCap className="h-8 w-8 text-blue-600" />
           <span className="text-xl font-bold text-slate-900">EduMatch</span>
         </div>
 
@@ -20,7 +20,7 @@ const LandingHeader = ({ user, showMenu, setShowMenu, onLogout, onRequireLogin }
           {user ? (
             <div className="flex items-center gap-4 relative">
               <div
-                className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg text-purple-700 font-medium text-sm cursor-pointer hover:bg-purple-100 transition-colors group"
+                className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg text-blue-700 font-medium text-sm cursor-pointer hover:bg-blue-100 transition-colors group"
                 onClick={() => setShowMenu(!showMenu)}
               >
                 <User className="h-4 w-4" />
@@ -33,10 +33,10 @@ const LandingHeader = ({ user, showMenu, setShowMenu, onLogout, onRequireLogin }
             </div>
           ) : (
             <>
-              <button onClick={onRequireLogin} className="text-slate-600 hover:text-purple-600 font-medium transition-colors text-sm">
+              <button onClick={onRequireLogin} className="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">
                 Đăng nhập
               </button>
-              <button onClick={() => navigate('/register')} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+              <button onClick={() => navigate('/register')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
                 Đăng ký
               </button>
             </>

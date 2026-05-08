@@ -206,7 +206,7 @@ export default function TutorManagement() {
       {/* Table card */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Search bar */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-100/50">
           <div className="relative w-full sm:w-80">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
               <Search className="w-4 h-4 text-gray-400" />
@@ -219,7 +219,7 @@ export default function TutorManagement() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto justify-center">
+          <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-slate-100 transition-colors w-full sm:w-auto justify-center">
             <Filter className="w-4 h-4 mr-2" /> Lọc kết quả
           </button>
         </div>

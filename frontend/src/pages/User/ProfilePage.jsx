@@ -79,7 +79,7 @@ const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNum
               type="email"
               disabled
               value={user?.email || ''}
-              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 bg-gray-50 text-gray-500 rounded-xl text-sm"
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 bg-slate-100 text-gray-500 rounded-xl text-sm"
             />
           </div>
         </div>
@@ -403,7 +403,7 @@ export default function ProfilePage() {
             onClick={() => setActiveTab('info')}
             className={`flex-1 py-5 px-6 text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'info'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
-                : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                : 'text-gray-400 hover:text-gray-700 hover:bg-slate-100'
               }`}
           >
             <User className="w-5 h-5 mr-2" />
@@ -413,7 +413,7 @@ export default function ProfilePage() {
             onClick={() => setActiveTab('password')}
             className={`flex-1 py-5 px-6 text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'password'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
-                : 'text-gray-400 hover:text-gray-700 hover:bg-gray-50'
+                : 'text-gray-400 hover:text-gray-700 hover:bg-slate-100'
               }`}
           >
             <Lock className="w-5 h-5 mr-2" />

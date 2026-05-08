@@ -11,7 +11,7 @@ const ForgotStep3Password = ({
 }) => (
   <form onSubmit={onSubmit}>
     <div style={{ marginBottom: '8px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #7c3aed, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+      <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #2563eb, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
         <Lock size={22} color="white" />
       </div>
       <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', margin: '0 0 6px' }}>Tạo mật khẩu mới</h3>
@@ -30,7 +30,7 @@ const ForgotStep3Password = ({
           onChange={e => setNewPassword(e.target.value)}
           placeholder="Nhập mật khẩu mới"
           style={{ width: '100%', padding: '10px 44px 10px 40px', border: '1.5px solid #e2e8f0', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
-          onFocus={e => e.target.style.borderColor = '#7c3aed'}
+          onFocus={e => e.target.style.borderColor = '#2563eb'}
           onBlur={e => e.target.style.borderColor = '#e2e8f0'}
         />
         <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 10 }}>
@@ -57,7 +57,7 @@ const ForgotStep3Password = ({
           onChange={e => setConfirmPassword(e.target.value)}
           placeholder="Nhập lại mật khẩu mới"
           style={{ width: '100%', padding: '10px 44px 10px 40px', border: `1.5px solid ${confirmPassword && confirmPassword !== newPassword ? '#ef4444' : '#e2e8f0'}`, borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }}
-          onFocus={e => e.target.style.borderColor = '#7c3aed'}
+          onFocus={e => e.target.style.borderColor = '#2563eb'}
           onBlur={e => e.target.style.borderColor = confirmPassword && confirmPassword !== newPassword ? '#ef4444' : '#e2e8f0'}
         />
         <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 10 }}>
@@ -77,7 +77,7 @@ const ForgotStep3Password = ({
     <button
       type="submit"
       disabled={loading}
-      style={{ width: '100%', padding: '12px', background: loading ? '#c4b5fd' : 'linear-gradient(135deg, #7c3aed, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
+      style={{ width: '100%', padding: '12px', background: loading ? '#c4b5fd' : 'linear-gradient(135deg, #2563eb, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontFamily: 'inherit' }}
     >
       {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
     </button>
