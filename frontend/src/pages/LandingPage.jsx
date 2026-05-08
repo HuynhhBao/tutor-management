@@ -123,7 +123,8 @@ const LandingPage = () => {
     setIsLightboxOpen(true);
   };
 
-  const handleSubmitApplication = async () => {
+  const handleSubmitApplication = async (e) => {
+    if (e) e.preventDefault();
     if (!applyOtp || cvImages.length === 0) {
       setApplyError('Vui lòng nhập OTP và đính kèm ít nhất một hình ảnh CV');
       return;
