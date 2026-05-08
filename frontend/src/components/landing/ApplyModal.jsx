@@ -33,28 +33,31 @@ const ApplyModal = ({
           </button>
         </div>
 
-        <div className="p-8">
+        <form onSubmit={onSubmit} className="p-8">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-2xl flex items-start gap-3">
               <span className="shrink-0 mt-0.5">⚠️</span>
               <p>{error}</p>
             </div>
           )}
-
+          
           <div className="space-y-6">
             {/* Row: Email + Send OTP Button */}
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Email liên hệ</label>
               <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="example@gmail.com"
-                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={step === 2 && loading}
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="email"
+                    placeholder="example@gmail.com"
+                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={step === 2 && loading}
+                  />
+                </div>
                 <button
+                  type="button"
                   onClick={onSendOtp}
                   disabled={loading || !email.endsWith('@gmail.com') || otpCountdown > 0}
                   className="px-4 py-3 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl font-bold text-xs transition-colors whitespace-nowrap disabled:opacity-50"
@@ -72,9 +75,6 @@ const ApplyModal = ({
               <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <label className="text-sm font-bold text-slate-700">Mã xác nhận (OTP)</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <ShieldCheck className="w-4 h-4 text-purple-400" />
-                  </span>
                   <input
                     type="text"
                     placeholder="6 chữ số"
@@ -83,6 +83,9 @@ const ApplyModal = ({
                     onChange={(e) => setOtp(e.target.value)}
                     maxLength={6}
                   />
+                  <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                    <ShieldCheck className="w-4 h-4 text-purple-400" />
+                  </span>
                 </div>
               </div>
             )}
@@ -117,10 +120,10 @@ const ApplyModal = ({
                     </div>
                     
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => onPreviewCv(index)} className="p-1.5 text-purple-600 hover:bg-purple-200 rounded-lg transition-colors">
+                      <button type="button" onClick={() => onPreviewCv(index)} className="p-1.5 text-purple-600 hover:bg-purple-200 rounded-lg transition-colors">
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button onClick={() => onRemoveFile(index)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors">
+                      <button type="button" onClick={() => onRemoveFile(index)} className="p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -131,7 +134,7 @@ const ApplyModal = ({
 
             {/* Bottom Action Button */}
             <button
-              onClick={onSubmit}
+              type="submit"
               disabled={loading || step === 1 || otp.length !== 6 || cvImages.length === 0}
               className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 mt-2 ${
                 loading || step === 1 || otp.length !== 6 || cvImages.length === 0
@@ -143,7 +146,7 @@ const ApplyModal = ({
               Gửi hồ sơ ứng tuyển
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

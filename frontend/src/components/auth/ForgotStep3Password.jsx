@@ -22,9 +22,6 @@ const ForgotStep3Password = ({
     <div style={{ marginBottom: '16px' }}>
       <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Mật khẩu mới</label>
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-          <Lock size={18} />
-        </div>
         <input
           id="new-password"
           type={showPassword ? 'text' : 'password'}
@@ -36,9 +33,14 @@ const ForgotStep3Password = ({
           onFocus={e => e.target.style.borderColor = '#7c3aed'}
           onBlur={e => e.target.style.borderColor = '#e2e8f0'}
         />
-        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
+        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 10 }}>
+          <Lock size={18} />
+        </div>
+        {newPassword && (
+          <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex', zIndex: 10 }}>
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
       </div>
       <PasswordStrengthIndicator password={newPassword} />
     </div>
@@ -47,9 +49,6 @@ const ForgotStep3Password = ({
     <div style={{ marginBottom: '20px' }}>
       <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Xác nhận mật khẩu</label>
       <div style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>
-          <Lock size={18} />
-        </div>
         <input
           id="confirm-password"
           type={showConfirmPassword ? 'text' : 'password'}
@@ -61,9 +60,14 @@ const ForgotStep3Password = ({
           onFocus={e => e.target.style.borderColor = '#7c3aed'}
           onBlur={e => e.target.style.borderColor = confirmPassword && confirmPassword !== newPassword ? '#ef4444' : '#e2e8f0'}
         />
-        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
+        <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', zIndex: 10 }}>
+          <Lock size={18} />
+        </div>
+        {confirmPassword && (
+          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex', zIndex: 10 }}>
+            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
       </div>
       {confirmPassword && confirmPassword !== newPassword && (
         <p style={{ fontSize: '12px', color: '#ef4444', marginTop: '4px' }}>Mật khẩu không khớp</p>
