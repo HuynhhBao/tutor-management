@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, ArrowLeft } from 'lucide-react';
+import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom';
 import PasswordStrengthIndicator from '../../components/PasswordStrengthIndicator';
 
 export default function ProfilePage() {
@@ -49,6 +48,7 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: data.message || 'Có lỗi xảy ra' });
       }
     } catch (err) {
+      console.error('Update profile error:', err);
       setMessage({ type: 'error', text: 'Không thể kết nối đến máy chủ' });
     } finally {
       setLoading(false);
@@ -83,6 +83,7 @@ export default function ProfilePage() {
         setMessage({ type: 'error', text: data.message || 'Có lỗi xảy ra' });
       }
     } catch (err) {
+      console.error('Change password error:', err);
       setMessage({ type: 'error', text: 'Không thể kết nối đến máy chủ' });
     } finally {
       setLoading(false);
@@ -91,13 +92,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <Link 
-        to="/" 
-        className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-purple-600 transition-colors mb-6"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Quay lại trang chủ
-      </Link>
+
 
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Quản lý tài khoản</h1>
@@ -144,12 +139,13 @@ export default function ProfilePage() {
             <form onSubmit={handleUpdateProfile} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email (Không thể thay đổi)</label>
+                  <label htmlFor="email-display" className="block text-sm font-medium text-gray-700 mb-2">Email (Không thể thay đổi)</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
+                      id="email-display"
                       type="email"
                       disabled
                       value={user?.email || ''}
@@ -158,12 +154,13 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                  <label htmlFor="full-name-input" className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <User className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
+                      id="full-name-input"
                       type="text"
                       required
                       value={fullName}
@@ -174,12 +171,13 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                  <label htmlFor="phone-number-input" className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <Phone className="h-5 w-5 text-gray-400" />
                     </div>
                     <input
+                      id="phone-number-input"
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
@@ -204,8 +202,9 @@ export default function ProfilePage() {
           ) : (
             <form onSubmit={handleChangePassword} className="space-y-6 max-w-md mx-auto">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
+                <label htmlFor="current-password-input" className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
                 <input
+                  id="current-password-input"
                   type="password"
                   required
                   value={currentPassword}
@@ -214,8 +213,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
+                <label htmlFor="new-password-input" className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
                 <input
+                  id="new-password-input"
                   type="password"
                   required
                   value={newPassword}
@@ -229,8 +229,9 @@ export default function ProfilePage() {
                 <PasswordStrengthIndicator password={newPassword} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
+                <label htmlFor="confirm-password-input" className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
                 <input
+                  id="confirm-password-input"
                   type="password"
                   required
                   value={confirmPassword}

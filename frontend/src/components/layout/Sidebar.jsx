@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -20,6 +20,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ totalTutors: 0, pendingApplications: 0 });
 
   useEffect(() => {
@@ -92,7 +93,10 @@ export default function Sidebar() {
             </div>
           </div>
           <button 
-            onClick={logout}
+            onClick={async () => {
+              await logout();
+              navigate('/');
+            }}
             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Đăng xuất"
           >
