@@ -128,6 +128,44 @@ export const initDb = async () => {
       `);
     }
 
+    // Tạo bảng transactions nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        user_type VARCHAR(20) NOT NULL,
+        amount DECIMAL(12,2) NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Tạo bảng bookings nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS bookings (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
+        subject VARCHAR(255),
+        schedule_time VARCHAR(255),
+        message TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Thêm cột balance cho users nếu chưa có
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='balance') THEN
+          ALTER TABLE users ADD COLUMN balance DECIMAL(12,2) DEFAULT 0;
+        END IF;
+      END
+      $$;
+    `);
+
     console.log('Database initialized successfully');
   } catch (err) {
     console.error('Database initialization error:', err);

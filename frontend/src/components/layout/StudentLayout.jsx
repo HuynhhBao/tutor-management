@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard } from 'lucide-react';
+import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck } from 'lucide-react';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -50,6 +50,8 @@ const StudentLayout = () => {
 
   const navItems = [
     { path: '/student-dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+    { path: '/student-dashboard/booking', label: 'Đặt lịch', icon: CalendarPlus },
+    { path: '/student-dashboard/booking-history', label: 'Lịch của tôi', icon: CalendarCheck },
     { path: '/student-dashboard/search', label: 'Tìm gia sư', icon: Search },
     { path: '/student-dashboard/history', label: 'Lịch sử thuê', icon: History },
     { path: '/student-dashboard/wallet', label: 'Ví tiền', icon: Wallet },

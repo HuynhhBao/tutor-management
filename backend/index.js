@@ -9,6 +9,8 @@ import { fileURLToPath } from 'url';
 import pool, { initDb } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
+import adminBookingsRoutes from './routes/adminBookings.js';
+import studentBookingsRoutes from './routes/studentBookings.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +35,8 @@ initDb();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
+app.use('/api/admin/bookings', adminBookingsRoutes);
+app.use('/api/student/bookings', studentBookingsRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardOverview from './pages/Admin/DashboardOverview';
 import TutorManagement from './pages/Admin/TutorManagement';
+import AdminBookingManagement from './pages/Admin/AdminBookingManagement';
 import AdminLayout from './components/layout/AdminLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/Auth/LoginPage';
@@ -18,6 +19,8 @@ import StudentDashboard from './pages/User/StudentDashboard';
 import TutorSearchPage from './pages/User/TutorSearchPage';
 import HiringHistoryPage from './pages/User/HiringHistoryPage';
 import WalletPage from './pages/User/WalletPage';
+import BookingPage from './pages/User/BookingPage';
+import BookingHistoryPage from './pages/User/BookingHistoryPage';
 
 // Component to handle root path redirection based on auth state
 const HomeRedirect = () => {
@@ -69,6 +72,7 @@ function App() {
           >
             <Route index element={<DashboardOverview />} />
             <Route path="tutors" element={<TutorManagement />} />
+            <Route path="bookings" element={<AdminBookingManagement />} />
             <Route path="students" element={<div className="p-6">Quản lý Học viên (Đang phát triển)</div>} />
             <Route path="classes" element={<div className="p-6">Sắp xếp Lớp học (Đang phát triển)</div>} />
             <Route path="finance" element={<div className="p-6">Tài chính (Đang phát triển)</div>} />
@@ -103,6 +107,8 @@ function App() {
           >
             <Route index element={<StudentDashboard />} />
             <Route path="search" element={<TutorSearchPage />} />
+            <Route path="booking" element={<BookingPage />} />
+            <Route path="booking-history" element={<BookingHistoryPage />} />
             <Route path="history" element={<HiringHistoryPage />} />
             <Route path="wallet" element={<WalletPage />} />
             <Route path="chat" element={<div className="p-6">Trò chuyện (Đang phát triển)</div>} />
