@@ -14,8 +14,8 @@ export const getTutorStats = async (req, res) => {
     res.json({
       status: 'ok',
       data: {
-        totalTutors: parseInt(tutorsResult.rows[0].count, 10),
-        pendingApplications: parseInt(pendingResult.rows[0].count, 10),
+        totalTutors: Number.parseInt(tutorsResult.rows[0].count, 10),
+        pendingApplications: Number.parseInt(pendingResult.rows[0].count, 10),
       },
     });
   } catch (err) {
@@ -77,6 +77,24 @@ export const deleteTutor = async (req, res) => {
     res.json({ status: 'ok', message: 'Xóa gia sư thành công' });
   } catch (err) {
     console.error('Error deleting tutor:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
+  }
+};
+
+// PUT /api/tutors/status
+export const updateTutorStatus = async (req, res) => {
+  const { tutorId, status } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE tutors SET status = $1 WHERE id = $2 RETURNING *',
+      [status, tutorId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Không tìm thấy gia sư' });
+    }
+    res.json({ status: 'ok', data: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating tutor status:', err);
     res.status(500).json({ status: 'error', message: 'Lỗi server' });
   }
 };

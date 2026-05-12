@@ -8,11 +8,44 @@ const TutorLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = React.useCallback(async () => {
     await logout();
-    navigate('/');
-  };
+    navigate('/', { replace: true });
+  }, [logout, navigate]);
+
+  // Handle browser back button to confirm logout
+  React.useEffect(() => {
+    const lockHistory = () => {
+      // Use a hash to force the browser to treat this as a real navigation point
+      const lockedUrl = globalThis.location.pathname + '#dashboard';
+      globalThis.history.pushState({ lockId: Date.now() }, null, lockedUrl);
+    };
+
+    // Small delay to ensure browser history stack is ready after refresh
+    const timer = setTimeout(() => {
+      // Only push if we aren't already on the hashed URL
+      if (!globalThis.location.hash.includes('#dashboard')) {
+        lockHistory();
+      }
+    }, 100);
+
+    const handlePopState = (event) => {
+      // If user tries to back out of the hash, re-lock and show modal
+      if (!globalThis.location.hash.includes('#dashboard')) {
+        lockHistory();
+        setShowLogoutModal(true);
+      }
+    };
+
+    globalThis.addEventListener('popstate', handlePopState);
+
+    return () => {
+      clearTimeout(timer);
+      globalThis.removeEventListener('popstate', handlePopState);
+    };
+  }, [location.pathname]);
 
   const navItems = [
     { path: '/tutor-dashboard', label: 'Tổng quan', icon: GraduationCap },
@@ -148,6 +181,35 @@ const TutorLayout = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <LogOut className="w-10 h-10 text-red-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 text-center mb-2">Xác nhận đăng xuất</h3>
+            <p className="text-slate-500 text-center mb-8 leading-relaxed">
+              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống và quay về trang chủ không?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleLogout}
+                className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
+              >
+                Đăng xuất ngay
+              </button>
+              <button 
+                onClick={() => setShowLogoutModal(false)}
+                className="w-full py-4 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
+              >
+                Ở lại trang này
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

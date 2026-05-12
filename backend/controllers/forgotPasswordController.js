@@ -90,7 +90,7 @@ export const resetPassword = async (req, res) => {
   }
 
   const record = otpStore.get(email);
-  if (!record || !record.verified) {
+  if (!record?.verified) {
     return res.status(400).json({ status: 'error', message: 'Phiên đặt lại mật khẩu không hợp lệ' });
   }
 
