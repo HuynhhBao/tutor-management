@@ -185,7 +185,7 @@ export const getMe = async (req, res) => {
       userResult = await pool.query('SELECT id, username as email, full_name, role, avatar_url FROM admins WHERE id = $1', [decoded.id]);
     } else if (decoded.role === 'tutor') {
       userResult = await pool.query(`
-        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email, t.avatar_url 
+        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email, t.avatar_url, t.status 
         FROM tutors t 
         JOIN tutor_accounts a ON t.id = a.tutor_id 
         WHERE t.id = $1
@@ -202,7 +202,7 @@ export const getMe = async (req, res) => {
     if (decoded.role === 'tutor') {
       res.json({
         status: 'ok',
-        user: { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor', avatarUrl: user.avatar_url }
+        user: { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor', avatarUrl: user.avatar_url, status: user.status }
       });
     } else {
       res.json({
