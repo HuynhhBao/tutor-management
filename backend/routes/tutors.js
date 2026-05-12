@@ -1,12 +1,13 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
+import path from 'node:path';
 import {
   getAllTutors,
   createTutor,
   updateTutor,
   deleteTutor,
   getTutorStats,
+  updateTutorStatus,
 } from '../controllers/tutorController.js';
 import {
   sendApplyOtp,
@@ -36,6 +37,7 @@ const upload = multer({
 router.get('/stats', getTutorStats);
 router.get('/', getAllTutors);
 router.post('/', createTutor);
+router.put('/status', updateTutorStatus);
 router.put('/:id', updateTutor);
 router.delete('/:id', deleteTutor);
 

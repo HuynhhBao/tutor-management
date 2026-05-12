@@ -5,6 +5,7 @@ import ApplicationTable from '../../components/admin/ApplicationTable';
 import TutorFormModal from '../../components/admin/TutorFormModal';
 import GrantAccountModal from '../../components/admin/GrantAccountModal';
 import ApproveModal from '../../components/admin/ApproveModal';
+import SuccessModal from '../../components/admin/SuccessModal';
 import { API_BASE_URL } from '../../utils/constants';
 import { formatDateTime } from '../../utils/formatters';
 
@@ -49,6 +50,15 @@ export default function TutorManagement() {
   const [grantUsername, setGrantUsername] = useState('');
   const [grantStatus, setGrantStatus] = useState({ loading: false, error: '' });
 
+  // --- Success Modal ---
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const showSuccess = (msg) => {
+    setSuccessMessage(msg);
+    setIsSuccessModalOpen(true);
+  };
+
   // --- Fetch ---
   const fetchTutors = async () => {
     setLoading(true);
@@ -89,7 +99,10 @@ export default function TutorManagement() {
     if (!window.confirm('Bạn có chắc chắn muốn xóa gia sư này?')) return;
     try {
       const response = await fetch(`${API_BASE_URL}/tutors/${id}`, { method: 'DELETE' });
-      if (response.ok) fetchTutors();
+      if (response.ok) {
+        fetchTutors();
+        showSuccess('Đã xóa gia sư thành công!');
+      }
       else alert('Có lỗi xảy ra khi xóa gia sư');
     } catch { alert('Không thể kết nối đến server'); }
   };
@@ -100,7 +113,11 @@ export default function TutorManagement() {
     const method = editingId ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-      if (response.ok) { closeFormModal(); fetchTutors(); }
+      if (response.ok) { 
+        closeFormModal(); 
+        fetchTutors(); 
+        showSuccess(editingId ? 'Cập nhật thông tin gia sư thành công!' : 'Thêm gia sư mới thành công!');
+      }
       else alert(`Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
     } catch { alert('Không thể kết nối đến server'); }
   };
@@ -126,7 +143,7 @@ export default function TutorManagement() {
         body: JSON.stringify({ interviewTime: formatDateTime(interviewData.time), interviewAddress: interviewData.address }),
       });
       const data = await response.json();
-      if (response.ok) { setIsApproveModalOpen(false); fetchApplications(); alert('Đã duyệt và gửi email phỏng vấn thành công!'); }
+      if (response.ok) { setIsApproveModalOpen(false); fetchApplications(); showSuccess('Đã duyệt và gửi email phỏng vấn thành công!'); }
       else setApproveStatus({ loading: false, error: data.message || 'Lỗi duyệt hồ sơ' });
     } catch { setApproveStatus({ loading: false, error: 'Không thể kết nối đến server' }); }
   };
@@ -141,7 +158,7 @@ export default function TutorManagement() {
     try {
       const response = await fetch(`${API_BASE_URL}/tutors/applications/${appId}/reject`, { method: 'DELETE' });
       const data = await response.json();
-      if (response.ok) { fetchApplications(); alert('Đã từ chối và gửi email thông báo thành công!'); }
+      if (response.ok) { fetchApplications(); showSuccess('Đã từ chối và gửi email thông báo thành công!'); }
       else alert(data.message || 'Lỗi từ chối hồ sơ');
     } catch { alert('Không thể kết nối đến server'); }
   };
@@ -166,7 +183,7 @@ export default function TutorManagement() {
         body: JSON.stringify({ username: grantUsername }),
       });
       const data = await response.json();
-      if (response.ok) { setIsGrantModalOpen(false); alert('Đã cấp tài khoản và gửi email thông báo thành công!'); }
+      if (response.ok) { setIsGrantModalOpen(false); showSuccess('Đã cấp tài khoản và gửi email thông báo thành công!'); }
       else setGrantStatus({ loading: false, error: data.message || 'Lỗi cấp tài khoản' });
     } catch { setGrantStatus({ loading: false, error: 'Không thể kết nối đến server' }); }
   };
@@ -257,6 +274,11 @@ export default function TutorManagement() {
         approveStatus={approveStatus}
         onSubmit={handleApproveSubmit}
         onClose={() => { setIsApproveModalOpen(false); setApprovingAppId(null); setInterviewData({ time: '', address: '' }); setApproveStatus({ loading: false, error: '' }); }}
+      />
+      <SuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        message={successMessage}
       />
     </div>
   );

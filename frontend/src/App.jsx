@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/layout/Layout';
 import DashboardOverview from './pages/Admin/DashboardOverview';
 import TutorManagement from './pages/Admin/TutorManagement';
+import AdminLayout from './components/layout/AdminLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/Auth/LoginPage';
 import AdminLoginPage from './pages/Auth/AdminLoginPage';
@@ -63,7 +63,7 @@ function App() {
             path="/admin" 
             element={
               <ProtectedRoute allowedRoles={['admin']} redirectPath="/admin/login">
-                <Layout />
+                <AdminLayout />
               </ProtectedRoute>
             }
           >
