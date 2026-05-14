@@ -1,10 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, ShieldCheck } from 'lucide-react';
+import DepositModal from '../../components/common/DepositModal';
 
 const WalletPage = () => {
+  const [balance, setBalance] = useState(0);
+  const [transactions, setTransactions] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  const fetchWallet = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/wallet', {
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        setBalance(data.data.balance);
+        setTransactions(data.data.transactions);
+      }
+    } catch (err) {
+      console.error('Error fetching wallet:', err);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWallet();
+  }, []);
+
+  const handleDeposit = async (amount, paymentMethod) => {
+    setLoading(true);
+    try {
+      const res = await fetch('http://localhost:3001/api/wallet/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ amount, paymentMethod })
+      });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        alert(data.message || 'Nạp tiền thành công!');
+        setBalance(data.data.balance);
+        setTransactions((prev) => [data.data.transaction, ...prev]);
+        setIsModalOpen(false);
+      } else {
+        alert(data.message || 'Có lỗi xảy ra khi nạp tiền');
+      }
+    } catch (err) {
+      alert('Lỗi kết nối server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-slate-900">Ví tiền của tôi</h1>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-slate-900">Ví tiền của tôi</h1>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Balance Card */}
@@ -12,8 +67,13 @@ const WalletPage = () => {
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-3xl text-white shadow-xl shadow-blue-100 relative overflow-hidden">
             <div className="relative z-10">
               <p className="text-blue-100 text-sm font-medium mb-1">Số dư hiện tại</p>
-              <h2 className="text-4xl font-bold mb-8">0đ</h2>
-              <button className="w-full py-3 bg-white text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center gap-2">
+              <h2 className="text-4xl font-bold mb-8">
+                {fetching ? '...' : `${balance.toLocaleString('vi-VN')} đ`}
+              </h2>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="w-full py-4 bg-white text-blue-600 font-bold rounded-2xl hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+              >
                 <Plus className="w-5 h-5" />
                 Nạp tiền ngay
               </button>
@@ -22,8 +82,8 @@ const WalletPage = () => {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12" />
           </div>
 
-          <div className="mt-6 bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-sm text-blue-700">
-            <ShieldCheck className="w-5 h-5 flex-shrink-0" />
+          <div className="mt-6 bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-sm text-blue-700 shadow-sm">
+            <ShieldCheck className="w-5 h-5 flex-shrink-0 text-blue-600" />
             <p>Mọi giao dịch đều được bảo mật và giám sát bởi hệ thống EduMatch.</p>
           </div>
         </div>
@@ -31,19 +91,64 @@ const WalletPage = () => {
         {/* Transaction History */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
-            <div className="p-6 border-b border-slate-100">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <Clock className="w-5 h-5 text-slate-400" />
                 Lịch sử giao dịch
               </h3>
+              <span className="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1 rounded-full">
+                {transactions.length} giao dịch
+              </span>
             </div>
-            <div className="flex-1 flex flex-col items-center justify-center p-12 text-slate-400">
-              <Wallet className="w-16 h-16 mb-4 opacity-10" />
-              <p>Bạn chưa có giao dịch nào.</p>
+
+            <div className="flex-1 overflow-y-auto max-h-[500px]">
+              {fetching ? (
+                <div className="flex items-center justify-center p-12 text-slate-400">Đang tải lịch sử...</div>
+              ) : transactions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-16 text-slate-400 text-center">
+                  <Wallet className="w-16 h-16 mb-4 opacity-10" />
+                  <p className="font-medium">Bạn chưa có giao dịch nào.</p>
+                  <p className="text-xs text-slate-400 mt-1">Các giao dịch nạp tiền hoặc thanh toán sẽ xuất hiện ở đây.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {transactions.map((tx) => {
+                    const isDeposit = tx.type === 'deposit';
+                    return (
+                      <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                            isDeposit ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                          }`}>
+                            {isDeposit ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 text-base">{tx.description || (isDeposit ? 'Nạp tiền vào ví' : 'Thanh toán dịch vụ')}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                              {new Date(tx.created_at).toLocaleString('vi-VN')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={`font-bold text-lg text-right ${isDeposit ? 'text-emerald-600' : 'text-red-600'}`}>
+                          {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString('vi-VN')} đ
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <DepositModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDeposit={handleDeposit}
+        loading={loading}
+      />
     </div>
   );
 };
