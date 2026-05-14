@@ -108,6 +108,7 @@ export const getMyBookings = async (req, res) => {
 export const cancelMyBooking = async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
+  const { refund } = req.query;
 
   try {
     await pool.query('BEGIN');
@@ -135,7 +136,13 @@ export const cancelMyBooking = async (req, res) => {
     // Hủy lịch
     await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', id]);
 
-    // Hoàn tiền 100% cho học viên
+    if (refund === 'false') {
+      // Kịch bản test: Hủy nhưng không hoàn tiền
+      await pool.query('COMMIT');
+      return res.json({ status: 'ok', message: 'Hủy lịch thành công (Kịch bản test: Không hoàn tiền).' });
+    }
+
+    // Kịch bản thực tế: Hoàn tiền 100% cho học viên
     await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [BOOKING_FEE, userId]);
     await pool.query(`
       INSERT INTO transactions (user_id, user_type, amount, type, description)

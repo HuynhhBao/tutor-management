@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { getWalletInfo, depositMoney, createPaymentUrl, vnpayReturn } from '../controllers/walletController.js';
+import { getWalletInfo, depositMoney } from '../controllers/walletController.js';
 
 const router = express.Router();
 
@@ -24,8 +24,6 @@ const verifyUser = (req, res, next) => {
 router.use(verifyUser);
 
 router.get('/', getWalletInfo);
-router.post('/deposit', depositMoney); // Giữ lại luồng Mock cũ
-router.post('/create_payment_url', createPaymentUrl); // Luồng thanh toán thực tế VNPay
-router.post('/vnpay_return', vnpayReturn); // Callback từ VNPay
+router.post('/deposit', depositMoney);
 
 export default router;

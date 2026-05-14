@@ -37,15 +37,21 @@ function CancelModal({ booking, onConfirm, onClose }) {
           với gia sư <strong className="text-slate-700">{booking.tutor_name}</strong>?
         </p>
         <p className="text-center text-sm text-green-600 font-medium mb-6">
-          ✓ Tiền sẽ được hoàn lại 100.000đ vào ví của bạn
+          ✓ Hủy thực tế: Tiền sẽ được hoàn lại 100.000đ vào ví của bạn
         </p>
         <div className="flex flex-col gap-3">
           <button
             id="confirm-cancel-btn"
-            onClick={() => onConfirm(booking.id)}
+            onClick={() => onConfirm(booking.id, false)}
             className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-red-100 active:scale-95"
           >
-            Xác nhận hủy lịch
+            Xác nhận hủy lịch (Hoàn 100k)
+          </button>
+          <button
+            onClick={() => onConfirm(booking.id, true)}
+            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl transition-all shadow-md shadow-amber-100 active:scale-95 text-xs"
+          >
+            ⚠️ Test: Hủy lịch (Không hoàn tiền)
           </button>
           <button
             onClick={onClose}
@@ -88,9 +94,10 @@ export default function BookingHistoryPage() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  const handleCancelConfirm = async (id) => {
+  const handleCancelConfirm = async (id, isTestNoRefund = false) => {
     try {
-      const res = await fetch(`${API_BASE}/student/bookings/${id}/cancel`, {
+      const endpoint = `${API_BASE}/student/bookings/${id}/cancel${isTestNoRefund ? '?refund=false' : ''}`;
+      const res = await fetch(endpoint, {
         method: 'PUT',
         credentials: 'include',
       });
