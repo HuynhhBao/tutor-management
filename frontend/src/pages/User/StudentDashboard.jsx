@@ -11,7 +11,8 @@ import {
   Clock, 
   TrendingUp, 
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 const StudentDashboard = () => {
@@ -20,6 +21,7 @@ const StudentDashboard = () => {
   const [balance, setBalance] = useState(0);
   const [activeTutors, setActiveTutors] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,32 +89,41 @@ const StudentDashboard = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Welcome Header */}
-      <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm overflow-hidden relative">
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold text-slate-900">
-            Chào mừng trở lại, {user?.fullName || user?.username}! 👋
-          </h1>
-          <p className="mt-2 text-slate-600 max-w-2xl">
-            Hôm nay bạn muốn học gì? Khám phá hàng ngàn gia sư chất lượng và bắt đầu hành trình chinh phục tri thức của bạn.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <button 
-              onClick={() => navigate('/student-dashboard/search')}
-              className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
-            >
-              Bắt đầu tìm gia sư
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-2 text-sm text-slate-500 px-4 py-2 bg-slate-100 rounded-xl border border-slate-100">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              Giao dịch an toàn & minh bạch
+      {/* Welcome Header Banner */}
+      {showBanner && (
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm overflow-hidden relative animate-in fade-in zoom-in-95 duration-300">
+          <button 
+            onClick={() => setShowBanner(false)}
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-20"
+            title="Đóng thông báo"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="relative z-10 pr-8">
+            <h1 className="text-3xl font-bold text-slate-900">
+              Chào mừng trở lại, {user?.fullName || user?.username}! 👋
+            </h1>
+            <p className="mt-2 text-slate-600 max-w-2xl">
+              Hôm nay bạn muốn học gì? Khám phá hàng ngàn gia sư chất lượng và bắt đầu hành trình chinh phục tri thức của bạn.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
+              <button 
+                onClick={() => navigate('/student-dashboard/search')}
+                className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
+              >
+                Bắt đầu tìm gia sư
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2 text-sm text-slate-500 px-4 py-2 bg-slate-100 rounded-xl border border-slate-100">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                Giao dịch an toàn & minh bạch
+              </div>
             </div>
           </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full -mr-20 -mt-20 z-0 opacity-50" />
+          <div className="absolute bottom-0 right-32 w-24 h-24 bg-blue-50 rounded-full z-0 opacity-50" />
         </div>
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full -mr-20 -mt-20 z-0 opacity-50" />
-        <div className="absolute bottom-0 right-32 w-24 h-24 bg-blue-50 rounded-full z-0 opacity-50" />
-      </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
