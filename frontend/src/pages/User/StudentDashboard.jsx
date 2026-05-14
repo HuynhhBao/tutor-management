@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -17,11 +17,41 @@ import {
 const StudentDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [balance, setBalance] = useState(0);
+  const [activeTutors, setActiveTutors] = useState(0);
+  const [totalHours, setTotalHours] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch balance
+        const resWallet = await fetch('http://localhost:3001/api/wallet', { credentials: 'include' });
+        const dataWallet = await resWallet.json();
+        if (dataWallet.status === 'ok') {
+          setBalance(dataWallet.data.balance || 0);
+        }
+
+        // Fetch bookings
+        const resBookings = await fetch('http://localhost:3001/api/student/bookings', { credentials: 'include' });
+        const dataBookings = await resBookings.json();
+        if (dataBookings.status === 'ok' && Array.isArray(dataBookings.data)) {
+          // Tính số gia sư đang thuê (trạng thái confirmed)
+          const confirmedBookings = dataBookings.data.filter((b) => b.status === 'confirmed');
+          setActiveTutors(confirmedBookings.length);
+          // Giả định mỗi lịch học confirmed tương ứng với 2 giờ học thực tế
+          setTotalHours(confirmedBookings.length * 2);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const stats = [
-    { label: 'Số dư hiện tại', value: '0đ', icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Gia sư đang thuê', value: '0', icon: Star, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { label: 'Giờ học đã thực hiện', value: '0h', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Số dư hiện tại', value: `${parseFloat(balance).toLocaleString('vi-VN')} đ`, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Gia sư đang thuê', value: `${activeTutors}`, icon: Star, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { label: 'Giờ học đã thực hiện', value: `${totalHours}h`, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
 
   const quickActions = [

@@ -23,6 +23,8 @@ function StatusBadge({ status }) {
 // Modal xác nhận hủy lịch
 function CancelModal({ booking, onConfirm, onClose }) {
   if (!booking) return null;
+  const isConfirmed = booking.status === 'confirmed';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100">
@@ -32,26 +34,29 @@ function CancelModal({ booking, onConfirm, onClose }) {
           </div>
         </div>
         <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Hủy lịch học?</h3>
-        <p className="text-slate-500 text-center text-sm mb-1">
+        <p className="text-slate-500 text-center text-sm mb-4">
           Bạn muốn hủy lịch học môn <strong className="text-slate-700">{booking.subject}</strong>{' '}
           với gia sư <strong className="text-slate-700">{booking.tutor_name}</strong>?
         </p>
-        <p className="text-center text-sm text-green-600 font-medium mb-6">
-          ✓ Hủy thực tế: Tiền sẽ được hoàn lại 100.000đ vào ví của bạn
-        </p>
+
+        {isConfirmed ? (
+          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-800 text-xs text-center mb-6 space-y-1">
+            <p className="font-bold">⚠️ Gia sư đã xác nhận lịch học này</p>
+            <p>Theo quy định, hủy lịch đã xác nhận sẽ không được hoàn lại phí đặt lịch (để bồi thường cho gia sư).</p>
+          </div>
+        ) : (
+          <p className="text-center text-sm text-green-600 font-medium mb-6">
+            ✓ Tiền sẽ được hoàn lại 100.000đ vào ví của bạn
+          </p>
+        )}
+
         <div className="flex flex-col gap-3">
           <button
             id="confirm-cancel-btn"
-            onClick={() => onConfirm(booking.id, false)}
+            onClick={() => onConfirm(booking.id)}
             className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-red-100 active:scale-95"
           >
-            Xác nhận hủy lịch (Hoàn 100k)
-          </button>
-          <button
-            onClick={() => onConfirm(booking.id, true)}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl transition-all shadow-md shadow-amber-100 active:scale-95 text-xs"
-          >
-            ⚠️ Test: Hủy lịch (Không hoàn tiền)
+            {isConfirmed ? 'Đồng ý hủy (Không hoàn tiền)' : 'Xác nhận hủy lịch'}
           </button>
           <button
             onClick={onClose}
@@ -94,10 +99,9 @@ export default function BookingHistoryPage() {
 
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
-  const handleCancelConfirm = async (id, isTestNoRefund = false) => {
+  const handleCancelConfirm = async (id) => {
     try {
-      const endpoint = `${API_BASE}/student/bookings/${id}/cancel${isTestNoRefund ? '?refund=false' : ''}`;
-      const res = await fetch(endpoint, {
+      const res = await fetch(`${API_BASE}/student/bookings/${id}/cancel`, {
         method: 'PUT',
         credentials: 'include',
       });
@@ -234,8 +238,14 @@ export default function BookingHistoryPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="shrink-0">
-                    {b.status === 'pending' && (
+                  <div className="shrink-0 flex items-center gap-2">
+                    {b.status === 'confirmed' && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl font-medium border border-blue-100">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        Đã xác nhận
+                      </span>
+                    )}
+                    {(b.status === 'pending' || b.status === 'confirmed') && (
                       <button
                         id={`cancel-booking-${b.id}`}
                         onClick={() => setCancelTarget(b)}
@@ -244,12 +254,6 @@ export default function BookingHistoryPage() {
                         <XCircle className="w-4 h-4" />
                         Hủy lịch
                       </button>
-                    )}
-                    {b.status === 'confirmed' && (
-                      <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl font-medium">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Gia sư đã xác nhận
-                      </span>
                     )}
                   </div>
                 </div>

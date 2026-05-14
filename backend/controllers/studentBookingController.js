@@ -104,11 +104,10 @@ export const getMyBookings = async (req, res) => {
   }
 };
 
-// PUT /api/student/bookings/:id/cancel - Học viên tự hủy lịch (chỉ được hủy khi đang pending)
+// PUT /api/student/bookings/:id/cancel - Học viên tự hủy lịch
 export const cancelMyBooking = async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
-  const { refund } = req.query;
 
   try {
     await pool.query('BEGIN');
@@ -125,24 +124,24 @@ export const cancelMyBooking = async (req, res) => {
 
     const booking = bookingResult.rows[0];
 
-    if (booking.status !== 'pending') {
+    if (!['pending', 'confirmed'].includes(booking.status)) {
       await pool.query('ROLLBACK');
       return res.status(400).json({
         status: 'error',
-        message: 'Chỉ có thể hủy lịch khi đang ở trạng thái "Chờ xác nhận"'
+        message: 'Chỉ có thể hủy lịch khi đang ở trạng thái "Chờ xác nhận" hoặc "Đã xác nhận"'
       });
     }
 
     // Hủy lịch
     await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', id]);
 
-    if (refund === 'false') {
-      // Kịch bản test: Hủy nhưng không hoàn tiền
+    if (booking.status === 'confirmed') {
+      // Hủy khi đã xác nhận: Không hoàn tiền (bồi thường gia sư)
       await pool.query('COMMIT');
-      return res.json({ status: 'ok', message: 'Hủy lịch thành công (Kịch bản test: Không hoàn tiền).' });
+      return res.json({ status: 'ok', message: 'Hủy lịch thành công. (Lưu ý: Hủy lịch đã xác nhận sẽ không được hoàn tiền theo quy định).' });
     }
 
-    // Kịch bản thực tế: Hoàn tiền 100% cho học viên
+    // Hủy khi đang chờ xác nhận: Hoàn tiền 100% cho học viên
     await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [BOOKING_FEE, userId]);
     await pool.query(`
       INSERT INTO transactions (user_id, user_type, amount, type, description)
