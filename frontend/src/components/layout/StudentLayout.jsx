@@ -136,17 +136,10 @@ const StudentLayout = () => {
             <div className="flex items-center gap-4 flex-shrink-0 h-16">
               {/* Actions (Desktop only) */}
               <div className="hidden sm:flex items-center gap-4">
-                <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-                
-                <div className="h-8 w-px bg-slate-200 mx-1"></div>
-
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden lg:block">
                     <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username || 'Học viên'}</p>
-                    <p className="text-xs text-slate-500 capitalize">{user?.email || 'Học viên'}</p>
+                    <p className="text-xs text-slate-500">{user?.email || 'Học viên'}</p>
                   </div>
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
                     {user?.avatarUrl ? (
