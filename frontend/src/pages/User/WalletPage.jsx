@@ -26,31 +26,87 @@ const WalletPage = () => {
     }
   };
 
+  // Kiểm tra callback từ VNPay khi redirect về
+  const checkVNPayReturn = async () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const rspCode = searchParams.get('vnp_ResponseCode');
+
+    if (rspCode) {
+      const paramsObj = Object.fromEntries(searchParams.entries());
+      setFetching(true);
+      try {
+        const res = await fetch('http://localhost:3001/api/wallet/vnpay_return', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(paramsObj)
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          alert(data.message || 'Nạp tiền qua VNPay thành công!');
+          setBalance(data.balance);
+          if (data.transaction) {
+            setTransactions((prev) => [data.transaction, ...prev]);
+          }
+        } else {
+          alert(data.message || 'Giao dịch thanh toán không thành công');
+        }
+      } catch (err) {
+        alert('Lỗi xác thực giao dịch từ VNPay');
+      } finally {
+        setFetching(false);
+        // Xóa tham số trên URL để tránh F5 gọi lại
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  };
+
   useEffect(() => {
-    fetchWallet();
+    checkVNPayReturn().then(() => {
+      fetchWallet();
+    });
   }, []);
 
   const handleDeposit = async (amount, paymentMethod) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/wallet/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ amount, paymentMethod })
-      });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        alert(data.message || 'Nạp tiền thành công!');
-        setBalance(data.data.balance);
-        setTransactions((prev) => [data.data.transaction, ...prev]);
-        setIsModalOpen(false);
+      if (paymentMethod === 'VNPay') {
+        // Luồng thanh toán thực tế qua VNPay
+        const res = await fetch('http://localhost:3001/api/wallet/create_payment_url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ amount, paymentMethod })
+        });
+        const data = await res.json();
+        if (data.status === 'ok' && data.paymentUrl) {
+          // Chuyển hướng sang trang thanh toán chính thức
+          window.location.href = data.paymentUrl;
+        } else {
+          alert(data.message || 'Không thể tạo URL thanh toán VNPay');
+          setLoading(false);
+        }
       } else {
-        alert(data.message || 'Có lỗi xảy ra khi nạp tiền');
+        // Luồng Mock Payment (ví dụ: Chuyển khoản, MoMo giả lập)
+        const res = await fetch('http://localhost:3001/api/wallet/deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ amount, paymentMethod })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          alert(data.message || 'Nạp tiền thành công!');
+          setBalance(data.data.balance);
+          setTransactions((prev) => [data.data.transaction, ...prev]);
+          setIsModalOpen(false);
+        } else {
+          alert(data.message || 'Có lỗi xảy ra khi nạp tiền');
+        }
+        setLoading(false);
       }
     } catch (err) {
       alert('Lỗi kết nối server');
-    } finally {
       setLoading(false);
     }
   };
