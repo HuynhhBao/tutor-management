@@ -26,6 +26,13 @@ const StudentDashboard = () => {
 
   const quickActions = [
     { 
+      title: 'Hồ sơ cá nhân', 
+      desc: 'Cập nhật thông tin cá nhân và quản lý tài khoản.',
+      icon: User,
+      path: '/student-dashboard/profile',
+      color: 'bg-amber-600'
+    },
+    { 
       title: 'Tìm kiếm Gia sư', 
       desc: 'Tìm kiếm và kết nối với gia sư phù hợp với nhu cầu của bạn.',
       icon: Search,
@@ -45,13 +52,6 @@ const StudentDashboard = () => {
       icon: Wallet,
       path: '/student-dashboard/wallet',
       color: 'bg-emerald-600'
-    },
-    { 
-      title: 'Hồ sơ cá nhân', 
-      desc: 'Cập nhật thông tin cá nhân và quản lý tài khoản.',
-      icon: User,
-      path: '/student-dashboard/profile',
-      color: 'bg-amber-600'
     },
   ];
 

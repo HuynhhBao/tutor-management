@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck } from 'lucide-react';
+import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck, Bell } from 'lucide-react';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -48,49 +48,79 @@ const StudentLayout = () => {
   }, [location.pathname]);
 
 
-  const navItems = [
+  const primaryNavItems = [
     { path: '/student-dashboard', label: 'Tổng quan', icon: LayoutDashboard },
+    { path: '/student-dashboard/search', label: 'Tìm gia sư', icon: Search },
     { path: '/student-dashboard/booking', label: 'Đặt lịch', icon: CalendarPlus },
     { path: '/student-dashboard/booking-history', label: 'Lịch của tôi', icon: CalendarCheck },
-    { path: '/student-dashboard/search', label: 'Tìm gia sư', icon: Search },
     { path: '/student-dashboard/history', label: 'Lịch sử thuê', icon: History },
+  ];
+
+  const secondaryNavItems = [
     { path: '/student-dashboard/wallet', label: 'Ví tiền', icon: Wallet },
     { path: '/student-dashboard/chat', label: 'Trò chuyện', icon: MessageSquare },
     { path: '/student-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
+
+  const navItems = [...primaryNavItems, ...secondaryNavItems];
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
       {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            {/* Left side: Logo & Desktop Menu */}
-            <div className="flex">
+          <div className="flex justify-between gap-4">
+            {/* Logo Row (Left) */}
+            <div className="flex items-center flex-shrink-0 h-16">
               <button 
-                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" 
+                className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-4" 
                 onClick={() => navigate('/student-dashboard')}
                 aria-label="EduMatch Dashboard"
               >
                 <GraduationCap className="h-8 w-8 text-blue-600" />
                 <span className="ml-2 text-xl font-bold text-slate-900 hidden sm:block">EduMatch</span>
-                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider hidden md:block">
+                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider hidden xl:block">
                   Học viên
                 </span>
               </button>
-              
-              {/* Desktop Menu */}
-              <div className="hidden lg:ml-8 lg:flex lg:space-x-4">
-                {navItems.map((item) => {
+            </div>
+
+            {/* Middle Column: Primary (Row 1) and Secondary (Row 2) Menus */}
+            <div className="hidden lg:flex flex-col flex-1">
+              {/* Top Row: Primary Menu */}
+              <div className="flex items-center h-16 space-x-1">
+                {primaryNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
                   return (
                     <button
                       key={item.path}
                       onClick={() => navigate(item.path)}
-                      className={`inline-flex items-center px-3 py-2 mt-3 mb-3 rounded-lg text-sm font-medium transition-colors ${
+                      className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                         isActive 
-                          ? 'bg-blue-100 text-blue-700' 
+                          ? 'bg-blue-50 text-blue-700 shadow-sm' 
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
+                    >
+                      <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Bottom Row: Secondary Menu (Aligned with Primary) */}
+              <div className="flex items-center space-x-1 pb-2">
+                {secondaryNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                      className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                        isActive 
+                          ? 'bg-blue-50 text-blue-700 shadow-sm' 
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
@@ -102,47 +132,60 @@ const StudentLayout = () => {
               </div>
             </div>
 
-            {/* Right side: User Profile & Logout (Desktop) */}
-            <div className="hidden sm:flex sm:items-center sm:ml-6 gap-4">
-              <div className="flex flex-col items-end text-sm">
-                <span className="text-slate-500 text-xs">Xin chào,</span>
-                <span className="font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username}</span>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                {user?.avatarUrl ? (
-                  <img 
-                    src={`http://localhost:3001${user.avatarUrl}`} 
-                    alt="Avatar" 
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (user?.fullName || user?.username || 'H').charAt(0)
-                )}
-              </div>
-              <button 
-                onClick={async () => {
-                  await logout();
-                  navigate('/');
-                }}
-                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Đăng xuất"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Right side Row: Notifications & Profile & Logout */}
+            <div className="flex items-center gap-4 flex-shrink-0 h-16">
+              {/* Actions (Desktop only) */}
+              <div className="hidden sm:flex items-center gap-4">
+                <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+                
+                <div className="h-8 w-px bg-slate-200 mx-1"></div>
 
-            {/* Mobile menu button */}
-            <div className="flex items-center lg:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="block h-6 w-6" />
-                ) : (
-                  <Menu className="block h-6 w-6" />
-                )}
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden lg:block">
+                    <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username || 'Học viên'}</p>
+                    <p className="text-xs text-slate-500 capitalize">{user?.email || 'Học viên'}</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
+                    {user?.avatarUrl ? (
+                      <img 
+                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (user?.fullName || user?.username || 'H').charAt(0)
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    await logout();
+                    navigate('/');
+                  }}
+                  className="inline-flex items-center px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-red-600 bg-white hover:bg-red-50 hover:border-red-200 transition-colors whitespace-nowrap"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Đăng xuất
+                </button>
+              </div>
+
+              {/* Mobile menu button */}
+              <div className="flex items-center lg:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="block h-6 w-6" />
+                  ) : (
+                    <Menu className="block h-6 w-6" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

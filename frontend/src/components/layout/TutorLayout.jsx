@@ -59,11 +59,11 @@ const TutorLayout = () => {
       {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between items-center gap-4 py-2 min-h-[4rem]">
             {/* Left side: Logo & Desktop Menu */}
-            <div className="flex">
+            <div className="flex items-center flex-1 overflow-x-auto">
               <button 
-                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg" 
+                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg py-1 mr-6" 
                 onClick={() => navigate('/tutor-dashboard')}
                 aria-label="EduMatch Tutor Dashboard"
               >
@@ -72,7 +72,7 @@ const TutorLayout = () => {
               </button>
               
               {/* Desktop Menu */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+              <div className="hidden md:flex items-center space-x-2 flex-wrap gap-y-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -80,9 +80,9 @@ const TutorLayout = () => {
                     <button
                       key={item.path}
                       onClick={() => navigate(item.path)}
-                      className={`inline-flex items-center px-3 py-2 mt-3 mb-3 rounded-lg text-sm font-medium transition-colors ${
+                      className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                         isActive 
-                          ? 'bg-blue-100 text-blue-700' 
+                          ? 'bg-blue-100 text-blue-700 shadow-sm' 
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                       }`}
                     >
@@ -95,14 +95,14 @@ const TutorLayout = () => {
             </div>
 
             {/* Right side: User Profile & Logout (Desktop) */}
-            <div className="hidden sm:flex sm:items-center sm:ml-6 gap-4">
-              <div className="text-sm">
+            <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+              <div className="text-sm hidden lg:block">
                 <span className="text-slate-500">Xin chào,</span>{' '}
                 <span className="font-semibold text-slate-900">{user?.fullName || user?.username}</span>
               </div>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-red-600 bg-white hover:bg-red-50 hover:border-red-200 transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-red-600 bg-white hover:bg-red-50 hover:border-red-200 transition-colors whitespace-nowrap"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Đăng xuất
@@ -110,7 +110,7 @@ const TutorLayout = () => {
             </div>
 
             {/* Mobile menu button */}
-            <div className="flex items-center sm:hidden">
+            <div className="flex items-center md:hidden flex-shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
