@@ -11,7 +11,8 @@ import {
   Bell,
   Menu,
   X,
-  ShieldCheck
+  ShieldCheck,
+  CalendarCheck
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -48,6 +49,7 @@ const AdminLayout = () => {
     { path: '/admin', label: 'Tổng quan', icon: LayoutDashboard },
     { path: '/admin/tutors', label: 'Quản lý Gia sư', icon: Users, badge: 'pendingApplications' },
     { path: '/admin/students', label: 'Quản lý Học viên', icon: UserSquare },
+    { path: '/admin/bookings', label: 'Quản lý Đặt lịch', icon: CalendarCheck },
     { path: '/admin/classes', label: 'Sắp xếp Lớp học', icon: CalendarDays },
   ];
 
