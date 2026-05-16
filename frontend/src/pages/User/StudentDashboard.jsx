@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -11,20 +11,59 @@ import {
   Clock, 
   TrendingUp, 
   ArrowRight,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [balance, setBalance] = useState(0);
+  const [activeTutors, setActiveTutors] = useState(0);
+  const [totalHours, setTotalHours] = useState(0);
+  const [showBanner, setShowBanner] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch balance
+        const resWallet = await fetch('http://localhost:3001/api/wallet', { credentials: 'include' });
+        const dataWallet = await resWallet.json();
+        if (dataWallet.status === 'ok') {
+          setBalance(dataWallet.data.balance || 0);
+        }
+
+        // Fetch bookings
+        const resBookings = await fetch('http://localhost:3001/api/student/bookings', { credentials: 'include' });
+        const dataBookings = await resBookings.json();
+        if (dataBookings.status === 'ok' && Array.isArray(dataBookings.data)) {
+          // Tính số gia sư đang thuê (trạng thái confirmed)
+          const confirmedBookings = dataBookings.data.filter((b) => b.status === 'confirmed');
+          setActiveTutors(confirmedBookings.length);
+          // Giả định mỗi lịch học confirmed tương ứng với 2 giờ học thực tế
+          setTotalHours(confirmedBookings.length * 2);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      }
+    };
+    fetchData();
+  }, []);
 
   const stats = [
-    { label: 'Số dư hiện tại', value: '0đ', icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Gia sư đang thuê', value: '0', icon: Star, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { label: 'Giờ học đã thực hiện', value: '0h', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Số dư hiện tại', value: `${parseFloat(balance).toLocaleString('vi-VN')} đ`, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Gia sư đang thuê', value: `${activeTutors}`, icon: Star, color: 'text-blue-600', bg: 'bg-blue-100' },
+    { label: 'Giờ học đã thực hiện', value: `${totalHours}h`, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
 
   const quickActions = [
+    { 
+      title: 'Hồ sơ cá nhân', 
+      desc: 'Cập nhật thông tin cá nhân và quản lý tài khoản.',
+      icon: User,
+      path: '/student-dashboard/profile',
+      color: 'bg-amber-600'
+    },
     { 
       title: 'Tìm kiếm Gia sư', 
       desc: 'Tìm kiếm và kết nối với gia sư phù hợp với nhu cầu của bạn.',
@@ -46,43 +85,45 @@ const StudentDashboard = () => {
       path: '/student-dashboard/wallet',
       color: 'bg-emerald-600'
     },
-    { 
-      title: 'Hồ sơ cá nhân', 
-      desc: 'Cập nhật thông tin cá nhân và quản lý tài khoản.',
-      icon: User,
-      path: '/student-dashboard/profile',
-      color: 'bg-amber-600'
-    },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Welcome Header */}
-      <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm overflow-hidden relative">
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold text-slate-900">
-            Chào mừng trở lại, {user?.fullName || user?.username}! 👋
-          </h1>
-          <p className="mt-2 text-slate-600 max-w-2xl">
-            Hôm nay bạn muốn học gì? Khám phá hàng ngàn gia sư chất lượng và bắt đầu hành trình chinh phục tri thức của bạn.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-4">
-            <button 
-              onClick={() => navigate('/student-dashboard/search')}
-              className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
-            >
-              Bắt đầu tìm gia sư
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-2 text-sm text-slate-500 px-4 py-2 bg-slate-100 rounded-xl border border-slate-100">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              Giao dịch an toàn & minh bạch
+      {/* Welcome Header Banner */}
+      {showBanner && (
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm overflow-hidden relative animate-in fade-in zoom-in-95 duration-300">
+          <button 
+            onClick={() => setShowBanner(false)}
+            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-20"
+            title="Đóng thông báo"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="relative z-10 pr-8">
+            <h1 className="text-3xl font-bold text-slate-900">
+              Chào mừng trở lại, {user?.fullName || user?.username}! 👋
+            </h1>
+            <p className="mt-2 text-slate-600 max-w-2xl">
+              Hôm nay bạn muốn học gì? Khám phá hàng ngàn gia sư chất lượng và bắt đầu hành trình chinh phục tri thức của bạn.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-4">
+              <button 
+                onClick={() => navigate('/student-dashboard/search')}
+                className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
+              >
+                Bắt đầu tìm gia sư
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2 text-sm text-slate-500 px-4 py-2 bg-slate-100 rounded-xl border border-slate-100">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                Giao dịch an toàn & minh bạch
+              </div>
             </div>
           </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full -mr-20 -mt-20 z-0 opacity-50" />
+          <div className="absolute bottom-0 right-32 w-24 h-24 bg-blue-50 rounded-full z-0 opacity-50" />
         </div>
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full -mr-20 -mt-20 z-0 opacity-50" />
-        <div className="absolute bottom-0 right-32 w-24 h-24 bg-blue-50 rounded-full z-0 opacity-50" />
-      </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
