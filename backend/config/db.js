@@ -31,7 +31,7 @@ export const initDb = async () => {
         full_name VARCHAR(255) NOT NULL,
         phone_number VARCHAR(20),
         password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -53,7 +53,7 @@ export const initDb = async () => {
         full_name VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'admin',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -79,7 +79,7 @@ export const initDb = async () => {
         qualification VARCHAR(255),
         status VARCHAR(50) DEFAULT 'Đang chờ',
         rating DECIMAL(3,2) DEFAULT 0.0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -100,7 +100,7 @@ export const initDb = async () => {
         email VARCHAR(255) NOT NULL,
         cv_image_url VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -110,7 +110,7 @@ export const initDb = async () => {
         tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
         username VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -137,7 +137,7 @@ export const initDb = async () => {
         amount DECIMAL(12,2) NOT NULL,
         type VARCHAR(50) NOT NULL,
         description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -151,7 +151,7 @@ export const initDb = async () => {
         schedule_time VARCHAR(255),
         message TEXT,
         status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
@@ -164,22 +164,48 @@ export const initDb = async () => {
         title VARCHAR(255) NOT NULL,
         message TEXT,
         is_read BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Thêm cột balance cho users nếu chưa có
+    // Tạo bảng messages nếu chưa có
     await pool.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='balance') THEN
-          ALTER TABLE users ADD COLUMN balance DECIMAL(12,2) DEFAULT 0;
-        END IF;
-      END
-      $$;
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER NOT NULL,
+        sender_type VARCHAR(20) NOT NULL, -- 'user' hoặc 'tutor'
+        receiver_id INTEGER NOT NULL,
+        receiver_type VARCHAR(20) NOT NULL, -- 'user' hoặc 'tutor'
+        content TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
     `);
 
-    console.log('Database initialized successfully');
+    // Migration: Chuyển đổi tất cả các cột TIMESTAMP sang TIMESTAMPTZ để đồng bộ múi giờ
+    const tablesWithTimestamp = [
+      'users', 'admins', 'tutors', 'tutor_applications', 
+      'tutor_accounts', 'transactions', 'bookings', 
+      'notifications', 'messages'
+    ];
+    
+    for (const table of tablesWithTimestamp) {
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns 
+            WHERE table_name='${table}' AND column_name='created_at' 
+            AND data_type='timestamp without time zone'
+          ) THEN
+            EXECUTE 'ALTER TABLE ${table} ALTER COLUMN created_at TYPE TIMESTAMPTZ';
+          END IF;
+        END
+        $$;
+      `);
+    }
+
+    console.log('Database initialized successfully with TIMESTAMPTZ');
   } catch (err) {
     console.error('Database initialization error:', err);
   }

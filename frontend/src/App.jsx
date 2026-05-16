@@ -21,6 +21,7 @@ import HiringHistoryPage from './pages/User/HiringHistoryPage';
 import WalletPage from './pages/User/WalletPage';
 import BookingPage from './pages/User/BookingPage';
 import BookingHistoryPage from './pages/User/BookingHistoryPage';
+import ChatPage from './pages/Common/ChatPage';
 
 // Component to handle root path redirection based on auth state
 const HomeRedirect = () => {
@@ -91,6 +92,7 @@ function App() {
           >
             <Route index element={<TutorDashboard />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="chat" element={<ChatPage />} />
             <Route path="my-classes" element={<div className="p-6">Lớp của tôi (Đang phát triển)</div>} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
@@ -110,7 +112,7 @@ function App() {
             <Route path="booking-history" element={<BookingHistoryPage />} />
             <Route path="history" element={<HiringHistoryPage />} />
             <Route path="wallet" element={<WalletPage />} />
-            <Route path="chat" element={<div className="p-6">Trò chuyện (Đang phát triển)</div>} />
+            <Route path="chat" element={<ChatPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/student-dashboard" replace />} />
           </Route>

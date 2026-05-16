@@ -96,6 +96,15 @@ router.put('/bookings/:id/confirm', async (req, res) => {
     }
 
     await pool.query(`UPDATE bookings SET status = 'confirmed' WHERE id = $1`, [id]);
+
+    // Tự động gửi tin nhắn báo thành công cho học viên
+    const autoMsg = `Chào bạn, mình đã xác nhận lịch học môn ${check.rows[0].subject}. Rất vui được hỗ trợ bạn!`;
+    await pool.query(
+      `INSERT INTO messages (sender_id, sender_type, receiver_id, receiver_type, content)
+       VALUES ($1, 'tutor', $2, 'user', $3)`,
+      [tutorId, check.rows[0].user_id, autoMsg]
+    );
+
     res.json({ status: 'ok', message: 'Đã xác nhận lịch học thành công!' });
   } catch (err) {
     console.error('confirm booking error:', err);

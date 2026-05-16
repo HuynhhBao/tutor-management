@@ -13,6 +13,7 @@ import adminBookingsRoutes from './routes/adminBookings.js';
 import studentBookingsRoutes from './routes/studentBookings.js';
 import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
+import chatRoutes from './routes/chatRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +42,7 @@ app.use('/api/admin/bookings', adminBookingsRoutes);
 app.use('/api/student/bookings', studentBookingsRoutes);
 app.use('/api/tutor', tutorBookingsRoutes);
 app.use('/api/wallet', walletRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');
