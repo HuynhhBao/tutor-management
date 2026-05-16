@@ -23,40 +23,65 @@ function StatusBadge({ status }) {
 // Modal xác nhận hủy lịch
 function CancelModal({ booking, onConfirm, onClose }) {
   if (!booking) return null;
-  const isConfirmed = booking.status === 'confirmed';
+  
+  const now = new Date();
+  const scheduleTime = new Date(booking.schedule_time);
+  const hoursDifference = (scheduleTime - now) / (1000 * 60 * 60);
+  const isEligibleForRefund = booking.status === 'pending' || hoursDifference >= 24;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
         <div className="flex justify-center mb-5">
-          <div className="bg-amber-50 p-4 rounded-full">
-            <AlertTriangle className="h-10 w-10 text-amber-500" />
+          <div className={`p-4 rounded-full ${isEligibleForRefund ? 'bg-amber-50' : 'bg-red-50'}`}>
+            <AlertTriangle className={`h-10 w-10 ${isEligibleForRefund ? 'text-amber-500' : 'text-red-500'}`} />
           </div>
         </div>
-        <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Hủy lịch học?</h3>
-        <p className="text-slate-500 text-center text-sm mb-4">
-          Bạn muốn hủy lịch học môn <strong className="text-slate-700">{booking.subject}</strong>{' '}
-          với gia sư <strong className="text-slate-700">{booking.tutor_name}</strong>?
+        <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Xác nhận hủy lịch học</h3>
+        <p className="text-slate-500 text-center text-sm mb-6 leading-relaxed">
+          Bạn đang yêu cầu hủy lịch học môn <strong className="text-slate-800">{booking.subject}</strong>{' '}
+          với gia sư <strong className="text-slate-800">{booking.tutor_name}</strong>.
         </p>
 
-        {isConfirmed ? (
-          <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-800 text-xs text-center mb-6 space-y-1">
-            <p className="font-bold">⚠️ Gia sư đã xác nhận lịch học này</p>
-            <p>Theo quy định, hủy lịch đã xác nhận sẽ không được hoàn lại phí đặt lịch (để bồi thường cho gia sư).</p>
+        <div className={`p-5 rounded-2xl border mb-8 text-sm ${
+          isEligibleForRefund 
+            ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+            : 'bg-rose-50 border-rose-100 text-rose-800'
+        }`}>
+          <div className="flex gap-3">
+            {isEligibleForRefund ? (
+              <>
+                <CheckCircle className="h-5 w-5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-bold">Đủ điều kiện hoàn tiền 100%</p>
+                  <p className="text-xs opacity-90">Vì lịch học chưa được xác nhận hoặc bạn báo trước giờ học trên 24 tiếng.</p>
+                  <p className="text-xs font-bold mt-1">✓ Bạn sẽ nhận lại 100.000đ vào ví.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="h-5 w-5 shrink-0" />
+                <div className="space-y-1">
+                  <p className="font-bold">Không được hoàn tiền phí đặt lịch</p>
+                  <p className="text-xs opacity-90">Vì lịch học đã được gia sư xác nhận và thời gian hủy cách giờ học dưới 24 tiếng.</p>
+                  <p className="text-xs font-bold mt-1">⚠️ Bạn sẽ mất 100.000đ phí đặt lịch.</p>
+                </div>
+              </>
+            )}
           </div>
-        ) : (
-          <p className="text-center text-sm text-green-600 font-medium mb-6">
-            ✓ Tiền sẽ được hoàn lại 100.000đ vào ví của bạn
-          </p>
-        )}
+        </div>
 
         <div className="flex flex-col gap-3">
           <button
             id="confirm-cancel-btn"
             onClick={() => onConfirm(booking.id)}
-            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-red-100 active:scale-95"
+            className={`w-full py-4 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 ${
+              isEligibleForRefund 
+                ? 'bg-amber-600 shadow-amber-100 hover:bg-amber-700' 
+                : 'bg-red-600 shadow-red-100 hover:bg-red-700'
+            }`}
           >
-            {isConfirmed ? 'Đồng ý hủy (Không hoàn tiền)' : 'Xác nhận hủy lịch'}
+            {isEligibleForRefund ? 'Xác nhận hủy và hoàn tiền' : 'Tôi chấp nhận hủy và mất phí'}
           </button>
           <button
             onClick={onClose}

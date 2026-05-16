@@ -37,11 +37,13 @@ const StudentDashboard = () => {
         const resBookings = await fetch('http://localhost:3001/api/student/bookings', { credentials: 'include' });
         const dataBookings = await resBookings.json();
         if (dataBookings.status === 'ok' && Array.isArray(dataBookings.data)) {
-          // Tính số gia sư đang thuê (trạng thái confirmed)
+          // Gia sư đang thuê: Các lịch đã được xác nhận và đang chờ dạy/đang dạy
           const confirmedBookings = dataBookings.data.filter((b) => b.status === 'confirmed');
           setActiveTutors(confirmedBookings.length);
-          // Giả định mỗi lịch học confirmed tương ứng với 2 giờ học thực tế
-          setTotalHours(confirmedBookings.length * 2);
+
+          // Giờ học đã thực hiện: Chỉ tính các lịch đã dạy xong (trạng thái completed)
+          const completedBookings = dataBookings.data.filter((b) => b.status === 'completed');
+          setTotalHours(completedBookings.length * 2);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
