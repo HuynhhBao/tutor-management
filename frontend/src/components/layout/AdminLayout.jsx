@@ -149,8 +149,16 @@ const AdminLayout = () => {
                     <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || 'Admin'}</p>
                     <p className="text-xs text-slate-500 capitalize">{user?.role || 'Quản trị viên'}</p>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 shadow-sm">
-                    {user?.fullName?.charAt(0) || 'A'}
+                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
+                    {user?.avatarUrl ? (
+                      <img 
+                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (user?.fullName || 'A').charAt(0)
+                    )}
                   </div>
                 </div>
 
@@ -209,8 +217,16 @@ const AdminLayout = () => {
             </div>
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
-                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold">
-                  {user?.fullName?.charAt(0) || 'A'}
+                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
+                  {user?.avatarUrl ? (
+                    <img 
+                      src={`http://localhost:3001${user.avatarUrl}`} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (user?.fullName || 'A').charAt(0)
+                  )}
                 </div>
                 <div className="ml-3">
                   <div className="text-base font-medium text-slate-800">{user?.fullName}</div>

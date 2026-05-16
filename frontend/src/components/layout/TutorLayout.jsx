@@ -123,9 +123,22 @@ const TutorLayout = () => {
                   </span>
                 )}
               </button>
-              <div className="text-sm hidden lg:block">
-                <span className="text-slate-500">Xin chào,</span>{' '}
-                <span className="font-semibold text-slate-900">{user?.fullName || user?.username}</span>
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden lg:block">
+                  <span className="text-[11px] text-slate-500 block leading-tight uppercase font-bold tracking-wider">Gia sư</span>
+                  <span className="text-sm font-bold text-slate-900">{user?.fullName || user?.username}</span>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
+                  {user?.avatarUrl ? (
+                    <img 
+                      src={`http://localhost:3001${user.avatarUrl}`} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (user?.fullName || user?.username || 'G').charAt(0)
+                  )}
+                </div>
               </div>
               <button
                 onClick={handleLogout}
@@ -181,8 +194,16 @@ const TutorLayout = () => {
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
-                    {(user?.fullName || user?.username || 'G').charAt(0)}
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
+                    {user?.avatarUrl ? (
+                      <img 
+                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (user?.fullName || user?.username || 'G').charAt(0)
+                    )}
                   </div>
                 </div>
                 <div className="ml-3">
