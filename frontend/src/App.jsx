@@ -92,7 +92,6 @@ function App() {
             <Route index element={<TutorDashboard />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="my-classes" element={<div className="p-6">Lớp của tôi (Đang phát triển)</div>} />
-            <Route path="available" element={<div className="p-6">Tìm lớp mới (Đang phát triển)</div>} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
 

@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import adminBookingsRoutes from './routes/adminBookings.js';
 import studentBookingsRoutes from './routes/studentBookings.js';
+import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/admin/bookings', adminBookingsRoutes);
 app.use('/api/student/bookings', studentBookingsRoutes);
+app.use('/api/tutor', tutorBookingsRoutes);
 app.use('/api/wallet', walletRoutes);
 
 app.get('/', (req, res) => {
