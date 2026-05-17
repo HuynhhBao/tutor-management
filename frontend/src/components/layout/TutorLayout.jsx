@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, BookOpen, Search, User, Menu, X } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, User, Menu, X, Bell } from 'lucide-react';
 
 const TutorLayout = () => {
   const { user, logout } = useAuth();
@@ -9,6 +9,21 @@ const TutorLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Poll số yêu cầu pending mỗi 30 giây
+  React.useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/tutor/bookings/unread-count', { credentials: 'include' });
+        const json = await res.json();
+        if (json.status === 'ok') setPendingCount(json.count);
+      } catch {}
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = React.useCallback(async () => {
     await logout();
@@ -50,7 +65,6 @@ const TutorLayout = () => {
   const navItems = [
     { path: '/tutor-dashboard', label: 'Tổng quan', icon: GraduationCap },
     { path: '/tutor-dashboard/my-classes', label: 'Lớp của tôi', icon: BookOpen },
-    { path: '/tutor-dashboard/available', label: 'Tìm lớp mới', icon: Search },
     { path: '/tutor-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
 
@@ -94,11 +108,37 @@ const TutorLayout = () => {
               </div>
             </div>
 
-            {/* Right side: User Profile & Logout (Desktop) */}
+            {/* Right side: Notification + User Profile & Logout (Desktop) */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-              <div className="text-sm hidden lg:block">
-                <span className="text-slate-500">Xin chào,</span>{' '}
-                <span className="font-semibold text-slate-900">{user?.fullName || user?.username}</span>
+              {/* Notification Bell */}
+              <button
+                onClick={() => navigate('/tutor-dashboard')}
+                className="relative p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                title="Yêu cầu đặt lịch"
+              >
+                <Bell className="w-5 h-5" />
+                {pendingCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </span>
+                )}
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden lg:block">
+                  <span className="text-[11px] text-slate-500 block leading-tight uppercase font-bold tracking-wider">Gia sư</span>
+                  <span className="text-sm font-bold text-slate-900">{user?.fullName || user?.username}</span>
+                </div>
+                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
+                  {user?.avatarUrl ? (
+                    <img 
+                      src={`http://localhost:3001${user.avatarUrl}`} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    (user?.fullName || user?.username || 'G').charAt(0)
+                  )}
+                </div>
               </div>
               <button
                 onClick={handleLogout}
@@ -154,8 +194,16 @@ const TutorLayout = () => {
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
-                    {(user?.fullName || user?.username || 'G').charAt(0)}
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
+                    {user?.avatarUrl ? (
+                      <img 
+                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        alt="Avatar" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (user?.fullName || user?.username || 'G').charAt(0)
+                    )}
                   </div>
                 </div>
                 <div className="ml-3">

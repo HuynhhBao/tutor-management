@@ -130,7 +130,7 @@ export const tutorLogin = async (req, res) => {
 
   try {
     const result = await pool.query(`
-      SELECT a.*, t.full_name, t.email as tutor_email 
+      SELECT a.*, t.full_name, t.email as tutor_email, t.avatar_url, t.status 
       FROM tutor_accounts a 
       JOIN tutors t ON a.tutor_id = t.id 
       WHERE a.username = $1
@@ -161,7 +161,16 @@ export const tutorLogin = async (req, res) => {
 
     res.json({
       status: 'ok',
-      user: { id: account.tutor_id, accountId: account.id, username: account.username, fullName: account.full_name, email: account.tutor_email, role: 'tutor', avatarUrl: account.avatar_url }
+      user: { 
+        id: account.tutor_id, 
+        accountId: account.id, 
+        username: account.username, 
+        fullName: account.full_name, 
+        email: account.tutor_email, 
+        role: 'tutor', 
+        avatarUrl: account.avatar_url,
+        status: account.status
+      }
     });
   } catch (err) {
     console.error('Tutor login error:', err);

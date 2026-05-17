@@ -49,7 +49,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 relative animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         <button 
           onClick={() => { setStep(1); onClose(); }}
           className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
@@ -215,7 +215,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
             {viewMode === 'qr' ? (
               <div className="flex flex-col items-center p-4 bg-gradient-to-br from-blue-500/5 to-blue-600/10 rounded-3xl border border-blue-500/20">
                 <div className="bg-white p-3 rounded-2xl shadow-md mb-3">
-                  <img src={qrUrl} alt="VietQR" className="w-56 h-56 object-contain" />
+                  <img src={qrUrl} alt="VietQR" className="w-44 h-44 object-contain" />
                 </div>
                 <p className="text-sm font-bold text-slate-800">{currentBank.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">Chủ tài khoản: {currentBank.holder}</p>

@@ -3,7 +3,7 @@ import { ShieldCheck, RefreshCw } from 'lucide-react';
 
 const ForgotStep2Otp = ({
   email, otp, otpRefs, loading,
-  timeLeft, progressPercent, formatTime,
+  timeLeft, formatTime,
   onOtpChange, onOtpKeyDown, onOtpPaste,
   onSubmit, onResend,
 }) => (
@@ -42,24 +42,6 @@ const ForgotStep2Otp = ({
         />
       ))}
     </div>
-
-    {/* Countdown */}
-    <div style={{ marginBottom: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <span style={{ fontSize: '13px', color: '#64748b' }}>Gửi lại mã sau</span>
-        <span style={{ fontSize: '16px', fontWeight: '700', color: timeLeft <= 60 ? '#ef4444' : '#2563eb', fontVariantNumeric: 'tabular-nums' }}>
-          {formatTime(timeLeft)}
-        </span>
-      </div>
-      <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '99px', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${progressPercent}%`,
-          background: timeLeft <= 60 ? '#ef4444' : 'linear-gradient(90deg, #2563eb, #a855f7)',
-          borderRadius: '99px', transition: 'width 1s linear, background 0.3s',
-        }} />
-      </div>
-    </div>
-
     <button
       type="submit"
       disabled={loading}

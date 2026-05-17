@@ -155,6 +155,19 @@ export const initDb = async () => {
       )
     `);
 
+    // Tạo bảng notifications nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        user_type VARCHAR(20) NOT NULL, -- 'user' hoặc 'tutor'
+        title VARCHAR(255) NOT NULL,
+        message TEXT,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Thêm cột balance cho users nếu chưa có
     await pool.query(`
       DO $$

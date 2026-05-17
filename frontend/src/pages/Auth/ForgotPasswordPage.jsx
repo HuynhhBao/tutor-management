@@ -89,7 +89,7 @@ const ForgotPasswordPage = () => {
     return `${m}:${s}`;
   };
 
-  const progressPercent = ((TOTAL_SECONDS - timeLeft) / TOTAL_SECONDS) * 100;
+
 
   // --- Handlers ---
   const handleSendOtp = async (e) => {
@@ -238,7 +238,7 @@ const ForgotPasswordPage = () => {
           {step === 2 && (
             <ForgotStep2Otp
               email={email} otp={otp} otpRefs={otpRefs} loading={loading}
-              timeLeft={timeLeft} progressPercent={progressPercent} formatTime={formatTime}
+              timeLeft={timeLeft} formatTime={formatTime}
               onOtpChange={handleOtpChange} onOtpKeyDown={handleOtpKeyDown} onOtpPaste={handleOtpPaste}
               onSubmit={handleVerifyOtp} onResend={handleResendOtp}
             />

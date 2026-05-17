@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { createBooking, getMyBookings, cancelMyBooking } from '../controllers/studentBookingController.js';
+import { createBooking, getMyBookings } from '../controllers/studentBookingController.js';
+import { cancelBooking } from '../controllers/studentCancelBookingController.js';
 
 const router = express.Router();
 
@@ -25,6 +26,6 @@ router.use(verifyStudent);
 
 router.post('/', createBooking);
 router.get('/', getMyBookings);
-router.put('/:id/cancel', cancelMyBooking);
+router.put('/:id/cancel', cancelBooking);
 
 export default router;
