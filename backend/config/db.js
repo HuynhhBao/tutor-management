@@ -31,6 +31,7 @@ export const initDb = async () => {
         full_name VARCHAR(255) NOT NULL,
         phone_number VARCHAR(20),
         password VARCHAR(255) NOT NULL,
+        balance DECIMAL(12,2) DEFAULT 0.0,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -41,6 +42,17 @@ export const initDb = async () => {
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='phone_number') THEN
           ALTER TABLE users ADD COLUMN phone_number VARCHAR(20);
+        END IF;
+      END
+      $$;
+    `);
+
+    // Ensure balance column exists if table was already created
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='balance') THEN
+          ALTER TABLE users ADD COLUMN balance DECIMAL(12,2) DEFAULT 0.0;
         END IF;
       END
       $$;
