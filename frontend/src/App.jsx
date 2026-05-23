@@ -22,6 +22,7 @@ import WalletPage from './pages/User/WalletPage';
 import BookingPage from './pages/User/BookingPage';
 import BookingHistoryPage from './pages/User/BookingHistoryPage';
 import ChatPage from './pages/Common/ChatPage';
+import CvViewerPage from './pages/Admin/CvViewerPage';
 
 // Component to handle root path redirection based on auth state
 const HomeRedirect = () => {
@@ -80,6 +81,15 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
+
+          <Route 
+            path="/cv-viewer" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']} redirectPath="/admin/login">
+                <CvViewerPage />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Tutor Routes - Protected */}
           <Route 

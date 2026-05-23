@@ -1,13 +1,20 @@
-import React from 'react';
-import { Mail, CheckCircle, Clock, ExternalLink, BookOpen, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, CheckCircle, Clock, ExternalLink, BookOpen, Loader2, X } from 'lucide-react';
 
 const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, onReject }) => {
+  const [previewModal, setPreviewModal] = useState({
+    isOpen: false,
+    urls: [],
+    appId: null
+  });
+
   const filtered = applications.filter(app =>
     app.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <table className="w-full text-left text-sm">
+    <>
+      <table className="w-full text-left text-sm">
       <thead className="bg-slate-100 text-gray-500 border-b border-gray-100">
         <tr>
           <th className="px-6 py-4 font-semibold">ID</th>
@@ -39,14 +46,30 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
                 <p className="text-xs text-gray-400 mt-1">Nộp: {new Date(app.created_at).toLocaleDateString('vi-VN')}</p>
               </td>
               <td className="px-6 py-4">
-                <a
-                  href={`http://localhost:3001${app.cv_image_url}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Xem CV
-                </a>
+                {(() => {
+                  const imageUrls = app.cv_image_url ? app.cv_image_url.split(',') : [];
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (imageUrls.length <= 1) {
+                          const viewerUrl = `/cv-viewer?urls=${encodeURIComponent(imageUrls.join(','))}&index=0`;
+                          window.open(viewerUrl, '_blank');
+                        } else {
+                          setPreviewModal({
+                            isOpen: true,
+                            urls: imageUrls,
+                            appId: app.id
+                          });
+                        }
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      Xem CV {imageUrls.length > 1 ? `(${imageUrls.length})` : ''}
+                    </button>
+                  );
+                })()}
               </td>
               <td className="px-6 py-4">
                 {app.status === 'pending' ? (
@@ -91,7 +114,60 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
         )}
       </tbody>
     </table>
-  );
+
+    {/* Select Preview Modal */}
+    {previewModal.isOpen && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+            <h3 className="text-lg font-bold text-slate-900">Chọn ảnh CV để xem</h3>
+            <button 
+              type="button"
+              onClick={() => setPreviewModal({ isOpen: false, urls: [], appId: null })}
+              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* Thumbnail selection grid */}
+          <div className="grid grid-cols-2 gap-4 my-6 max-h-60 overflow-y-auto p-1">
+            {previewModal.urls.map((url, idx) => (
+              <button
+                type="button"
+                key={url}
+                onClick={() => {
+                  const viewerUrl = `/cv-viewer?urls=${encodeURIComponent(previewModal.urls.join(','))}&index=${idx}`;
+                  window.open(viewerUrl, '_blank');
+                  setPreviewModal({ isOpen: false, urls: [], appId: null });
+                }}
+                className="group relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex flex-col items-center p-3 hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-md transition-all active:scale-95"
+              >
+                <div className="w-full aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden mb-2">
+                  <img 
+                    src={`http://localhost:3001${url}`} 
+                    alt={`CV page ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                </div>
+                <span className="text-xs font-bold text-slate-700">Trang {idx + 1}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setPreviewModal({ isOpen: false, urls: [], appId: null })}
+              className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
 };
 
 export default ApplicationTable;

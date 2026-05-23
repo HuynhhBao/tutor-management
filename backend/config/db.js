@@ -110,10 +110,15 @@ export const initDb = async () => {
       CREATE TABLE IF NOT EXISTS tutor_applications (
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) NOT NULL,
-        cv_image_url VARCHAR(255) NOT NULL,
+        cv_image_url TEXT NOT NULL,
         status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Ensure cv_image_url is TEXT type to store multiple image URLs without length limits
+    await pool.query(`
+      ALTER TABLE tutor_applications ALTER COLUMN cv_image_url TYPE TEXT;
     `);
 
     await pool.query(`
