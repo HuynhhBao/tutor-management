@@ -136,7 +136,7 @@ const CvViewerPage = () => {
           {urls.map((url, idx) => (
             <button
               type="button"
-              key={idx}
+              key={url}
               onClick={() => {
                 setCurrentIndex(idx);
                 setScale(1);
