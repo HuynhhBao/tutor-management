@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, ShieldCheck } from 'lucide-react';
+import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, ShieldCheck, CheckCircle, XCircle } from 'lucide-react';
 import DepositModal from '../../components/common/DepositModal';
 
 const WalletPage = () => {
@@ -8,6 +8,12 @@ const WalletPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    message: ''
+  });
 
   const fetchWallet = async () => {
     try {
@@ -41,18 +47,77 @@ const WalletPage = () => {
       });
       const data = await res.json();
       if (data.status === 'ok') {
-        alert(data.message || 'Nạp tiền thành công!');
+        setNotification({
+          isOpen: true,
+          type: 'success',
+          title: 'Thành công',
+          message: data.message || `Nạp thành công ${amount.toLocaleString('vi-VN')}đ vào tài khoản!`
+        });
         setBalance(data.data.balance);
         setTransactions((prev) => [data.data.transaction, ...prev]);
         setIsModalOpen(false);
       } else {
-        alert(data.message || 'Có lỗi xảy ra khi nạp tiền');
+        setNotification({
+          isOpen: true,
+          type: 'error',
+          title: 'Thất bại',
+          message: data.message || 'Có lỗi xảy ra khi nạp tiền'
+        });
       }
     } catch (err) {
-      alert('Lỗi kết nối server');
+      console.error('Deposit error:', err);
+      setNotification({
+        isOpen: true,
+        type: 'error',
+        title: 'Lỗi kết nối',
+        message: 'Lỗi kết nối server'
+      });
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderTransactions = () => {
+    if (fetching) {
+      return <div className="flex items-center justify-center p-12 text-slate-400">Đang tải lịch sử...</div>;
+    }
+    if (transactions.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center p-16 text-slate-400 text-center">
+          <Wallet className="w-16 h-16 mb-4 opacity-10" />
+          <p className="font-medium">Bạn chưa có giao dịch nào.</p>
+          <p className="text-xs text-slate-400 mt-1">Các giao dịch nạp tiền hoặc thanh toán sẽ xuất hiện ở đây.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="divide-y divide-slate-100">
+        {transactions.map((tx) => {
+          const isDeposit = tx.type === 'deposit';
+          return (
+            <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                  isDeposit ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
+                }`}>
+                  {isDeposit ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-base">{tx.description || (isDeposit ? 'Nạp tiền vào ví' : 'Thanh toán dịch vụ')}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {new Date(tx.created_at).toLocaleString('vi-VN')}
+                  </p>
+                </div>
+              </div>
+
+              <div className={`font-bold text-lg text-right ${isDeposit ? 'text-emerald-600' : 'text-red-600'}`}>
+                {isDeposit ? '+' : '-'}{Number.parseFloat(tx.amount).toLocaleString('vi-VN')} đ
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -102,42 +167,7 @@ const WalletPage = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto max-h-[500px]">
-              {fetching ? (
-                <div className="flex items-center justify-center p-12 text-slate-400">Đang tải lịch sử...</div>
-              ) : transactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-16 text-slate-400 text-center">
-                  <Wallet className="w-16 h-16 mb-4 opacity-10" />
-                  <p className="font-medium">Bạn chưa có giao dịch nào.</p>
-                  <p className="text-xs text-slate-400 mt-1">Các giao dịch nạp tiền hoặc thanh toán sẽ xuất hiện ở đây.</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {transactions.map((tx) => {
-                    const isDeposit = tx.type === 'deposit';
-                    return (
-                      <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                            isDeposit ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                          }`}>
-                            {isDeposit ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-900 text-base">{tx.description || (isDeposit ? 'Nạp tiền vào ví' : 'Thanh toán dịch vụ')}</p>
-                            <p className="text-xs text-slate-400 mt-0.5">
-                              {new Date(tx.created_at).toLocaleString('vi-VN')}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className={`font-bold text-lg text-right ${isDeposit ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {isDeposit ? '+' : '-'}{parseFloat(tx.amount).toLocaleString('vi-VN')} đ
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {renderTransactions()}
             </div>
           </div>
         </div>
@@ -149,6 +179,37 @@ const WalletPage = () => {
         onDeposit={handleDeposit}
         loading={loading}
       />
+
+      {/* Notification Modal */}
+      {notification.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 text-center animate-in zoom-in-95 duration-200">
+            <div className="flex justify-center mb-5">
+              {notification.type === 'success' ? (
+                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 animate-bounce">
+                  <CheckCircle className="w-10 h-10" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600">
+                  <XCircle className="w-10 h-10" />
+                </div>
+              )}
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">{notification.title}</h3>
+            <p className="text-slate-500 text-sm mb-6 whitespace-pre-line leading-relaxed">{notification.message}</p>
+            <button
+              onClick={() => setNotification({ ...notification, isOpen: false })}
+              className={`w-full py-3.5 font-bold rounded-2xl transition-all active:scale-95 shadow-lg ${
+                notification.type === 'success'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'
+              }`}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
