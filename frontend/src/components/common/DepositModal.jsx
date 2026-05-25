@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Wallet, X, ArrowRight, ShieldCheck, CreditCard, Smartphone, CheckCircle, ArrowLeft, QrCode, Copy } from 'lucide-react';
 
 const banks = [
@@ -11,6 +12,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
   const [step, setStep] = useState(1); // 1: Nhập tiền, 2: Chuyển khoản
   const [selectedBank, setSelectedBank] = useState('MB');
   const [viewMode, setViewMode] = useState('qr'); // 'qr' hoặc 'manual'
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
@@ -18,11 +20,12 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const cleanAmount = parseFloat(amount.toString().replace(/\D/g, ''));
+    const cleanAmount = Number.parseFloat(amount.toString().replace(/\D/g, ''));
     if (!cleanAmount || cleanAmount <= 0) {
-      alert('Vui lòng nhập số tiền hợp lệ');
+      setError('Vui lòng nhập số tiền hợp lệ');
       return;
     }
+    setError('');
 
     if (paymentMethod === 'Bank') {
       setStep(2); // Chuyển sang bước thanh toán ngân hàng
@@ -32,7 +35,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
   };
 
   const handleConfirmQR = () => {
-    const cleanAmount = parseFloat(amount.toString().replace(/\D/g, ''));
+    const cleanAmount = Number.parseFloat(amount.toString().replace(/\D/g, ''));
     onDeposit(cleanAmount, paymentMethod);
     setStep(1);
   };
@@ -40,10 +43,10 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
   const formatCurrencyInput = (val) => {
     const num = val.toString().replace(/\D/g, '');
     if (!num) return '';
-    return parseInt(num).toLocaleString('vi-VN');
+    return Number.parseInt(num, 10).toLocaleString('vi-VN');
   };
 
-  const cleanAmount = parseFloat(amount.toString().replace(/\D/g, '')) || 0;
+  const cleanAmount = Number.parseFloat(amount.toString().replace(/\D/g, '')) || 0;
   const currentBank = banks.find((b) => b.id === selectedBank);
   const qrUrl = `https://img.vietqr.io/image/${currentBank.id}-${currentBank.number}-compact.jpg?amount=${cleanAmount}&addInfo=EDUMATCH%20NAP%20${cleanAmount}&accountName=EDUMATCH%20PLATFORM`;
 
@@ -72,13 +75,16 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Mệnh giá gợi ý */}
               <div>
-                <label className="text-sm font-bold text-slate-700 block mb-3">Mệnh giá gợi ý</label>
+                <span className="block text-sm font-bold text-slate-700 mb-3">Mệnh giá gợi ý</span>
                 <div className="grid grid-cols-2 gap-3">
                   {presetAmounts.map((preset) => (
                     <button
                       type="button"
                       key={preset}
-                      onClick={() => setAmount(preset.toLocaleString('vi-VN'))}
+                      onClick={() => {
+                        setAmount(preset.toLocaleString('vi-VN'));
+                        setError('');
+                      }}
                       className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all ${
                         amount.toString().replace(/\D/g, '') == preset
                           ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
@@ -93,22 +99,29 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
 
               {/* Số tiền tự nhập */}
               <div>
-                <label className="text-sm font-bold text-slate-700 block mb-2">Số tiền muốn nạp (đ)</label>
+                <label htmlFor="deposit-amount-input" className="text-sm font-bold text-slate-700 block mb-2">Số tiền muốn nạp (đ)</label>
                 <div className="relative">
                   <input
+                    id="deposit-amount-input"
                     type="text"
                     value={amount}
-                    onChange={(e) => setAmount(formatCurrencyInput(e.target.value))}
+                    onChange={(e) => {
+                      setAmount(formatCurrencyInput(e.target.value));
+                      setError('');
+                    }}
                     placeholder="Ví dụ: 150.000"
-                    className="w-full px-4 py-3 border border-slate-300 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg transition-all"
+                    className={`w-full px-4 py-3 border rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent text-lg transition-all ${
+                      error ? 'border-rose-300 focus:ring-rose-500' : 'border-slate-300 focus:ring-blue-500'
+                    }`}
                   />
                   <span className="absolute right-4 top-3.5 text-slate-400 font-bold">VNĐ</span>
                 </div>
+                {error && <p className="text-xs text-rose-500 font-bold mt-1.5">{error}</p>}
               </div>
 
               {/* Phương thức thanh toán */}
               <div>
-                <label className="text-sm font-bold text-slate-700 block mb-3">Phương thức thanh toán</label>
+                <span className="block text-sm font-bold text-slate-700 mb-3">Phương thức thanh toán</span>
                 <div className="space-y-3">
                   {[
                     { id: 'Bank', label: 'Chuyển khoản Ngân hàng', icon: CreditCard },
@@ -173,8 +186,9 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
 
             {/* Dropdown chọn ngân hàng */}
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Ngân hàng thụ hưởng</label>
+              <label htmlFor="bank-select" className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Ngân hàng thụ hưởng</label>
               <select
+                id="bank-select"
                 value={selectedBank}
                 onChange={(e) => setSelectedBank(e.target.value)}
                 className="w-full px-4 py-3 border border-slate-200 rounded-2xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 cursor-pointer"
@@ -278,6 +292,13 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
       </div>
     </div>
   );
+};
+
+DepositModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onDeposit: PropTypes.func.isRequired,
+  loading: PropTypes.bool
 };
 
 export default DepositModal;
