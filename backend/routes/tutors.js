@@ -12,6 +12,7 @@ import {
   sendApplyOtp,
   submitApplication,
   getApplications,
+  getApplicationById,
   approveApplication,
   rejectApplication,
   grantAccount,
@@ -38,6 +39,7 @@ router.delete('/:id', deleteTutor);
 router.post('/apply/send-otp', sendApplyOtp);
 router.post('/apply', upload.array('cvImage', 10), submitApplication);
 router.get('/applications', getApplications);
+router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id/approve', approveApplication);
 router.delete('/applications/:id/reject', rejectApplication);
 

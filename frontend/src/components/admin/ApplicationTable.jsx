@@ -29,7 +29,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
 
     if (filtered.length > 0) {
       return filtered.map((app) => {
-        const imageUrls = app.cv_image_url ? app.cv_image_url.split(',') : [];
+        const imageUrls = app.cv_image_url ? app.cv_image_url.split('|') : [];
         return (
           <tr key={app.id} className="hover:bg-slate-100/80 transition-colors">
             <td className="px-6 py-4 font-medium text-gray-900">APP-{app.id}</td>
@@ -45,7 +45,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
                 type="button"
                 onClick={() => {
                   if (imageUrls.length <= 1) {
-                    const viewerUrl = `/cv-viewer?urls=${encodeURIComponent(imageUrls.join(','))}&index=0`;
+                    const viewerUrl = `/cv-viewer?appId=${app.id}&index=0`;
                     window.open(viewerUrl, '_blank');
                   } else {
                     setPreviewModal({
@@ -146,7 +146,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
                 type="button"
                 key={url}
                 onClick={() => {
-                  const viewerUrl = `/cv-viewer?urls=${encodeURIComponent(previewModal.urls.join(','))}&index=${idx}`;
+                  const viewerUrl = `/cv-viewer?appId=${previewModal.appId}&index=${idx}`;
                   window.open(viewerUrl, '_blank');
                   setPreviewModal({ isOpen: false, urls: [], appId: null });
                 }}
@@ -154,7 +154,7 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
               >
                 <div className="w-full aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden mb-2">
                   <img 
-                    src={`http://localhost:3001${url}`} 
+                    src={url.startsWith('data:image/') ? url : `http://localhost:3001${url}`} 
                     alt={`CV page ${idx + 1}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />

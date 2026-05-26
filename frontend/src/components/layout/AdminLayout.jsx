@@ -152,7 +152,7 @@ const AdminLayout = () => {
                   <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
                     {user?.avatarUrl ? (
                       <img 
-                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        src={user.avatarUrl.startsWith('data:image/') ? user.avatarUrl : `http://localhost:3001${user.avatarUrl}`} 
                         alt="Avatar" 
                         className="h-full w-full object-cover"
                       />
@@ -220,7 +220,7 @@ const AdminLayout = () => {
                 <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
                   {user?.avatarUrl ? (
                     <img 
-                      src={`http://localhost:3001${user.avatarUrl}`} 
+                      src={user.avatarUrl.startsWith('data:image/') ? user.avatarUrl : `http://localhost:3001${user.avatarUrl}`} 
                       alt="Avatar" 
                       className="h-full w-full object-cover"
                     />

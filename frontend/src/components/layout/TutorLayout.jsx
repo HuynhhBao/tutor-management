@@ -18,7 +18,9 @@ const TutorLayout = () => {
         const res = await fetch('http://localhost:3001/api/tutor/bookings/unread-count', { credentials: 'include' });
         const json = await res.json();
         if (json.status === 'ok') setPendingCount(json.count);
-      } catch {}
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
     };
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
@@ -68,6 +70,13 @@ const TutorLayout = () => {
     { path: '/tutor-dashboard/my-classes', label: 'Lớp của tôi', icon: BookOpen },
     { path: '/tutor-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
+
+  let avatarSrc = null;
+  if (user?.avatarUrl) {
+    avatarSrc = user.avatarUrl.startsWith('data:image/')
+      ? user.avatarUrl
+      : `http://localhost:3001${user.avatarUrl}`;
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
@@ -130,9 +139,9 @@ const TutorLayout = () => {
                   <span className="text-sm font-bold text-slate-900">{user?.fullName || user?.username}</span>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                  {user?.avatarUrl ? (
+                  {avatarSrc ? (
                     <img 
-                      src={`http://localhost:3001${user.avatarUrl}`} 
+                      src={avatarSrc} 
                       alt="Avatar" 
                       className="h-full w-full object-cover"
                     />
@@ -196,9 +205,9 @@ const TutorLayout = () => {
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                    {user?.avatarUrl ? (
+                    {avatarSrc ? (
                       <img 
-                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        src={avatarSrc} 
                         alt="Avatar" 
                         className="h-full w-full object-cover"
                       />

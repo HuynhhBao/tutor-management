@@ -98,7 +98,7 @@ export const submitApplication = async (req, res) => {
   const cvImageUrls = cvFiles.map(file => {
     const base64 = file.buffer.toString('base64');
     return `data:${file.mimetype};base64,${base64}`;
-  }).join(',');
+  }).join('|');
 
   try {
     const existingApp = await pool.query('SELECT * FROM tutor_applications WHERE email = $1', [email]);
@@ -137,6 +137,21 @@ export const getApplications = async (req, res) => {
     res.json({ status: 'ok', data: result.rows });
   } catch (err) {
     console.error('Error fetching applications:', err);
+    res.status(500).json({ status: 'error', message: 'Lỗi server' });
+  }
+};
+
+// GET /api/tutors/applications/:id
+export const getApplicationById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM tutor_applications WHERE id = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Không tìm thấy hồ sơ' });
+    }
+    res.json({ status: 'ok', data: result.rows[0] });
+  } catch (err) {
+    console.error('Error fetching application by id:', err);
     res.status(500).json({ status: 'error', message: 'Lỗi server' });
   }
 };
