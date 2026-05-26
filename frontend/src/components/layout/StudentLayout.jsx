@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck, Bell } from 'lucide-react';
+import AIAssistantWidget from '../common/AIAssistantWidget';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -268,6 +269,9 @@ const StudentLayout = () => {
           </div>
         </div>
       )}
+
+      {/* Floating AI chatbot widget exclusively for students */}
+      <AIAssistantWidget />
     </div>
   );
 };
