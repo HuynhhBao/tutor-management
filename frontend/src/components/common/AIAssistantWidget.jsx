@@ -12,22 +12,20 @@ const AIAssistantWidget = () => {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Chỉ hiển thị widget nếu người dùng hiện tại là Student (role === 'user')
-  if (!user || user.role !== 'user') return null;
+  // Tính toán điều kiện student trước, dùng bên trong hook
+  const isStudent = Boolean(user && user.role === 'user');
 
   // 1. Tự động cuộn xuống cuối danh sách tin nhắn
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
+    if (isStudent && isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isStudent]);
 
   // 2. Tải lịch sử chat từ Backend khi mở chatbox lần đầu
   useEffect(() => {
+    if (!isStudent || !isOpen || messages.length > 0) return;
+
     const fetchHistory = async () => {
       try {
         const res = await fetch(`${API_BASE}/ai-chat/history`, { credentials: 'include' });
@@ -40,10 +38,11 @@ const AIAssistantWidget = () => {
       }
     };
 
-    if (isOpen && messages.length === 0) {
-      fetchHistory();
-    }
-  }, [isOpen]);
+    fetchHistory();
+  }, [isOpen, isStudent]);
+
+  // Chỉ hiển thị widget nếu người dùng hiện tại là Student — early return SAU tất cả hooks
+  if (!isStudent) return null;
 
   // 3. Gửi tin nhắn
   const handleSendMessage = async (textToSend) => {
