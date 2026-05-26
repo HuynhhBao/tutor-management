@@ -94,8 +94,11 @@ export const submitApplication = async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Mã xác nhận không đúng.' });
   }
 
-  // Thu thập tất cả URL ảnh
-  const cvImageUrls = cvFiles.map(file => `/uploads/${file.filename}`).join(',');
+  // Thu thập tất cả ảnh và chuyển sang Base64
+  const cvImageUrls = cvFiles.map(file => {
+    const base64 = file.buffer.toString('base64');
+    return `data:${file.mimetype};base64,${base64}`;
+  }).join(',');
 
   try {
     const existingApp = await pool.query('SELECT * FROM tutor_applications WHERE email = $1', [email]);

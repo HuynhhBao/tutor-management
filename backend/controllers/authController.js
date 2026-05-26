@@ -264,7 +264,7 @@ export const updateAvatar = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const avatarUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const avatarUrl = req.file ? `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}` : null;
 
     if (!avatarUrl) {
       return res.status(400).json({ status: 'error', message: 'Vui lòng chọn ảnh' });
