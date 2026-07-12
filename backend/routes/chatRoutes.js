@@ -1,26 +1,43 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import { sendMessage, getMessages, getConversations } from '../controllers/chatController.js';
+import validate from '../middlewares/validate.js';
+import { sendMessageSchema } from '../validations/chatValidation.js';
+import { verifyUser, verifyTutor } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Middleware xác thực chung cho cả User và Tutor
-const verifyAuth = (req, res, next) => {
+// Route cho cả User và Tutor nên dùng middleware kết hợp hoặc một custom middleware
+const verifyChatAuth = (req, res, next) => {
+  // Cả User và Tutor đều dùng được Chat, nên nếu role là user hoặc tutor thì pass
+  const role = req.user?.role;
+  if (role === 'user' || role === 'tutor') {
+    next();
+  } else {
+    // Để an toàn, chúng ta có thể gọi verifyUser trước, nếu thất bại thì gọi verifyTutor
+    // Tuy nhiên cách đơn giản nhất là viết một middleware inline cho route này
+    next(new Error('Unauthorized')); // Tạm thời để ở đây, thực tế authMiddleware đã gán req.user
+  }
+};
+
+import jwt from 'jsonwebtoken';
+import { ApiError } from '../utils/ApiError.js';
+
+const verifyAuthAny = (req, res, next) => {
   const token = req.cookies.token;
-  if (!token) return res.status(401).json({ status: 'error', message: 'Chưa đăng nhập' });
+  if (!token) return next(new ApiError(401, 'Chưa đăng nhập'));
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ status: 'error', message: 'Token không hợp lệ' });
+    return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
 
-router.use(verifyAuth);
+router.use(verifyAuthAny);
 
-router.post('/send', sendMessage);
+router.post('/send', validate(sendMessageSchema), sendMessage);
 router.get('/messages/:partnerId/:partnerType', getMessages);
 router.get('/conversations', getConversations);
 
