@@ -118,7 +118,7 @@ const CvViewerPage = () => {
             href={currentUrl} 
             download 
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             title="Tải xuống"
             className="p-2.5 bg-slate-800 hover:bg-slate-700 active:scale-95 rounded-xl transition-all text-white flex items-center justify-center"
           >

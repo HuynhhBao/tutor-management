@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+const passwordRegex = /^(?=[^A-Z]*[A-Z])(?=[^!@#$%^&*(),.?":{}|<>]*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
 export const registerSchema = Joi.object({
   email: Joi.string().email().custom((value, helpers) => {
