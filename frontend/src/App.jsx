@@ -41,6 +41,17 @@ const HomeRedirect = () => {
 
 function App() {
 
+  // Handle Global 401 Unauthorized Interceptor event
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      // Clear token/user info if needed, AuthContext checkAuth will also fail
+      window.location.href = '/login';
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
