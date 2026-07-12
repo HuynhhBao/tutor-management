@@ -27,8 +27,16 @@ import {
   updateProfileSchema,
   changePasswordSchema
 } from '../validations/authValidation.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+// Strict Rate Limiter for Auth endpoints: Max 5 requests per minute
+const authLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5,
+  message: { status: 'error', message: 'Vượt quá giới hạn đăng nhập/đăng ký. Vui lòng đợi 1 phút.' }
+});
 
 // Multer — upload Avatar
 const storage = multer.memoryStorage();
@@ -38,10 +46,10 @@ const upload = multer({
 });
 
 // --- Auth ---
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
-router.post('/admin/login', validate(adminLoginSchema), adminLogin);
-router.post('/login-tutor', validate(tutorLoginSchema), tutorLogin);
+router.post('/register', authLimiter, validate(registerSchema), register);
+router.post('/login', authLimiter, validate(loginSchema), login);
+router.post('/admin/login', authLimiter, validate(adminLoginSchema), adminLogin);
+router.post('/login-tutor', authLimiter, validate(tutorLoginSchema), tutorLogin);
 router.get('/me', getMe);
 router.put('/update-profile', validate(updateProfileSchema), updateProfile);
 router.put('/update-avatar', upload.single('avatar'), updateAvatar);
@@ -49,8 +57,8 @@ router.put('/change-password', validate(changePasswordSchema), changePassword);
 router.post('/logout', logout);
 
 // --- Forgot Password ---
-router.post('/forgot-password', forgotPassword);
-router.post('/verify-otp', verifyOtp);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/verify-otp', authLimiter, verifyOtp);
+router.post('/reset-password', authLimiter, resetPassword);
 
 export default router;

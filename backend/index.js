@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 // Import configs and routes
 import pool, { initDb } from './config/db.js';
@@ -26,8 +28,19 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
+app.use(helmet()); // Secure HTTP headers
+app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' })); // allow images to be loaded cross-origin
+
+// Global Rate Limiter: Max 100 requests per 15 minutes per IP
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { status: 'error', message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút' }
+});
+app.use('/api', globalLimiter); // Apply to all API routes
+
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
