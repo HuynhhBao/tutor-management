@@ -18,6 +18,19 @@ import {
   grantAccount,
 } from '../controllers/applicationController.js';
 
+// Middlewares
+import validate from '../middlewares/validate.js';
+import {
+  createTutorSchema,
+  updateTutorSchema,
+  updateTutorStatusSchema
+} from '../validations/tutorValidation.js';
+import {
+  sendApplyOtpSchema,
+  approveApplicationSchema,
+  grantAccountSchema
+} from '../validations/applicationValidation.js';
+
 const router = express.Router();
 
 // Multer — upload CV image
@@ -30,20 +43,20 @@ const upload = multer({
 // --- Tutor CRUD ---
 router.get('/stats', getTutorStats);
 router.get('/', getAllTutors);
-router.post('/', createTutor);
-router.put('/status', updateTutorStatus);
-router.put('/:id', updateTutor);
+router.post('/', validate(createTutorSchema), createTutor);
+router.put('/status', validate(updateTutorStatusSchema), updateTutorStatus);
+router.put('/:id', validate(updateTutorSchema), updateTutor);
 router.delete('/:id', deleteTutor);
 
 // --- Tutor Application ---
-router.post('/apply/send-otp', sendApplyOtp);
+router.post('/apply/send-otp', validate(sendApplyOtpSchema), sendApplyOtp);
 router.post('/apply', upload.array('cvImage', 10), submitApplication);
 router.get('/applications', getApplications);
 router.get('/applications/:id', getApplicationById);
-router.put('/applications/:id/approve', approveApplication);
+router.put('/applications/:id/approve', validate(approveApplicationSchema), approveApplication);
 router.delete('/applications/:id/reject', rejectApplication);
 
 // --- Grant account ---
-router.post('/:id/grant-account', grantAccount);
+router.post('/:id/grant-account', validate(grantAccountSchema), grantAccount);
 
 export default router;

@@ -17,6 +17,17 @@ import {
 } from '../controllers/forgotPasswordController.js';
 import multer from 'multer';
 
+// Middlewares
+import validate from '../middlewares/validate.js';
+import {
+  registerSchema,
+  loginSchema,
+  adminLoginSchema,
+  tutorLoginSchema,
+  updateProfileSchema,
+  changePasswordSchema
+} from '../validations/authValidation.js';
+
 const router = express.Router();
 
 // Multer — upload Avatar
@@ -27,14 +38,14 @@ const upload = multer({
 });
 
 // --- Auth ---
-router.post('/register', register);
-router.post('/login', login);
-router.post('/admin/login', adminLogin);
-router.post('/login-tutor', tutorLogin);
+router.post('/register', validate(registerSchema), register);
+router.post('/login', validate(loginSchema), login);
+router.post('/admin/login', validate(adminLoginSchema), adminLogin);
+router.post('/login-tutor', validate(tutorLoginSchema), tutorLogin);
 router.get('/me', getMe);
-router.put('/update-profile', updateProfile);
+router.put('/update-profile', validate(updateProfileSchema), updateProfile);
 router.put('/update-avatar', upload.single('avatar'), updateAvatar);
-router.put('/change-password', changePassword);
+router.put('/change-password', validate(changePasswordSchema), changePassword);
 router.post('/logout', logout);
 
 // --- Forgot Password ---

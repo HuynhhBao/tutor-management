@@ -15,6 +15,7 @@ import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
 import chatRoutes from './routes/chatRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,6 +59,9 @@ app.get('/api/health', async (req, res) => {
     res.status(500).json({ status: 'error', message: 'Could not connect to database' });
   }
 });
+
+// Global Error Handler
+app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
