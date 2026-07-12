@@ -29,7 +29,6 @@ const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(helmet()); // Secure HTTP headers
-app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' })); // allow images to be loaded cross-origin
 
 // Global Rate Limiter: Max 100 requests per 15 minutes per IP
 const globalLimiter = rateLimit({

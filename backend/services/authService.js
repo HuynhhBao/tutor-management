@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
 import transporter from '../utils/mailer.js';
+import crypto from 'crypto';
 
 // In-memory OTP store: email -> { otp, expiresAt, verified? }
 const otpStore = new Map();
@@ -200,7 +201,7 @@ class AuthService {
       throw new ApiError(404, 'Email không tồn tại trong hệ thống');
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 999999).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 phút
     otpStore.set(email, { otp, expiresAt });
 

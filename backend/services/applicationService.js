@@ -2,6 +2,7 @@ import pool from '../config/db.js';
 import transporter from '../utils/mailer.js';
 import bcrypt from 'bcryptjs';
 import { ApiError } from '../utils/ApiError.js';
+import crypto from 'crypto';
 
 // In-memory OTP store dành riêng cho ứng tuyển gia sư
 const applyOtpStore = new Map();
@@ -18,7 +19,7 @@ class ApplicationService {
       }
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = crypto.randomInt(100000, 999999).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 phút
     applyOtpStore.set(email, { otp, expiresAt });
 
@@ -202,7 +203,7 @@ class ApplicationService {
       throw new ApiError(400, 'Tên tài khoản này đã được sử dụng');
     }
 
-    const rawPassword = Math.random().toString(36).slice(-8);
+    const rawPassword = crypto.randomBytes(4).toString('hex'); // VD: a1b2c3d4
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     await pool.query(

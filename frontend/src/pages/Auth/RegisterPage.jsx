@@ -29,7 +29,7 @@ const RegisterPage = () => {
     }
 
     // Password complexity validation
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    const passwordRegex = /^(?=[^A-Z]*[A-Z])(?=[^!@#$%^&*(),.?":{}|<>]*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     if (!passwordRegex.test(password)) {
       setError('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ in hoa và ký tự đặc biệt');
       return;

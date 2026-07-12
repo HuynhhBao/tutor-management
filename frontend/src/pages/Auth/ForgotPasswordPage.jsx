@@ -162,7 +162,7 @@ const ForgotPasswordPage = () => {
     e.preventDefault();
     setError('');
     if (newPassword !== confirmPassword) { setError('Mật khẩu xác nhận không khớp'); return; }
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    const passwordRegex = /^(?=[^A-Z]*[A-Z])(?=[^!@#$%^&*(),.?":{}|<>]*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
     if (!passwordRegex.test(newPassword)) { setError('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa và ký tự đặc biệt'); return; }
     setLoading(true);
     try {
