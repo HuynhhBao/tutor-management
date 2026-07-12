@@ -38,7 +38,7 @@ class AuthService {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: 'user' },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '1h' }
     );
 
     return {
@@ -63,7 +63,7 @@ class AuthService {
     const token = jwt.sign(
       { id: admin.id, email: admin.username, role: admin.role },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '1h' }
     );
 
     return {
@@ -94,7 +94,7 @@ class AuthService {
     const token = jwt.sign(
       { id: account.tutor_id, accountId: account.id, username: account.username, role: 'tutor' },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '1h' }
     );
 
     return {
