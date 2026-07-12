@@ -6,7 +6,6 @@ import {
   UserSquare, 
   CalendarDays, 
   Wallet,
-  LogOut,
   ChevronUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

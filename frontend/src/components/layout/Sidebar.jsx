@@ -39,11 +39,11 @@ export default function Sidebar() {
     const interval = setInterval(fetchStats, 60000); // 1 minute
     
     // Listen for cross-component updates
-    window.addEventListener('tutorStatsChanged', fetchStats);
+    globalThis.addEventListener('tutorStatsChanged', fetchStats);
     
     return () => {
       clearInterval(interval);
-      window.removeEventListener('tutorStatsChanged', fetchStats);
+      globalThis.removeEventListener('tutorStatsChanged', fetchStats);
     };
   }, []);
 

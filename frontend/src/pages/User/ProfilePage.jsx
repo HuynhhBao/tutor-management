@@ -13,7 +13,12 @@ const AvatarSection = ({ user, onAvatarChange, loading }) => {
   const fileInputRef = useRef(null);
   
   const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.fullName || 'User')}&background=6366f1&color=fff&size=128`;
-  const avatarSrc = user?.avatarUrl ? `http://localhost:3001${user.avatarUrl}` : defaultAvatar;
+  let avatarSrc = defaultAvatar;
+  if (user?.avatarUrl) {
+    avatarSrc = user.avatarUrl.startsWith('data:image/')
+      ? user.avatarUrl
+      : `http://localhost:3001${user.avatarUrl}`;
+  }
 
   return (
     <div className="flex flex-col items-center mb-8">

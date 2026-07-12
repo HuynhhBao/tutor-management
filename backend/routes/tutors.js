@@ -1,6 +1,5 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'node:path';
 import {
   getAllTutors,
   createTutor,
@@ -13,6 +12,7 @@ import {
   sendApplyOtp,
   submitApplication,
   getApplications,
+  getApplicationById,
   approveApplication,
   rejectApplication,
   grantAccount,
@@ -21,13 +21,7 @@ import {
 const router = express.Router();
 
 // Multer — upload CV image
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB
@@ -45,6 +39,7 @@ router.delete('/:id', deleteTutor);
 router.post('/apply/send-otp', sendApplyOtp);
 router.post('/apply', upload.array('cvImage', 10), submitApplication);
 router.get('/applications', getApplications);
+router.get('/applications/:id', getApplicationById);
 router.put('/applications/:id/approve', approveApplication);
 router.delete('/applications/:id/reject', rejectApplication);
 

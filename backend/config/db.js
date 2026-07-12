@@ -199,11 +199,22 @@ export const initDb = async () => {
       )
     `);
 
+    // Tạo bảng ai_chat_messages nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS ai_chat_messages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        sender VARCHAR(20) NOT NULL, -- 'user' hoặc 'ai'
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Migration: Chuyển đổi tất cả các cột TIMESTAMP sang TIMESTAMPTZ để đồng bộ múi giờ
     const tablesWithTimestamp = [
       'users', 'admins', 'tutors', 'tutor_applications', 
       'tutor_accounts', 'transactions', 'bookings', 
-      'notifications', 'messages'
+      'notifications', 'messages', 'ai_chat_messages'
     ];
     
     for (const table of tablesWithTimestamp) {

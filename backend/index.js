@@ -14,6 +14,7 @@ import studentBookingsRoutes from './routes/studentBookings.js';
 import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
 import chatRoutes from './routes/chatRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +44,7 @@ app.use('/api/student/bookings', studentBookingsRoutes);
 app.use('/api/tutor', tutorBookingsRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/ai-chat', aiRoutes);
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');

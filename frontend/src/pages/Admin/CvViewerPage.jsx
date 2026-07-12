@@ -1,20 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Download, Loader2 } from 'lucide-react';
 
 const CvViewerPage = () => {
   const [searchParams] = useSearchParams();
   
-  const urlsParam = searchParams.get('urls') || '';
+  const appId = searchParams.get('appId');
   const initialIndex = Number.parseInt(searchParams.get('index') || '0', 10);
   
-  const urls = urlsParam ? urlsParam.split(',') : [];
-  const [currentIndex, setCurrentIndex] = useState(
-    initialIndex >= 0 && initialIndex < urls.length ? initialIndex : 0
-  );
+  const [urls, setUrls] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [scale, setScale] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (urls.length === 0) {
+  useEffect(() => {
+    const fetchApp = async () => {
+      if (!appId) {
+        setError(true);
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(`http://localhost:3001/api/tutors/applications/${appId}`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+          const fetchedUrls = data.data.cv_image_url ? data.data.cv_image_url.split('|') : [];
+          setUrls(fetchedUrls);
+          if (initialIndex >= 0 && initialIndex < fetchedUrls.length) {
+            setCurrentIndex(initialIndex);
+          } else {
+            setCurrentIndex(0);
+          }
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApp();
+  }, [appId, initialIndex]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
+        <p className="text-lg font-semibold">Đang tải tài liệu...</p>
+      </div>
+    );
+  }
+
+  if (error || urls.length === 0) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
         <p className="text-lg font-semibold">Không tìm thấy tài liệu CV</p>
@@ -42,7 +82,7 @@ const CvViewerPage = () => {
   const handleZoomIn = () => setScale(s => Math.min(s + 0.25, 3));
   const handleZoomOut = () => setScale(s => Math.max(s - 0.25, 0.5));
 
-  const currentUrl = `http://localhost:3001${urls[currentIndex]}`;
+  const currentUrl = urls[currentIndex]?.startsWith('data:image/') ? urls[currentIndex] : `http://localhost:3001${urls[currentIndex]}`;
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col justify-between text-white relative select-none">
@@ -146,7 +186,7 @@ const CvViewerPage = () => {
               }`}
             >
               <img 
-                src={`http://localhost:3001${url}`} 
+                src={url.startsWith('data:image/') ? url : `http://localhost:3001${url}`} 
                 alt={`Thumb ${idx + 1}`} 
                 className="w-full h-full object-cover"
               />

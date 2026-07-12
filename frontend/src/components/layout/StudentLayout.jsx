@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck, Bell } from 'lucide-react';
+import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck } from 'lucide-react';
+import AIAssistantWidget from '../common/AIAssistantWidget';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -64,6 +65,13 @@ const StudentLayout = () => {
 
   const navItems = [...primaryNavItems, ...secondaryNavItems];
 
+  let avatarSrc = null;
+  if (user?.avatarUrl) {
+    avatarSrc = user.avatarUrl.startsWith('data:image/')
+      ? user.avatarUrl
+      : `http://localhost:3001${user.avatarUrl}`;
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
       {/* Top Navigation Bar */}
@@ -92,17 +100,19 @@ const StudentLayout = () => {
                 {primaryNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
+                  const btnClass = `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                    isActive 
+                      ? 'bg-blue-50 text-blue-700 shadow-sm' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`;
+                  const iconClass = `mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
                   return (
                     <button
                       key={item.path}
                       onClick={() => navigate(item.path)}
-                      className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                        isActive 
-                          ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
+                      className={btnClass}
                     >
-                      <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                      <Icon className={iconClass} />
                       {item.label}
                     </button>
                   );
@@ -114,17 +124,19 @@ const StudentLayout = () => {
                 {secondaryNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
+                  const btnClass = `inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                    isActive 
+                      ? 'bg-blue-50 text-blue-700 shadow-sm' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`;
+                  const iconClass = `mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
                   return (
                     <button
                       key={item.path}
                       onClick={() => navigate(item.path)}
-                      className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                        isActive 
-                          ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
+                      className={btnClass}
                     >
-                      <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                      <Icon className={iconClass} />
                       {item.label}
                     </button>
                   );
@@ -142,9 +154,9 @@ const StudentLayout = () => {
                     <p className="text-xs text-slate-500">{user?.email || 'Học viên'}</p>
                   </div>
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                    {user?.avatarUrl ? (
+                    {avatarSrc ? (
                       <img 
-                        src={`http://localhost:3001${user.avatarUrl}`} 
+                        src={avatarSrc} 
                         alt="Avatar" 
                         className="h-full w-full object-cover"
                       />
@@ -190,6 +202,12 @@ const StudentLayout = () => {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
+                const btnClass = `flex items-center w-full pl-3 pr-4 py-3 text-base font-medium border-l-4 ${
+                  isActive
+                    ? 'bg-blue-100 border-blue-500 text-blue-700'
+                    : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
+                }`;
+                const iconClass = `mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`;
                 return (
                   <button
                     key={item.path}
@@ -197,13 +215,9 @@ const StudentLayout = () => {
                       navigate(item.path);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`flex items-center w-full pl-3 pr-4 py-3 text-base font-medium border-l-4 ${
-                      isActive
-                        ? 'bg-blue-100 border-blue-500 text-blue-700'
-                        : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
-                    }`}
+                    className={btnClass}
                   >
-                    <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`} />
+                    <Icon className={iconClass} />
                     {item.label}
                   </button>
                 );
@@ -268,6 +282,9 @@ const StudentLayout = () => {
           </div>
         </div>
       )}
+
+      {/* Floating AI chatbot widget exclusively for students */}
+      <AIAssistantWidget />
     </div>
   );
 };

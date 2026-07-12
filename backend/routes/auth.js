@@ -1,5 +1,4 @@
 import express from 'express';
-import crypto from 'node:crypto';
 import {
   register,
   login,
@@ -17,18 +16,11 @@ import {
   resetPassword,
 } from '../controllers/forgotPasswordController.js';
 import multer from 'multer';
-import path from 'node:path';
 
 const router = express.Router();
 
 // Multer — upload Avatar
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + crypto.randomInt(0, 1e9);
-    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 const upload = multer({ 
   storage,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
