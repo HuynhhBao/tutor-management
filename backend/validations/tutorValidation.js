@@ -13,5 +13,5 @@ export const updateTutorSchema = createTutorSchema; // Same fields for update
 
 export const updateTutorStatusSchema = Joi.object({
   tutorId: Joi.number().integer().required().messages({ 'any.required': 'ID gia sư là bắt buộc' }),
-  status: Joi.string().valid('active', 'inactive', 'banned').required().messages({ 'any.required': 'Trạng thái là bắt buộc', 'any.only': 'Trạng thái không hợp lệ' }),
+  status: Joi.string().valid('active', 'inactive', 'banned', 'Sẵn sàng nhận lớp', 'Tạm nghỉ').required().messages({ 'any.required': 'Trạng thái là bắt buộc', 'any.only': 'Trạng thái không hợp lệ' }),
 });

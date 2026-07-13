@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useAlert } from '../../context/AlertContext';
 import { BookOpen, Star, CheckCircle, Clock, Moon, User, CalendarCheck } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 
@@ -12,6 +13,7 @@ const STATUS_MAP = {
 
 export default function TutorDashboard() {
   const { user } = useAuth();
+  const { showAlert } = useAlert();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isReady, setIsReady] = useState(user?.status === 'Sẵn sàng nhận lớp');
   const [bookings, setBookings] = useState([]);
@@ -48,9 +50,9 @@ export default function TutorDashboard() {
         body: JSON.stringify({ tutorId: user.id, status: nextStatusText }),
       });
       if (response.ok) setIsReady(nextReadyState);
-      else alert('Có lỗi xảy ra khi cập nhật trạng thái');
+      else showAlert('Có lỗi xảy ra khi cập nhật trạng thái');
     } catch {
-      alert('Không thể kết nối đến server');
+      showAlert('Không thể kết nối đến server');
     } finally {
       setShowConfirmModal(false);
     }
@@ -70,10 +72,10 @@ export default function TutorDashboard() {
           prev.map(b => b.id === bookingId ? { ...b, status: 'confirmed' } : b)
         );
       } else {
-        alert(json.message || 'Xác nhận thất bại');
+        showAlert(json.message || 'Xác nhận thất bại');
       }
     } catch {
-      alert('Không thể kết nối đến server');
+      showAlert('Không thể kết nối đến server');
     } finally {
       setConfirmingId(null);
     }

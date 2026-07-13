@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useAlert } from '../context/AlertContext';
 import LandingHeader from '../components/landing/LandingHeader';
 import HeroSection from '../components/landing/HeroSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
@@ -17,6 +18,7 @@ import SuccessModal from '../components/landing/SuccessModal';
 const LandingPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { showAlert } = useAlert();
   
   // States
   const [showMenu, setShowMenu] = useState(false);
@@ -96,7 +98,7 @@ const LandingPage = () => {
     });
 
     if (invalidFiles.length > 0) {
-      alert(`Các file sau vượt quá giới hạn 10MB và không được thêm: \n- ${invalidFiles.join('\n- ')}`);
+      showAlert(`Các file sau vượt quá giới hạn 10MB và không được thêm: \n- ${invalidFiles.join('\n- ')}`);
     }
 
     if (validFiles.length > 0) {
