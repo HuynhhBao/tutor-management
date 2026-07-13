@@ -6,12 +6,14 @@ import TutorFormModal from '../../components/admin/TutorFormModal';
 import GrantAccountModal from '../../components/admin/GrantAccountModal';
 import ApproveModal from '../../components/admin/ApproveModal';
 import SuccessModal from '../../components/admin/SuccessModal';
+import { useAlert } from '../../context/AlertContext';
 import { API_BASE_URL } from '../../utils/constants';
 import { formatDateTime } from '../../utils/formatters';
 
 const EMPTY_FORM = { fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' };
 
 export default function TutorManagement() {
+  const { showAlert } = useAlert();
   const [activeTab, setActiveTab] = useState('tutors'); // 'tutors' | 'applications'
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ totalTutors: 0, pendingApplications: 0 });
@@ -103,8 +105,8 @@ export default function TutorManagement() {
         fetchTutors();
         showSuccess('Đã xóa gia sư thành công!');
       }
-      else alert('Có lỗi xảy ra khi xóa gia sư');
-    } catch { alert('Không thể kết nối đến server'); }
+      else showAlert('Có lỗi xảy ra khi xóa gia sư');
+    } catch { showAlert('Không thể kết nối đến server'); }
   };
 
   const handleSubmit = async (e) => {
@@ -118,8 +120,8 @@ export default function TutorManagement() {
         fetchTutors(); 
         showSuccess(editingId ? 'Cập nhật thông tin gia sư thành công!' : 'Thêm gia sư mới thành công!');
       }
-      else alert(`Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
-    } catch { alert('Không thể kết nối đến server'); }
+      else showAlert(`Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
+    } catch { showAlert('Không thể kết nối đến server'); }
   };
 
   const closeFormModal = () => { setIsModalOpen(false); setEditingId(null); setFormData(EMPTY_FORM); };
@@ -159,13 +161,13 @@ export default function TutorManagement() {
       const response = await fetch(`${API_BASE_URL}/tutors/applications/${appId}/reject`, { method: 'DELETE' });
       const data = await response.json();
       if (response.ok) { fetchApplications(); showSuccess('Đã từ chối và gửi email thông báo thành công!'); }
-      else alert(data.message || 'Lỗi từ chối hồ sơ');
-    } catch { alert('Không thể kết nối đến server'); }
+      else showAlert(data.message || 'Lỗi từ chối hồ sơ');
+    } catch { showAlert('Không thể kết nối đến server'); }
   };
 
   // --- Grant account handlers ---
   const handleGrantClick = (tutor) => {
-    if (!tutor.email) { alert('Gia sư này chưa có địa chỉ email. Vui lòng chỉnh sửa gia sư và thêm email trước khi cấp tài khoản.'); return; }
+    if (!tutor.email) { showAlert('Gia sư này chưa có địa chỉ email. Vui lòng chỉnh sửa gia sư và thêm email trước khi cấp tài khoản.'); return; }
     setGrantingTutorId(tutor.id);
     setGrantUsername('');
     setGrantStatus({ loading: false, error: '' });
