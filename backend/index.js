@@ -30,6 +30,11 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(helmet()); // Secure HTTP headers
 
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 // Global Rate Limiter: Max 100 requests per 15 minutes per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -37,11 +42,6 @@ const globalLimiter = rateLimit({
   message: { status: 'error', message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút' }
 });
 app.use('/api', globalLimiter); // Apply to all API routes
-
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

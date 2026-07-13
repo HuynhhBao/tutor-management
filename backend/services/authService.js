@@ -113,6 +113,71 @@ class AuthService {
     };
   }
 
+  async googleLogin(idToken) {
+    const { OAuth2Client } = await import('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    // 1. Check if Tutor
+    const tutorResult = await pool.query(`
+      SELECT a.*, t.full_name, t.email as tutor_email, t.avatar_url, t.status 
+      FROM tutor_accounts a 
+      JOIN tutors t ON a.tutor_id = t.id 
+      WHERE t.email = $1
+    `, [email]);
+
+    if (tutorResult.rows.length > 0) {
+      const account = tutorResult.rows[0];
+      const token = jwt.sign(
+        { id: account.tutor_id, accountId: account.id, username: account.username, role: 'tutor' },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      return {
+        token,
+        user: { 
+          id: account.tutor_id, 
+          accountId: account.id, 
+          username: account.username, 
+          fullName: account.full_name, 
+          email: account.tutor_email, 
+          role: 'tutor', 
+          avatarUrl: account.avatar_url,
+          status: account.status
+        }
+      };
+    }
+
+    // 2. Check if Student (User)
+    let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let user = userResult.rows[0];
+
+    // 3. Create Student if not exists
+    if (!user) {
+      const result = await pool.query(
+        'INSERT INTO users (email, full_name, avatar_url, password) VALUES ($1, $2, $3, $4) RETURNING *',
+        [email, name || email.split('@')[0], picture || null, '']
+      );
+      user = result.rows[0];
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    return {
+      token,
+      user: { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: 'user', avatarUrl: user.avatar_url }
+    };
+  }
+
   async getUserProfile(decoded) {
     let userResult;
     if (decoded.role === 'admin' || decoded.role === 'staff') {

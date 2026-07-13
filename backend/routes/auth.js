@@ -9,6 +9,7 @@ import {
   updateAvatar,
   changePassword,
   logout,
+  googleLogin,
 } from '../controllers/authController.js';
 import {
   forgotPassword,
@@ -50,6 +51,7 @@ router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/admin/login', authLimiter, validate(adminLoginSchema), adminLogin);
 router.post('/login-tutor', authLimiter, validate(tutorLoginSchema), tutorLogin);
+router.post('/google-login', authLimiter, googleLogin);
 router.get('/me', getMe);
 router.put('/update-profile', validate(updateProfileSchema), updateProfile);
 router.put('/update-avatar', upload.single('avatar'), updateAvatar);
