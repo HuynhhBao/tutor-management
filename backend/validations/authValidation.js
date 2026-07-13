@@ -53,7 +53,8 @@ export const changePasswordSchema = Joi.object({
   currentPassword: Joi.string().required().messages({
     'any.required': 'Vui lòng nhập mật khẩu hiện tại',
   }),
-  newPassword: Joi.string().pattern(passwordRegex).required().messages({
+  newPassword: Joi.string().invalid(Joi.ref('currentPassword')).pattern(passwordRegex).required().messages({
+    'any.invalid': 'Mật khẩu mới không được trùng với mật khẩu hiện tại',
     'string.pattern.base': 'Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ in hoa và ký tự đặc biệt',
     'any.required': 'Vui lòng nhập mật khẩu mới',
   }),

@@ -183,6 +183,11 @@ class AuthService {
       throw new ApiError(400, 'Mật khẩu hiện tại không chính xác');
     }
 
+    const isSameAsCurrent = await bcrypt.compare(newPassword, user.password);
+    if (isSameAsCurrent) {
+      throw new ApiError(400, 'Mật khẩu mới không được trùng với mật khẩu gần nhất');
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     if (decoded.role === 'admin' || decoded.role === 'staff') {
       await pool.query('UPDATE admins SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
@@ -255,6 +260,16 @@ class AuthService {
     const record = otpStore.get(email);
     if (!record?.verified) {
       throw new ApiError(400, 'Phiên đặt lại mật khẩu không hợp lệ');
+    }
+
+    // Kiểm tra xem mật khẩu mới có trùng với mật khẩu gần nhất không
+    const userResult = await pool.query('SELECT password FROM users WHERE email = $1', [email]);
+    const user = userResult.rows[0];
+    if (user) {
+      const isSameAsCurrent = await bcrypt.compare(password, user.password);
+      if (isSameAsCurrent) {
+        throw new ApiError(400, 'Mật khẩu mới không được trùng với mật khẩu gần nhất');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
