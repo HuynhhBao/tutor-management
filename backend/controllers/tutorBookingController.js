@@ -32,3 +32,14 @@ export const confirmBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+export const completeBooking = async (req, res, next) => {
+  try {
+    const tutorId = req.user.id;
+    const { id } = req.params;
+    const message = await bookingService.completeBookingAsTutor(tutorId, id);
+    return sendSuccess(res, 200, message);
+  } catch (err) {
+    next(err);
+  }
+};

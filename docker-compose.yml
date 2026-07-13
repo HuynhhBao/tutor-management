@@ -19,7 +19,7 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - PORT=${PORT:-3000}
+      - PORT=${PORT:-3001}
       - DB_HOST=db
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -30,7 +30,7 @@ services:
       - EMAIL_PASS=${EMAIL_PASS}
       - CHOKIDAR_USEPOLLING=true
     ports:
-      - "3000:3000"
+      - "3001:3001"
     command: sh -c "npm install && npm run dev"
     depends_on:
       - db

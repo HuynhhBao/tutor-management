@@ -23,6 +23,7 @@ import BookingPage from './pages/User/BookingPage';
 import BookingHistoryPage from './pages/User/BookingHistoryPage';
 import ChatPage from './pages/Common/ChatPage';
 import CvViewerPage from './pages/Admin/CvViewerPage';
+import MyClassesPage from './pages/Tutor/MyClassesPage';
 
 // Component to handle root path redirection based on auth state
 const HomeRedirect = () => {
@@ -120,7 +121,7 @@ function App() {
             <Route index element={<TutorDashboard />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="chat" element={<ChatPage />} />
-            <Route path="my-classes" element={<div className="p-6">Lớp của tôi (Đang phát triển)</div>} />
+            <Route path="my-classes" element={<MyClassesPage />} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
 
