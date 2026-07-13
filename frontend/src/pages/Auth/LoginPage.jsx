@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -41,6 +42,28 @@ const LoginPage = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
+      setError('Không thể kết nối đến server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    setLoading(true);
+    try {
+      const result = await loginWithGoogle(credentialResponse.credential);
+      if (result.success) {
+        if (result.user.role === 'tutor') {
+          navigate('/tutor-dashboard', { replace: true });
+        } else {
+          navigate('/student-dashboard', { replace: true });
+        }
+      } else {
+        setError(result.message || 'Đăng nhập Google thất bại');
+      }
+    } catch (err) {
+      console.error('Google Login error:', err);
       setError('Không thể kết nối đến server');
     } finally {
       setLoading(false);
@@ -189,6 +212,28 @@ const LoginPage = () => {
                 {loading ? 'Đang xử lý...' : 'Đăng nhập'}
               </button>
             </div>
+            
+            {!isAdmin && (
+              <div className="mt-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-slate-500">Hoặc tiếp tục với</span>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => {
+                      setError('Đăng nhập Google thất bại');
+                    }}
+                    useOneTap
+                  />
+                </div>
+              </div>
+            )}
           </form>
 
           {!isAdmin && activeTab === 'user' && (

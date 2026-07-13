@@ -28,6 +28,27 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) {
+      throw new ApiError(400, 'Vui lòng cung cấp Google Token');
+    }
+
+    const data = await authService.googleLogin(idToken);
+    
+    res.cookie('token', data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return sendSuccess(res, 200, 'Đăng nhập Google thành công', { user: data.user });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const adminLogin = async (req, res, next) => {
   try {
     const data = await authService.adminLogin(req.body);

@@ -45,7 +45,13 @@ function App() {
   useEffect(() => {
     const handleUnauthorized = () => {
       // Clear token/user info if needed, AuthContext checkAuth will also fail
-      window.location.href = '/login';
+      if (!window.location.pathname.includes('/login')) {
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/admin/login';
+        } else {
+          window.location.href = '/login';
+        }
+      }
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);

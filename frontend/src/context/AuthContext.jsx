@@ -63,6 +63,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (credential) => {
+    const response = await fetch('http://localhost:3001/api/auth/google-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: credential }),
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setUser(data.user);
+      return { success: true, user: data.user };
+    } else {
+      return { success: false, message: data.message };
+    }
+  };
+
   const logout = async () => {
     try {
       await fetch('http://localhost:3001/api/auth/logout', {
@@ -76,7 +94,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setUserFromLogin: setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, setUserFromLogin: setUser }}>
       {children}
     </AuthContext.Provider>
   );
