@@ -252,6 +252,31 @@ class BookingService {
 
     return 'Đã xác nhận lịch học thành công!';
   }
+
+  async completeBookingAsTutor(tutorId, bookingId) {
+    const check = await pool.query(
+      `SELECT * FROM bookings WHERE id = $1 AND tutor_id = $2`,
+      [bookingId, tutorId]
+    );
+
+    if (check.rows.length === 0) {
+      throw new ApiError(404, 'Không tìm thấy lớp học');
+    }
+    if (check.rows[0].status !== 'confirmed') {
+      throw new ApiError(400, 'Chỉ có thể hoàn thành lớp đang ở trạng thái "Đã xác nhận"');
+    }
+
+    await pool.query(`UPDATE bookings SET status = 'completed' WHERE id = $1`, [bookingId]);
+
+    const autoMsg = `Lớp học môn ${check.rows[0].subject} đã được đánh dấu hoàn thành. Cảm ơn bạn đã học cùng mình! 🎉`;
+    await pool.query(
+      `INSERT INTO messages (sender_id, sender_type, receiver_id, receiver_type, content)
+       VALUES ($1, 'tutor', $2, 'user', $3)`,
+      [tutorId, check.rows[0].user_id, autoMsg]
+    );
+
+    return 'Đã hoàn thành lớp học thành công!';
+  }
 }
 
 export default new BookingService();
