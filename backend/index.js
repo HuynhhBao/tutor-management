@@ -11,6 +11,7 @@ import rateLimit from 'express-rate-limit';
 import pool, { initDb } from './config/db.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
+import adminStudentsRoutes from './routes/adminStudents.js';
 import adminBookingsRoutes from './routes/adminBookings.js';
 import studentBookingsRoutes from './routes/studentBookings.js';
 import tutorBookingsRoutes from './routes/tutorBookings.js';
@@ -52,6 +53,7 @@ initDb();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
+app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/bookings', adminBookingsRoutes);
 app.use('/api/student/bookings', studentBookingsRoutes);
 app.use('/api/tutor', tutorBookingsRoutes);

@@ -31,6 +31,10 @@ class AuthService {
       throw new ApiError(401, 'Tài khoản không tồn tại');
     }
 
+    if (user.is_active === false) {
+      throw new ApiError(403, 'Tài khoản của bạn đã bị khóa');
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new ApiError(401, 'Mật khẩu không chính xác');
@@ -156,6 +160,10 @@ class AuthService {
     // 2. Check if Student (User)
     let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     let user = userResult.rows[0];
+
+    if (user && user.is_active === false) {
+      throw new ApiError(403, 'Tài khoản của bạn đã bị khóa');
+    }
 
     // 3. Create Student if not exists
     if (!user) {
