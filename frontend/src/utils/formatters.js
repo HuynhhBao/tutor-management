@@ -14,3 +14,11 @@ export const formatDate = (dateStr) => {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('vi-VN');
 };
+
+export const formatCurrency = (amount) => {
+  if (amount === undefined || amount === null) return '';
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND'
+  }).format(amount);
+};

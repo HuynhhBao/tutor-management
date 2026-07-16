@@ -64,4 +64,5 @@ const apiClient = async (input, init = {}) => {
   }
 };
 
+export const api = axiosInstance;
 export default apiClient;
