@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardOverview from './pages/Admin/DashboardOverview';
 import TutorManagement from './pages/Admin/TutorManagement';
+import StudentManagement from './pages/Admin/StudentManagement';
 import AdminBookingManagement from './pages/Admin/AdminBookingManagement';
 import AdminLayout from './components/layout/AdminLayout';
 import LandingPage from './pages/LandingPage';
@@ -93,7 +94,7 @@ function App() {
             <Route index element={<DashboardOverview />} />
             <Route path="tutors" element={<TutorManagement />} />
             <Route path="bookings" element={<AdminBookingManagement />} />
-            <Route path="students" element={<div className="p-6">Quản lý Học viên (Đang phát triển)</div>} />
+            <Route path="students" element={<StudentManagement />} />
             <Route path="classes" element={<div className="p-6">Sắp xếp Lớp học (Đang phát triển)</div>} />
             <Route path="finance" element={<div className="p-6">Tài chính (Đang phát triển)</div>} />
             <Route path="profile" element={<ProfilePage />} />
