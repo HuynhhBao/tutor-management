@@ -277,6 +277,28 @@ class BookingService {
 
     return 'Đã hoàn thành lớp học thành công!';
   }
+
+  async reportDisputeStudent(userId, bookingId, reason) {
+    const check = await pool.query(
+      'SELECT * FROM bookings WHERE id = $1 AND user_id = $2',
+      [bookingId, userId]
+    );
+    if (check.rows.length === 0) {
+      throw new ApiError(404, 'Không tìm thấy lớp học');
+    }
+    const booking = check.rows[0];
+    if (booking.status !== 'confirmed') {
+      throw new ApiError(400, 'Chỉ có thể báo tranh chấp với lớp học đang ở trạng thái "Đã xác nhận"');
+    }
+
+    const note = `[Học viên báo tranh chấp]: ${reason || 'Không có lý do chi tiết'}`;
+    await pool.query(
+      'UPDATE bookings SET status = $1, admin_note = $2 WHERE id = $3',
+      ['disputed', note, bookingId]
+    );
+
+    return 'Đã gửi báo cáo tranh chấp tới Quản trị viên xử lý!';
+  }
 }
 
 export default new BookingService();

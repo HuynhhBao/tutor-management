@@ -178,9 +178,21 @@ export const initDb = async () => {
         subject VARCHAR(255),
         schedule_time VARCHAR(255),
         message TEXT,
+        admin_note TEXT,
         status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Ensure admin_note column exists if bookings table was already created
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='admin_note') THEN
+          ALTER TABLE bookings ADD COLUMN admin_note TEXT;
+        END IF;
+      END
+      $$;
     `);
 
     // Tạo bảng notifications nếu chưa có

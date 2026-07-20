@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import adminStudentsRoutes from './routes/adminStudents.js';
 import adminBookingsRoutes from './routes/adminBookings.js';
+import adminClassesRoutes from './routes/adminClasses.js';
 import studentBookingsRoutes from './routes/studentBookings.js';
 import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
@@ -36,10 +37,11 @@ app.use(cors({
   credentials: true
 }));
 
-// Global Rate Limiter: Max 100 requests per 15 minutes per IP
+// Global Rate Limiter: Max 1000 requests per 15 minutes per IP (disabled in dev)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 10000,
+  skip: () => process.env.NODE_ENV !== 'production',
   message: { status: 'error', message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút' }
 });
 app.use('/api', globalLimiter); // Apply to all API routes
@@ -55,6 +57,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/admin/students', adminStudentsRoutes);
 app.use('/api/admin/bookings', adminBookingsRoutes);
+app.use('/api/admin/classes', adminClassesRoutes);
 app.use('/api/student/bookings', studentBookingsRoutes);
 app.use('/api/tutor', tutorBookingsRoutes);
 app.use('/api/wallet', walletRoutes);
