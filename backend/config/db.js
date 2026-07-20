@@ -233,6 +233,23 @@ export const initDb = async () => {
       )
     `);
 
+    // Tạo bảng system_settings nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT NOT NULL,
+        description TEXT,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed default commission rate if not exists
+    await pool.query(`
+      INSERT INTO system_settings (key, value, description)
+      VALUES ('commission_rate', '15', 'Tỷ lệ hoa hồng hệ thống (%)')
+      ON CONFLICT (key) DO NOTHING
+    `);
+
     // Migration: Chuyển đổi tất cả các cột TIMESTAMP sang TIMESTAMPTZ để đồng bộ múi giờ
     const tablesWithTimestamp = [
       'users', 'admins', 'tutors', 'tutor_applications', 
