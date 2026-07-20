@@ -178,9 +178,21 @@ export const initDb = async () => {
         subject VARCHAR(255),
         schedule_time VARCHAR(255),
         message TEXT,
+        admin_note TEXT,
         status VARCHAR(50) DEFAULT 'pending',
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Ensure admin_note column exists if bookings table was already created
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='admin_note') THEN
+          ALTER TABLE bookings ADD COLUMN admin_note TEXT;
+        END IF;
+      END
+      $$;
     `);
 
     // Tạo bảng notifications nếu chưa có
@@ -219,6 +231,23 @@ export const initDb = async () => {
         message TEXT NOT NULL,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Tạo bảng system_settings nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        key VARCHAR(100) PRIMARY KEY,
+        value TEXT NOT NULL,
+        description TEXT,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Seed default commission rate if not exists
+    await pool.query(`
+      INSERT INTO system_settings (key, value, description)
+      VALUES ('commission_rate', '15', 'Tỷ lệ hoa hồng hệ thống (%)')
+      ON CONFLICT (key) DO NOTHING
     `);
 
     // Migration: Chuyển đổi tất cả các cột TIMESTAMP sang TIMESTAMPTZ để đồng bộ múi giờ

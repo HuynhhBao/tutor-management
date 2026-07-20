@@ -32,3 +32,15 @@ export const cancelBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+export const reportDispute = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { reason } = req.body;
+    const message = await bookingService.reportDisputeStudent(userId, id, reason);
+    return sendSuccess(res, 200, message);
+  } catch (err) {
+    next(err);
+  }
+};

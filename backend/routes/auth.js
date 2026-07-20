@@ -32,10 +32,11 @@ import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
-// Strict Rate Limiter for Auth endpoints: Max 5 requests per minute
+// Strict Rate Limiter for Auth endpoints (disabled in dev)
 const authLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 5,
+  max: 100,
+  skip: () => process.env.NODE_ENV !== 'production',
   message: { status: 'error', message: 'Vượt quá giới hạn đăng nhập/đăng ký. Vui lòng đợi 1 phút.' }
 });
 
