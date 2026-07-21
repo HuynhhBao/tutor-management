@@ -50,6 +50,7 @@ export default function CommissionSettingsModal({ isOpen, onClose, currentRate, 
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
           >

@@ -1,6 +1,126 @@
 import pool from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
 
+const PERIOD_CONFIGS = {
+  '7d': {
+    summarySql: `
+      SELECT 
+        COALESCE(SUM(CASE WHEN type IN ('deposit', 'booking_payment') THEN amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN type = 'booking_payment' THEN amount ELSE 0 END), 0) as booking_revenue,
+        COALESCE(SUM(CASE WHEN type = 'tutor_payout' THEN amount ELSE 0 END), 0) as tutor_payouts,
+        COUNT(*) as total_transactions
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '7 days'
+    `,
+    timelineSql: `
+      WITH dates AS (
+        SELECT generate_series(
+          date_trunc('day', NOW() - INTERVAL '7 days'),
+          date_trunc('day', NOW()),
+          '1 day'::interval
+        ) as time_bucket
+      )
+      SELECT 
+        to_char(d.time_bucket, 'DD/MM') as label,
+        d.time_bucket,
+        COALESCE(SUM(CASE WHEN t.type IN ('deposit', 'booking_payment') THEN t.amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN t.type = 'booking_payment' THEN t.amount ELSE 0 END), 0) * ($1 / 100.0) as commission,
+        COUNT(t.id) as transactions_count
+      FROM dates d
+      LEFT JOIN transactions t ON date_trunc('day', t.created_at) = d.time_bucket
+      GROUP BY d.time_bucket
+      ORDER BY d.time_bucket ASC
+    `,
+    breakdownSql: `
+      SELECT 
+        type,
+        COUNT(*) as count,
+        COALESCE(SUM(amount), 0) as total_amount
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '7 days'
+      GROUP BY type
+    `
+  },
+  '30d': {
+    summarySql: `
+      SELECT 
+        COALESCE(SUM(CASE WHEN type IN ('deposit', 'booking_payment') THEN amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN type = 'booking_payment' THEN amount ELSE 0 END), 0) as booking_revenue,
+        COALESCE(SUM(CASE WHEN type = 'tutor_payout' THEN amount ELSE 0 END), 0) as tutor_payouts,
+        COUNT(*) as total_transactions
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+    `,
+    timelineSql: `
+      WITH dates AS (
+        SELECT generate_series(
+          date_trunc('day', NOW() - INTERVAL '30 days'),
+          date_trunc('day', NOW()),
+          '1 day'::interval
+        ) as time_bucket
+      )
+      SELECT 
+        to_char(d.time_bucket, 'DD/MM') as label,
+        d.time_bucket,
+        COALESCE(SUM(CASE WHEN t.type IN ('deposit', 'booking_payment') THEN t.amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN t.type = 'booking_payment' THEN t.amount ELSE 0 END), 0) * ($1 / 100.0) as commission,
+        COUNT(t.id) as transactions_count
+      FROM dates d
+      LEFT JOIN transactions t ON date_trunc('day', t.created_at) = d.time_bucket
+      GROUP BY d.time_bucket
+      ORDER BY d.time_bucket ASC
+    `,
+    breakdownSql: `
+      SELECT 
+        type,
+        COUNT(*) as count,
+        COALESCE(SUM(amount), 0) as total_amount
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY type
+    `
+  },
+  '12m': {
+    summarySql: `
+      SELECT 
+        COALESCE(SUM(CASE WHEN type IN ('deposit', 'booking_payment') THEN amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN type = 'booking_payment' THEN amount ELSE 0 END), 0) as booking_revenue,
+        COALESCE(SUM(CASE WHEN type = 'tutor_payout' THEN amount ELSE 0 END), 0) as tutor_payouts,
+        COUNT(*) as total_transactions
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '1 year'
+    `,
+    timelineSql: `
+      WITH dates AS (
+        SELECT generate_series(
+          date_trunc('month', NOW() - INTERVAL '1 year'),
+          date_trunc('month', NOW()),
+          '1 month'::interval
+        ) as time_bucket
+      )
+      SELECT 
+        to_char(d.time_bucket, 'MM/YYYY') as label,
+        d.time_bucket,
+        COALESCE(SUM(CASE WHEN t.type IN ('deposit', 'booking_payment') THEN t.amount ELSE 0 END), 0) as gross_revenue,
+        COALESCE(SUM(CASE WHEN t.type = 'booking_payment' THEN t.amount ELSE 0 END), 0) * ($1 / 100.0) as commission,
+        COUNT(t.id) as transactions_count
+      FROM dates d
+      LEFT JOIN transactions t ON date_trunc('month', t.created_at) = d.time_bucket
+      GROUP BY d.time_bucket
+      ORDER BY d.time_bucket ASC
+    `,
+    breakdownSql: `
+      SELECT 
+        type,
+        COUNT(*) as count,
+        COALESCE(SUM(amount), 0) as total_amount
+      FROM transactions
+      WHERE created_at >= NOW() - INTERVAL '1 year'
+      GROUP BY type
+    `
+  }
+};
+
 class AdminFinanceService {
   /**
    * Lấy cấu hình hệ thống (mặc định lấy % hoa hồng)
@@ -49,64 +169,24 @@ class AdminFinanceService {
     // Lấy tỷ lệ hoa hồng hiện tại
     const { commissionRate } = await this.getSettings();
 
-    // Xác định khoảng thời gian
-    let intervalQuery = "INTERVAL '30 days'";
-    let dateFormat = 'DD/MM';
-    let groupStep = 'day';
-
-    if (period === '7d') {
-      intervalQuery = "INTERVAL '7 days'";
-      dateFormat = 'DD/MM';
-      groupStep = 'day';
-    } else if (period === '12m') {
-      intervalQuery = "INTERVAL '1 year'";
-      dateFormat = 'MM/YYYY';
-      groupStep = 'month';
-    }
+    const config = PERIOD_CONFIGS[period] || PERIOD_CONFIGS['30d'];
 
     // 1. Thống kê Tổng Doanh Thu & Số lượng Giao dịch
-    const summaryResult = await pool.query(`
-      SELECT 
-        COALESCE(SUM(CASE WHEN type IN ('deposit', 'booking_payment') THEN amount ELSE 0 END), 0) as gross_revenue,
-        COALESCE(SUM(CASE WHEN type = 'booking_payment' THEN amount ELSE 0 END), 0) as booking_revenue,
-        COALESCE(SUM(CASE WHEN type = 'tutor_payout' THEN amount ELSE 0 END), 0) as tutor_payouts,
-        COUNT(*) as total_transactions
-      FROM transactions
-      WHERE created_at >= NOW() - ${intervalQuery}
-    `);
-
-    const summary = summaryResult.rows[0];
+    const summaryResult = await pool.query(config.summarySql);
+    const summary = summaryResult.rows[0] || {};
     const grossRevenue = parseFloat(summary.gross_revenue || 0);
     const bookingRevenue = parseFloat(summary.booking_revenue || 0);
     const platformCommission = bookingRevenue * (commissionRate / 100);
     const totalTransactions = parseInt(summary.total_transactions || 0, 10);
 
     // 2. Tổng số dư ví học viên hiện tại trong hệ thống
-    const userBalanceResult = await pool.query(`
-      SELECT COALESCE(SUM(balance), 0) as total_user_balance FROM users
-    `);
-    const totalUserBalance = parseFloat(userBalanceResult.rows[0].total_user_balance || 0);
+    const userBalanceResult = await pool.query(
+      'SELECT COALESCE(SUM(balance), 0) as total_user_balance FROM users'
+    );
+    const totalUserBalance = parseFloat(userBalanceResult.rows[0]?.total_user_balance || 0);
 
     // 3. Chuỗi dữ liệu biểu đồ xu hướng theo thời gian (Area Spline Chart)
-    const chartTimelineResult = await pool.query(`
-      WITH dates AS (
-        SELECT generate_series(
-          date_trunc('${groupStep}', NOW() - ${intervalQuery}),
-          date_trunc('${groupStep}', NOW()),
-          '1 ${groupStep}'::interval
-        ) as time_bucket
-      )
-      SELECT 
-        to_char(d.time_bucket, '${dateFormat}') as label,
-        d.time_bucket,
-        COALESCE(SUM(CASE WHEN t.type IN ('deposit', 'booking_payment') THEN t.amount ELSE 0 END), 0) as gross_revenue,
-        COALESCE(SUM(CASE WHEN t.type = 'booking_payment' THEN t.amount ELSE 0 END), 0) * ($1 / 100.0) as commission,
-        COUNT(t.id) as transactions_count
-      FROM dates d
-      LEFT JOIN transactions t ON date_trunc('${groupStep}', t.created_at) = d.time_bucket
-      GROUP BY d.time_bucket
-      ORDER BY d.time_bucket ASC
-    `, [commissionRate]);
+    const chartTimelineResult = await pool.query(config.timelineSql, [commissionRate]);
 
     const chartData = chartTimelineResult.rows.map(row => ({
       label: row.label,
@@ -116,15 +196,7 @@ class AdminFinanceService {
     }));
 
     // 4. Phân bổ các loại giao dịch (Donut Chart)
-    const breakdownResult = await pool.query(`
-      SELECT 
-        type,
-        COUNT(*) as count,
-        COALESCE(SUM(amount), 0) as total_amount
-      FROM transactions
-      WHERE created_at >= NOW() - ${intervalQuery}
-      GROUP BY type
-    `);
+    const breakdownResult = await pool.query(config.breakdownSql);
 
     const typeLabels = {
       deposit: 'Nạp tiền vào ví',
@@ -214,10 +286,13 @@ class AdminFinanceService {
       ${whereClause}
     `;
     const countResult = await pool.query(countSql, queryParams);
-    const totalItems = parseInt(countResult.rows[0].count, 10);
+    const totalItems = parseInt(countResult.rows[0]?.count || 0, 10);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     // Data query
+    const limitParamIndex = paramIndex++;
+    const offsetParamIndex = paramIndex++;
+
     const dataSql = `
       SELECT 
         t.id,
@@ -235,7 +310,7 @@ class AdminFinanceService {
       LEFT JOIN tutors tut ON t.user_id = tut.id AND t.user_type = 'tutor'
       ${whereClause}
       ORDER BY t.created_at DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+      LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}
     `;
 
     queryParams.push(limitNum, offset);

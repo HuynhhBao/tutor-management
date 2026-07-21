@@ -145,6 +145,7 @@ export default function TransactionTable({
 
           {/* Refresh Button */}
           <button
+            type="button"
             onClick={onRefresh}
             className="p-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl transition-colors"
             title="Làm mới dữ liệu"
@@ -154,6 +155,7 @@ export default function TransactionTable({
 
           {/* CSV Export Button */}
           <button
+            type="button"
             onClick={exportToCSV}
             className="flex items-center space-x-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-all"
           >
@@ -253,6 +255,7 @@ export default function TransactionTable({
 
           <div className="flex items-center space-x-2">
             <button
+              type="button"
               disabled={pagination.page <= 1}
               onClick={() => onPageChange(pagination.page - 1)}
               className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -260,6 +263,7 @@ export default function TransactionTable({
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
+              type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => onPageChange(pagination.page + 1)}
               className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"

@@ -69,6 +69,7 @@ export default function FinanceStatsCards({ metrics, commissionRate, onOpenSetti
               <div className="flex items-center space-x-2">
                 {card.action && (
                   <button
+                    type="button"
                     onClick={card.action.onClick}
                     className="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold px-2 py-0.5 rounded border border-emerald-300 transition-colors"
                   >
