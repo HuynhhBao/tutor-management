@@ -110,6 +110,7 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
           {/* Time Filter Switcher Buttons */}
           <div className="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-medium self-start sm:self-auto">
             <button
+              type="button"
               onClick={() => onPeriodChange('7d')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 period === '7d'
@@ -120,6 +121,7 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
               7 ngày
             </button>
             <button
+              type="button"
               onClick={() => onPeriodChange('30d')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 period === '30d'
@@ -130,6 +132,7 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
               30 ngày
             </button>
             <button
+              type="button"
               onClick={() => onPeriodChange('12m')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 period === '12m'
