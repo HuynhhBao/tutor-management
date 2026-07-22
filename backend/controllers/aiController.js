@@ -31,3 +31,15 @@ export const clearAIChatHistory = async (req, res, next) => {
     next(err);
   }
 };
+
+export const matchTutor = async (req, res, next) => {
+  try {
+    const { prompt } = req.body;
+    const data = await aiService.getTutorRecommendations(prompt);
+    return sendSuccess(res, 200, 'Gợi ý gia sư thành công', { data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+

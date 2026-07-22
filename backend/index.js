@@ -65,6 +65,8 @@ app.use('/api/tutor', tutorBookingsRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/ai-chat', aiRoutes);
+app.use('/api/ai', aiRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Backend is running!');

@@ -12,8 +12,10 @@ import {
   TrendingUp, 
   ArrowRight,
   ShieldCheck,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
+
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -60,6 +62,13 @@ const StudentDashboard = () => {
 
   const quickActions = [
     { 
+      title: 'AI Matchmaker', 
+      desc: 'Gợi ý gia sư thông minh bằng AI Gemini Vector Embedding.',
+      icon: Sparkles,
+      path: '/student-dashboard/search',
+      color: 'bg-indigo-600'
+    },
+    { 
       title: 'Hồ sơ cá nhân', 
       desc: 'Cập nhật thông tin cá nhân và quản lý tài khoản.',
       icon: User,
@@ -74,13 +83,6 @@ const StudentDashboard = () => {
       color: 'bg-blue-600'
     },
     { 
-      title: 'Lịch sử thuê', 
-      desc: 'Xem danh sách các gia sư bạn đã từng hoặc đang thuê.',
-      icon: History,
-      path: '/student-dashboard/history',
-      color: 'bg-blue-600'
-    },
-    { 
       title: 'Ví tiền & Nạp tiền', 
       desc: 'Quản lý số dư và thực hiện nạp tiền vào tài khoản.',
       icon: Wallet,
@@ -88,6 +90,7 @@ const StudentDashboard = () => {
       color: 'bg-emerald-600'
     },
   ];
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

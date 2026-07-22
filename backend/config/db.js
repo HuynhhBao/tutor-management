@@ -117,6 +117,31 @@ export const initDb = async () => {
       $$;
     `);
 
+    // Ensure pgvector extension and profile_embedding column in tutors table
+    try {
+      await pool.query('CREATE EXTENSION IF NOT EXISTS vector;');
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='profile_embedding') THEN
+            ALTER TABLE tutors ADD COLUMN profile_embedding vector(768);
+          END IF;
+        END
+        $$;
+      `);
+    } catch (vectorErr) {
+      console.log('pgvector extension not available, falling back to text storage for profile_embedding:', vectorErr.message);
+      await pool.query(`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='profile_embedding') THEN
+            ALTER TABLE tutors ADD COLUMN profile_embedding TEXT;
+          END IF;
+        END
+        $$;
+      `);
+    }
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS tutor_applications (
         id SERIAL PRIMARY KEY,
