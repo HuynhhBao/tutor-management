@@ -4,8 +4,7 @@ import pool from '../config/db.js';
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-      credentials: true,
+      origin: '*',
       methods: ['GET', 'POST']
     }
   });
@@ -147,21 +146,6 @@ export const initSocket = (server) => {
       if (!classId) return;
       const room = `class_${classId}`;
       socket.to(room).emit('toggle-mic', data);
-    });
-
-    // Đồng bộ luồng video Camera trực tiếp giữa 2 bên
-    socket.on('camera-frame', (data) => {
-      const classId = parseClassId(data);
-      if (!classId) return;
-      const room = `class_${classId}`;
-      socket.to(room).emit('camera-frame', data);
-    });
-
-    socket.on('camera-stop', (data) => {
-      const classId = parseClassId(data);
-      if (!classId) return;
-      const room = `class_${classId}`;
-      socket.to(room).emit('camera-stop', data);
     });
 
     socket.on('disconnect', () => {

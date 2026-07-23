@@ -58,7 +58,7 @@ export default function VirtualClassroom() {
     async function getClassDetails() {
       try {
         setLoading(true);
-        const endpoint = user?.role === 'tutor' 
+        const endpoint = user.role === 'tutor' 
           ? `${API_BASE_URL}/tutor/bookings` 
           : `${API_BASE_URL}/student/bookings`;
         
@@ -67,12 +67,12 @@ export default function VirtualClassroom() {
         
         if (json.status === 'ok') {
           const list = json.data || [];
-          const currentClass = list.find(b => b.id === parseInt(classId));
+          const currentClass = list.find(b => b.id === parseInt(classId, 10));
           if (currentClass) {
             setClassInfo(currentClass);
           } else {
             showAlert('Bạn không có quyền tham gia lớp học này.');
-            navigate(user?.role === 'tutor' ? '/tutor-dashboard/my-classes' : '/student-dashboard/booking-history');
+            navigate(user.role === 'tutor' ? '/tutor-dashboard/my-classes' : '/student-dashboard/booking-history');
           }
         }
       } catch (err) {
@@ -93,11 +93,10 @@ export default function VirtualClassroom() {
 
     // Lấy hostname để thiết lập kết nối Socket động
     const socketHost = window.location.hostname === 'localhost' ? 'http://localhost:3001' : window.location.origin;
-    const socketConn = io(socketHost, { transports: ['websocket'], withCredentials: true });
+    const socketConn = io(socketHost, { transports: ['websocket'] });
 
 
     socketConn.on('connect', () => {
-      console.log('Connected to socket server for classroom:', socketConn.id);
       if (user) {
         socketConn.emit('join-class', {
           classId,
@@ -107,7 +106,6 @@ export default function VirtualClassroom() {
     });
 
     socketConn.on('room-presence', ({ members }) => {
-      console.log('Room presence updated:', members);
       setRoomMembers(members || []);
     });
 
@@ -153,15 +151,13 @@ export default function VirtualClassroom() {
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     try {
       const dataUrl = canvas.toDataURL('image/png');
-      console.log(`[Canvas] Saving snapshot for class ${classId}, size: ${Math.round(dataUrl.length / 1024)}KB`);
       const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ snapshot: dataUrl })
       });
-      const json = await res.json();
-      console.log('[Canvas] Save response:', json.status);
+      await res.json();
     } catch (err) {
       console.error('Lỗi lưu snapshot bảng vẽ:', err);
     }
@@ -170,18 +166,15 @@ export default function VirtualClassroom() {
   // Helper load snapshot từ server và vẽ lên canvas
   const loadCanvasSnapshot = async () => {
     try {
-      console.log(`[Canvas] Loading snapshot for class ${classId}...`);
       const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, { credentials: 'include' });
       const json = await res.json();
       const snapshotData = json.snapshot || json.data?.snapshot;
-      console.log('[Canvas] Load response status:', json.status, 'has snapshot:', !!snapshotData);
       if (json.status === 'ok' && snapshotData) {
         const img = new Image();
         img.onload = () => {
           const ctx = getContext();
           if (!ctx) return;
           ctx.drawImage(img, 0, 0);
-          console.log('[Canvas] Snapshot drawn onto canvas successfully.');
         };
         img.src = snapshotData;
       }
@@ -246,7 +239,6 @@ export default function VirtualClassroom() {
     if (!socket) return;
 
     socket.on('draw-sync', (data) => {
-      console.log('Classroom socket received draw-sync:', data);
       if (activeTab !== 'whiteboard') return;
       
       const ctx = getContext();
@@ -341,15 +333,6 @@ export default function VirtualClassroom() {
 
     // Đồng bộ nét vẽ qua Socket
     if (socket) {
-      console.log('Classroom socket emitting draw-sync:', {
-        classId,
-        x1: lastPoint.ratioX,
-        y1: lastPoint.ratioY,
-        x2: ratioX,
-        y2: ratioY,
-        color: activeColor,
-        size: activeWidth
-      });
       socket.emit('draw-sync', {
         classId,
         x1: lastPoint.ratioX,
@@ -414,7 +397,7 @@ export default function VirtualClassroom() {
     navigate(redirectPath);
   };
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
         <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
@@ -423,19 +406,13 @@ export default function VirtualClassroom() {
     );
   }
 
-  const roleLabel = user?.role === 'tutor' ? 'Gia sư' : 'Học viên';
-  const partnerName = user?.role === 'tutor' ? classInfo?.student_name : classInfo?.tutor_name;
-
-  const displayUserName = (user?.fullName || '')
-    .replaceAll('(Học viên)', '')
-    .replaceAll('(Gia sư)', '')
-    .trim();
+  const partnerName = user.role === 'tutor' ? classInfo?.student_name : classInfo?.tutor_name;
 
   return (
-    <div className="h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-y-auto">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       
       {/* Top Classroom Bar */}
-      <div className="bg-slate-900 border-b border-slate-800 px-5 py-3.5 flex items-center justify-between shrink-0">
+      <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={handleLeaveRoom}
@@ -452,7 +429,7 @@ export default function VirtualClassroom() {
               <span className="text-xs text-slate-400">ID Lớp: #{classId}</span>
             </div>
             <h1 className="text-base font-bold text-white mt-0.5">
-              Lớp học trực tuyến của {user?.role === 'tutor' ? 'Gia sư ' + displayUserName : 'Học viên ' + displayUserName}
+              Lớp học trực tuyến của {user.role === 'tutor' ? 'Gia sư ' + user.fullName : 'Học viên ' + user.fullName}
             </h1>
 
           </div>
@@ -481,15 +458,15 @@ export default function VirtualClassroom() {
         </div>
       </div>
 
-      {/* Main Body - Tự động có thanh cuộn mượt mà khi thu nhỏ cửa sổ */}
-      <div className="flex-1 flex flex-col lg:flex-row p-4 gap-4 overflow-y-auto min-h-0">
+      {/* Main Body */}
+      <div className="flex-1 flex flex-col lg:flex-row p-6 gap-6 overflow-hidden">
         
         {/* Left Side: Teaching Screen (Whiteboard or Video call) */}
-        <div className="flex-1 flex flex-col min-h-[480px] lg:h-full bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden relative">
+        <div className="flex-1 flex flex-col h-full bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden relative min-h-[450px]">
           
           {/* A. Whiteboard Screen */}
           {activeTab === 'whiteboard' && (
-            <div className="flex-1 flex flex-col relative bg-white w-full h-full min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col relative bg-white">
               {/* Whiteboard Controls Overlay */}
               <div className="absolute top-4 left-4 z-10 flex items-center gap-3.5 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800 shadow-xl">
                 {/* Colors picker */}
@@ -517,35 +494,22 @@ export default function VirtualClassroom() {
                   min="2"
                   max="12"
                   value={lineWidth}
-                  onChange={(e) => setLineWidth(parseInt(e.target.value))}
+                  onChange={(e) => setLineWidth(parseInt(e.target.value, 10))}
                   className="w-20 accent-blue-500 cursor-pointer"
                   title="Độ dày nét vẽ"
                 />
 
                 <div className="h-6 w-px bg-slate-800" />
 
-                {/* Pen Tool, Eraser & Clear */}
+                {/* Eraser & Clear */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsEraser(false)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all flex items-center gap-1.5 ${
-                      !isEraser 
-                        ? 'bg-blue-600 border-blue-500 text-white' 
-                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                    }`}
-                    title="Chế độ Bút vẽ"
-                  >
-                    <PenTool className="w-3.5 h-3.5" />
-                    <span>Bút vẽ</span>
-                  </button>
-                  <button
-                    onClick={() => setIsEraser(true)}
+                    onClick={() => setIsEraser(!isEraser)}
                     className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${
                       isEraser 
                         ? 'bg-amber-600 border-amber-500 text-white' 
                         : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
                     }`}
-                    title="Chế độ Tẩy xóa"
                   >
                     Tẩy xóa
                   </button>
@@ -575,12 +539,12 @@ export default function VirtualClassroom() {
           )}
 
           {/* B. Video Call Screen - dùng CSS ẩn thay vì unmount để giữ trạng thái camera/mic */}
-          <div className={`flex-1 p-4 bg-slate-950 flex flex-col h-full ${activeTab === 'video' ? '' : 'hidden'}`}>
+          <div className={`flex-1 p-4 bg-slate-950 flex flex-col ${activeTab === 'video' ? '' : 'hidden'}`}>
             <VideoCallArea 
               classId={classId} 
               socket={socket}
-              userRole={user?.role} 
-              userName={user?.fullName || ''}
+              userRole={user.role} 
+              userName={user.fullName}
               partnerName={partnerName}
               roomMembers={roomMembers}
               cameraActive={cameraActive}
@@ -593,13 +557,13 @@ export default function VirtualClassroom() {
         </div>
 
         {/* Right Side: Chat & File Sharing Container */}
-        <div className="w-full lg:w-[350px] xl:w-[380px] min-h-[350px] lg:h-full flex flex-col shrink-0">
+        <div className="w-full lg:w-[380px] h-[550px] lg:h-auto flex flex-col">
           <ClassChat
             classId={classId}
             socket={socket}
-            userRole={user?.role}
-            userId={user?.id}
-            userName={user?.fullName || ''}
+            userRole={user.role}
+            userId={user.id}
+            userName={user.fullName}
           />
         </div>
 

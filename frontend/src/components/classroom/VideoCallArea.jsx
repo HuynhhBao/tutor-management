@@ -16,19 +16,16 @@ export default function VideoCallArea({
 }) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteScreenFrame, setRemoteScreenFrame] = useState(null);
-  const [remoteCameraFrame, setRemoteCameraFrame] = useState(null);
   const [remoteMicActive, setRemoteMicActive] = useState(true);
-  const [audioLevel, setAudioLevel] = useState(0); // Chỉ báo âm lượng micro (0 - 100)
 
   const localVideoRef = useRef(null);
   const localStreamRef = useRef(null);
   const screenStreamRef = useRef(null);
-  const audioContextRef = useRef(null);
 
   // Kiểm tra xem đối phương (Học viên hoặc Gia sư) đã vào phòng học hay chưa
   const isPartnerOnline = (roomMembers || []).some(m => m && (m.userRole !== userRole || (m.userName && m.userName !== userName)));
 
-  // 1. Lắng hệ sự kiện Socket.io: truyền phát màn hình, luồng camera & trạng thái mic đối phương
+  // 1. Lắng nghe sự kiện truyền phát màn hình & trạng thái Micro từ đối phương qua Socket.io
   useEffect(() => {
     if (!socket) return;
 
@@ -40,29 +37,17 @@ export default function VideoCallArea({
       setRemoteScreenFrame(null);
     };
 
-    const handleCameraFrame = (data) => {
-      setRemoteCameraFrame(data.frame);
-    };
-
-    const handleCameraStop = () => {
-      setRemoteCameraFrame(null);
-    };
-
     const handleRemoteMic = (data) => {
       setRemoteMicActive(data.micActive);
     };
 
     socket.on('screen-share-frame', handleFrame);
     socket.on('screen-share-stop', handleStop);
-    socket.on('camera-frame', handleCameraFrame);
-    socket.on('camera-stop', handleCameraStop);
     socket.on('toggle-mic', handleRemoteMic);
 
     return () => {
       socket.off('screen-share-frame', handleFrame);
       socket.off('screen-share-stop', handleStop);
-      socket.off('camera-frame', handleCameraFrame);
-      socket.off('camera-stop', handleCameraStop);
       socket.off('toggle-mic', handleRemoteMic);
     };
   }, [socket]);
@@ -80,17 +65,21 @@ export default function VideoCallArea({
     if (!videoEl) return;
 
     if (isScreenSharing && screenStreamRef.current) {
-      videoEl.srcObject = screenStreamRef.current;
-      videoEl.play().catch(e => console.warn('Video play error:', e.message));
+      if (videoEl.srcObject !== screenStreamRef.current) {
+        videoEl.srcObject = screenStreamRef.current;
+        videoEl.play().catch(() => {});
+      }
     } else if (cameraActive && localStreamRef.current) {
-      videoEl.srcObject = localStreamRef.current;
-      videoEl.play().catch(e => console.warn('Video play error:', e.message));
+      if (videoEl.srcObject !== localStreamRef.current) {
+        videoEl.srcObject = localStreamRef.current;
+        videoEl.play().catch(() => {});
+      }
     } else {
       videoEl.srcObject = null;
     }
-  }, [isScreenSharing, cameraActive, screenStreamRef.current, localStreamRef.current]);
+  }, [isScreenSharing, cameraActive]);
 
-  // 3. Quản lý chụp & phát luồng màn hình cá nhân sang đối phương qua Socket.io
+  // 3. Quản lý việc chụp & phát khung hình màn hình cá nhân sang đối phương qua Socket.io
   useEffect(() => {
     if (!isScreenSharing || !socket || !classId) return;
 
@@ -119,152 +108,53 @@ export default function VideoCallArea({
     };
   }, [isScreenSharing, socket, classId]);
 
-  // 4. Quản lý chụp & phát luồng Camera cá nhân sang đối phương qua Socket.io
+  // 4. Quản lý luồng Camera & Micro local
   useEffect(() => {
-    if (!cameraActive || isScreenSharing || !socket || !classId) {
-      if (socket && classId && !cameraActive) {
-        socket.emit('camera-stop', { classId: String(classId) });
-      }
-      return;
-    }
-
-    const captureCanvas = document.createElement('canvas');
-    const captureCtx = captureCanvas.getContext('2d');
-
-    const intervalId = setInterval(() => {
-      const videoEl = localVideoRef.current;
-      if (videoEl && (videoEl.videoWidth > 0 || videoEl.readyState >= 1)) {
-        const w = videoEl.videoWidth || 320;
-        const h = videoEl.videoHeight || 240;
-        captureCanvas.width = Math.min(w, 480);
-        captureCanvas.height = Math.min(h, 360);
-        captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
-        const frameData = captureCanvas.toDataURL('image/jpeg', 0.45);
-        socket.emit('camera-frame', {
-          classId: String(classId),
-          frame: frameData
-        });
-      }
-    }, 120); // ~8.3 FPS siêu mượt và nhẹ đường truyền
-
-    return () => {
-      clearInterval(intervalId);
-      socket.emit('camera-stop', { classId: String(classId) });
-    };
-  }, [cameraActive, isScreenSharing, socket, classId]);
-
-  // 5. Quản lý luồng Camera & Micro local (Tự động khởi tạo MediaStream tươi mới khi bật/tắt)
-  useEffect(() => {
-    let active = true;
-
     async function handleMediaStream() {
-      // Tắt sạch các track cũ trước khi xin quyền tạo luồng mới
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(t => t.stop());
-        localStreamRef.current = null;
-      }
-
       if (cameraActive || micActive) {
         try {
-          const constraints = {
-            video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
-            audio: micActive
-          };
-          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          if (!localStreamRef.current) {
+            const constraints = {
+              video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
+              audio: micActive
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            localStreamRef.current = stream;
+          } else {
 
-          if (!active) {
-            stream.getTracks().forEach(t => t.stop());
-            return;
-          }
+            const videoTracks = localStreamRef.current.getVideoTracks();
+            if (cameraActive && videoTracks.length === 0) {
+              const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
+              const newVideoTrack = videoStream.getVideoTracks()[0];
+              localStreamRef.current.addTrack(newVideoTrack);
+            } else if (!cameraActive && videoTracks.length > 0) {
+              videoTracks.forEach(t => {
+                t.stop();
+                localStreamRef.current.removeTrack(t);
+              });
+            }
 
-          localStreamRef.current = stream;
-
-          if (!isScreenSharing && localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-            localVideoRef.current.play().catch(e => console.warn('Video play error:', e.message));
+            const audioTracks = localStreamRef.current.getAudioTracks();
+            if (micActive && audioTracks.length === 0) {
+              const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const newAudioTrack = audioStream.getAudioTracks()[0];
+              localStreamRef.current.addTrack(newAudioTrack);
+            } else if (audioTracks.length > 0) {
+              audioTracks.forEach(t => {
+                t.enabled = micActive;
+              });
+            }
           }
         } catch (err) {
-          console.warn('Không thể mở thiết bị media (WebRTC):', err.message);
+          // Xử lý lỗi khi không thể mở thiết bị media
         }
       } else {
-        if (!isScreenSharing && localVideoRef.current) {
-          localVideoRef.current.srcObject = null;
-        }
+        stopAllLocalTracks();
       }
     }
 
     handleMediaStream();
-
-    return () => {
-      active = false;
-    };
   }, [cameraActive, micActive]);
-
-  // 6. Phân tích cường độ tín hiệu âm thanh Micro (Web Audio API Real-time Audio Level Meter)
-  useEffect(() => {
-    if (!micActive || !localStreamRef.current) {
-      setAudioLevel(0);
-      if (audioContextRef.current) {
-        audioContextRef.current.close().catch(() => {});
-        audioContextRef.current = null;
-      }
-      return;
-    }
-
-    const audioTracks = localStreamRef.current.getAudioTracks();
-    if (audioTracks.length === 0 || !audioTracks[0].enabled) {
-      setAudioLevel(0);
-      return;
-    }
-
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      const audioCtx = new AudioCtx();
-      audioContextRef.current = audioCtx;
-
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => {});
-      }
-
-      const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.3;
-
-      const source = audioCtx.createMediaStreamSource(localStreamRef.current);
-      source.connect(analyser);
-
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      let animId;
-
-      const checkVolume = () => {
-        if (!analyser) return;
-        analyser.getByteTimeDomainData(dataArray);
-        
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-          const v = (dataArray[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rms = Math.sqrt(sum / dataArray.length);
-        const normalized = Math.min(Math.round(rms * 1200), 100);
-        
-        setAudioLevel(normalized);
-        animId = requestAnimationFrame(checkVolume);
-      };
-
-      checkVolume();
-
-      return () => {
-        if (animId) cancelAnimationFrame(animId);
-        if (audioCtx && audioCtx.state !== 'closed') {
-          audioCtx.close().catch(() => {});
-        }
-        audioContextRef.current = null;
-      };
-    } catch (err) {
-      console.warn('Lỗi phân tích tín hiệu âm thanh Mic:', err.message);
-    }
-  }, [micActive, localStreamRef.current]);
 
   const stopAllLocalTracks = () => {
     if (localStreamRef.current) {
@@ -273,7 +163,7 @@ export default function VideoCallArea({
     }
   };
 
-  // 6. Chức năng chia sẻ màn hình
+  // 5. Chức năng chia sẻ màn hình
   const toggleScreenShare = async () => {
     if (isScreenSharing) {
       stopScreenSharing();
@@ -293,7 +183,7 @@ export default function VideoCallArea({
           };
         }
       } catch (err) {
-        console.warn('Người dùng đã hủy chia sẻ màn hình:', err.message);
+        // Người dùng đã hủy chia sẻ màn hình
       }
     }
   };
@@ -310,7 +200,7 @@ export default function VideoCallArea({
     }
   };
 
-  // 7. Chức năng rời phòng
+  // 6. Chức năng rời phòng
   const handleLeave = () => {
     stopAllLocalTracks();
     if (screenStreamRef.current) {
@@ -319,7 +209,6 @@ export default function VideoCallArea({
     }
     if (socket && classId) {
       socket.emit('screen-share-stop', { classId: String(classId) });
-      socket.emit('camera-stop', { classId: String(classId) });
       socket.emit('leave-class', { classId: String(classId) });
     }
     if (onLeaveRoom) {
@@ -338,15 +227,7 @@ export default function VideoCallArea({
   }, []);
 
   const oppositeRole = userRole === 'tutor' ? 'Học viên' : 'Gia sư';
-  const cleanUserName = (userName || '')
-    .replaceAll('(Học viên)', '')
-    .replaceAll('(Gia sư)', '')
-    .trim();
-  const rawOpposite = partnerName || oppositeRole;
-  const cleanOppositeName = rawOpposite
-    .replaceAll('(Học viên)', '')
-    .replaceAll('(Gia sư)', '')
-    .trim();
+  const oppositeName = partnerName || oppositeRole;
 
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white rounded-3xl overflow-hidden border border-slate-800 shadow-2xl relative">
@@ -378,28 +259,19 @@ export default function VideoCallArea({
                   className="w-full h-full object-contain"
                 />
                 <div className="absolute top-3 left-3 bg-blue-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider shadow-md">
-                  Màn hình chia sẻ từ {cleanOppositeName}
+                  Màn hình chia sẻ từ {oppositeName}
                 </div>
-              </div>
-            ) : remoteCameraFrame ? (
-              <div className="absolute inset-0 bg-slate-950 flex items-center justify-center">
-                <img 
-                  src={remoteCameraFrame} 
-                  alt="Remote Camera Feed" 
-                  className="w-full h-full object-cover scale-x-[-1]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
                 <div className="text-center space-y-4">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-3xl font-bold shadow-lg shadow-blue-500/20 mx-auto animate-pulse">
-                    {cleanOppositeName[0]}
+                    {oppositeName[0]}
                   </div>
                   <div className="space-y-1">
-                    <h4 className="font-bold text-slate-200">{cleanOppositeName}</h4>
+                    <h4 className="font-bold text-slate-200">{oppositeName}</h4>
                     <p className="text-xs text-emerald-400 font-semibold flex items-center justify-center gap-1">
-                      <UserCheck className="w-3.5 h-3.5" /> Đã tham gia (Đang tắt camera)
+                      <UserCheck className="w-3.5 h-3.5" /> Đã tham gia phòng học
                     </p>
                   </div>
                 </div>
@@ -410,14 +282,14 @@ export default function VideoCallArea({
             {/* User name label overlay */}
             <div className="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-semibold flex items-center gap-1.5 z-10">
               <span className="w-2 h-2 bg-blue-500 rounded-full" />
-              <span>{cleanOppositeName} ({oppositeRole})</span>
+              <span>{oppositeName} ({oppositeRole})</span>
               {!remoteMicActive && <MicOff className="w-3.5 h-3.5 text-red-500 ml-1" title="Đối phương đã tắt Micro" />}
             </div>
           </div>
         )}
 
         {/* 2. Local Member View (Luôn hiện khung của người đã vào) */}
-        <div className={`relative bg-slate-900 rounded-2xl overflow-hidden border transition-all duration-150 flex items-center justify-center shadow-inner ${audioLevel > 5 ? 'border-emerald-500 ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-950/50' : 'border-slate-800'}`}>
+        <div className="relative bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center shadow-inner">
           {(cameraActive || isScreenSharing) ? (
             <div className="absolute inset-0 bg-slate-950">
               <video
@@ -447,24 +319,15 @@ export default function VideoCallArea({
           {!isPartnerOnline && (
             <div className="absolute top-3 left-3 bg-amber-950/90 text-amber-300 border border-amber-800/80 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-lg backdrop-blur-md z-10">
               <Clock className="w-4 h-4 animate-spin text-amber-400" />
-              <span>Đang chờ {cleanOppositeName} ({oppositeRole}) vào phòng...</span>
+              <span>Đang chờ {oppositeName} ({oppositeRole}) vào phòng...</span>
             </div>
           )}
 
-          {/* User name label overlay kèm chỉ báo âm thanh Real-time Audio Level */}
-          <div className="absolute bottom-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-semibold flex items-center gap-2 z-10 shadow-lg">
-            <span className={`w-2 h-2 rounded-full transition-colors ${audioLevel > 5 ? 'bg-emerald-400 animate-ping' : 'bg-emerald-500'}`} />
-            <span>{cleanUserName} (Bạn)</span>
-            
-            {micActive ? (
-              <div className="flex items-end gap-0.5 h-3.5 px-1 py-0.5 bg-slate-900/80 rounded border border-slate-800" title={`Cường độ tín hiệu Mic: ${audioLevel}%`}>
-                <div className={`w-1 rounded-full bg-emerald-400 transition-all duration-75 ${audioLevel > 2 ? 'h-full' : 'h-1 opacity-40'}`} />
-                <div className={`w-1 rounded-full bg-emerald-400 transition-all duration-75 ${audioLevel > 10 ? 'h-full' : 'h-1 opacity-40'}`} />
-                <div className={`w-1 rounded-full bg-emerald-400 transition-all duration-75 ${audioLevel > 25 ? 'h-full' : 'h-1 opacity-40'}`} />
-              </div>
-            ) : (
-              <MicOff className="w-3.5 h-3.5 text-red-500 ml-0.5" title="Bạn đã tắt Micro" />
-            )}
+          {/* User name label overlay */}
+          <div className="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-semibold flex items-center gap-1.5 z-10">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full" />
+            <span>{userName} (Bạn)</span>
+            {!micActive && <MicOff className="w-3.5 h-3.5 text-red-500 ml-1" />}
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, FileText, Download, Paperclip, Image, FileArchive, HelpCircle, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
+import { useAlert } from '../../context/AlertContext';
 
 export default function ClassChat({ classId, socket, userRole, userId, userName }) {
+  const { showAlert } = useAlert();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -19,7 +21,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
           setMessages(json.data || []);
         }
       } catch (err) {
-        console.error('Lỗi khi tải lịch sử tin nhắn:', err);
+        showAlert('Không thể tải lịch sử tin nhắn.');
       }
     }
 
@@ -74,7 +76,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
 
     // Giới hạn 20MB ở client side
     if (file.size > 20 * 1024 * 1024) {
-      alert('Kích thước file vượt quá 20MB. Vui lòng chọn file nhỏ hơn!');
+      showAlert('Kích thước file vượt quá 20MB. Vui lòng chọn file nhỏ hơn!');
       return;
     }
 
@@ -115,11 +117,10 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
         // Lưu vào chat của chính mình
         setMessages((prev) => [...prev, fileMessageData]);
       } else {
-        alert(json.message || 'Không thể tải file lên');
+        showAlert(json.message || 'Không thể tải file lên');
       }
     } catch (err) {
-      console.error('Lỗi khi tải file lên:', err);
-      alert('Lỗi kết nối khi tải file. Vui lòng thử lại!');
+      showAlert('Lỗi kết nối khi tải file. Vui lòng thử lại!');
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -174,10 +175,6 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
           messages.map((msg, idx) => {
             const isMe = msg.senderId === userId;
             const msgKey = msg.id || `${msg.senderId}_${msg.createdAt}_${idx}`;
-            const cleanSender = (msg.senderName || '')
-              .replaceAll('(Học viên)', '')
-              .replaceAll('(Gia sư)', '')
-              .trim();
             return (
               <div
                 key={msgKey}
@@ -185,7 +182,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
               >
                 {/* Sender Name */}
                 <span className="text-[10px] font-bold text-slate-400 px-1">
-                  {cleanSender} ({msg.senderRole === 'tutor' ? 'Gia sư' : 'Học viên'})
+                  {msg.senderName} ({msg.senderRole === 'tutor' ? 'Gia sư' : 'Học viên'})
                 </span>
 
                 {/* Message Box */}
@@ -217,13 +214,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
                         </div>
                       </div>
                       <a
-                        href={(() => {
-                          const url = msg.fileUrl || '';
-                          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
-                            return url;
-                          }
-                          return '#';
-                        })()}
+                        href={msg.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 font-bold text-[10px] rounded-lg transition-all shadow-sm ${

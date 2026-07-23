@@ -14,11 +14,12 @@ router.post('/upload', uploadClassroomFile.single('file'), (req, res, next) => {
 
     let fileUrl = req.file.path;
 
-    // Nếu chạy chế độ local fallback (diskStorage), tạo URL đường dẫn tương đối an toàn
+    // Nếu chạy chế độ local fallback (diskStorage), tạo URL đường dẫn tương đối qua HTTP
     if (!fileUrl.startsWith('http') && !fileUrl.startsWith('https')) {
+      const serverUrl = `${req.protocol}://${req.get('host')}`;
       // Thay thế ký tự gạch chéo ngược Windows thành gạch chéo xuôi cho URL
       const cleanPath = req.file.path.replace(/\\/g, '/');
-      fileUrl = `/${cleanPath}`;
+      fileUrl = `${serverUrl}/${cleanPath}`;
     }
 
     return sendSuccess(res, 200, 'Tải tài liệu lên thành công', {
@@ -65,8 +66,8 @@ router.get('/:classId/snapshot', async (req, res, next) => {
   }
 });
 
-// Lưu snapshot bảng vẽ của lớp học (Cấu hình payload limit 10mb hợp lý cho route lưu hình ảnh)
-router.post('/:classId/snapshot', express.json({ limit: '10mb' }), async (req, res, next) => {
+// Lưu snapshot bảng vẽ của lớp học
+router.post('/:classId/snapshot', async (req, res, next) => {
   try {
     const { classId } = req.params;
     const { snapshot } = req.body;
