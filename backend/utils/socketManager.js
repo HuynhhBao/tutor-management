@@ -31,6 +31,23 @@ export const initSocket = (server) => {
         }
       }
     }
+
+    // Nếu phòng học không còn ai (cả gia sư và học viên đều đã rời đi)
+    if (members.length === 0) {
+      const classIdMatch = room.match(/^class_(\d+)$/);
+      if (classIdMatch) {
+        const classId = classIdMatch[1];
+        // Tự động xóa toàn bộ tin nhắn cũ của phòng học này
+        pool.query('DELETE FROM classroom_messages WHERE booking_id = $1', [classId])
+          .then(() => console.log(`Cleared all messages for empty room ${room}`))
+          .catch(err => console.error('Error clearing messages:', err));
+          
+        // Reset luôn cả bảng vẽ để phòng học trở lại trạng thái mới tinh
+        pool.query('UPDATE class_sessions SET canvas_snapshot = NULL WHERE booking_id = $1', [classId])
+          .catch(() => {});
+      }
+    }
+
     console.log(`Broadcasting room presence for ${room}:`, members.map(m => m.userName));
     io.in(room).emit('room-presence', { room, members });
   };
@@ -138,6 +155,13 @@ export const initSocket = (server) => {
       if (!classId) return;
       const room = `class_${classId}`;
       socket.to(room).emit('screen-share-stop', data);
+    });
+
+    socket.on('undo-board', (data) => {
+      const classId = parseClassId(data);
+      if (!classId) return;
+      const room = `class_${classId}`;
+      socket.to(room).emit('undo-board');
     });
 
     // Đồng bộ trạng thái tắt/bật Micro giữa 2 bên

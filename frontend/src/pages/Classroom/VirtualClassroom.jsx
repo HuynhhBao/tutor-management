@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
-import { Video, Trash2, ArrowLeft, Loader2, PenTool } from 'lucide-react';
+import { Video, Trash2, ArrowLeft, Loader2, PenTool, Undo2, Eraser } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 import VideoCallArea from '../../components/classroom/VideoCallArea';
 import ClassChat from '../../components/classroom/ClassChat';
@@ -19,6 +19,7 @@ export default function VirtualClassroom() {
   const [socket, setSocket] = useState(null);
   const [activeTab, setActiveTab] = useState('whiteboard'); // 'whiteboard' | 'video'
   const [roomMembers, setRoomMembers] = useState([]);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   // Video Call states - lưu vào localStorage để giữ nguyên khi F5 reload trang
   const [cameraActive, setCameraActive] = useState(() => {
@@ -52,6 +53,8 @@ export default function VirtualClassroom() {
   const [color, setColor] = useState('#2563eb'); // Mặc định xanh dương
   const [lineWidth, setLineWidth] = useState(3);
   const [isEraser, setIsEraser] = useState(false);
+  const [history, setHistory] = useState([]); // Lưu mảng ImageData để undo
+  const [isHoveringToolbar, setIsHoveringToolbar] = useState(false);
 
   // 1. Fetch Class/Booking details
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function VirtualClassroom() {
           }
         }
       } catch (err) {
-        console.error('Error fetching class details:', err);
+        showAlert('Có lỗi xảy ra khi lấy thông tin lớp học.');
       } finally {
         setLoading(false);
       }
@@ -121,7 +124,7 @@ export default function VirtualClassroom() {
   const saveTimerRef = useRef(null);
 
   // Helper lấy context vẽ an toàn và khởi tạo canvas khi sẵn sàng
-  const getContext = () => {
+  const getContext = useCallback(() => {
     if (contextRef.current) return contextRef.current;
     const canvas = canvasRef.current;
     if (!canvas) return null;
@@ -144,10 +147,10 @@ export default function VirtualClassroom() {
 
     contextRef.current = context;
     return context;
-  };
+  }, []);
 
   // Helper lưu snapshot canvas lên server
-  const saveCanvasSnapshot = async (canvas) => {
+  const saveCanvasSnapshot = useCallback(async (canvas) => {
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     try {
       const dataUrl = canvas.toDataURL('image/png');
@@ -159,12 +162,12 @@ export default function VirtualClassroom() {
       });
       await res.json();
     } catch (err) {
-      console.error('Lỗi lưu snapshot bảng vẽ:', err);
+      // Bỏ qua nếu lỗi lưu snapshot background
     }
-  };
+  }, [classId]);
 
   // Helper load snapshot từ server và vẽ lên canvas
-  const loadCanvasSnapshot = async () => {
+  const loadCanvasSnapshot = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, { credentials: 'include' });
       const json = await res.json();
@@ -179,9 +182,9 @@ export default function VirtualClassroom() {
         img.src = snapshotData;
       }
     } catch (err) {
-      console.error('Lỗi load snapshot bảng vẽ:', err);
+      showAlert('Không thể tải dữ liệu bảng vẽ cũ.');
     }
-  };
+  }, [classId, getContext, showAlert]);
 
   // 3. Canvas Whiteboard initialization - khởi tạo và load snapshot khi vào/quay lại whiteboard
   useEffect(() => {
@@ -189,15 +192,16 @@ export default function VirtualClassroom() {
       // Canvas vừa được mount lại - reset context ref để dùng canvas mới
       contextRef.current = null;
       // Khởi tạo canvas sau khi DOM đã render xong
-      setTimeout(async () => {
+      const timer = setTimeout(async () => {
         getContext(); // init canvas trắng
         // Nếu không có offscreen cache (tải lại trang), load từ DB
         if (!offscreenCanvasRef.current) {
           await loadCanvasSnapshot();
         }
       }, 30);
+      return () => clearTimeout(timer);
     }
-  }, [activeTab]);
+  }, [activeTab, getContext, loadCanvasSnapshot]);
 
   // Hàm chuyển tab - lưu nội dung canvas TRƯỚC khi React unmount canvas
   const handleTabChange = (newTab) => {
@@ -232,7 +236,7 @@ export default function VirtualClassroom() {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [activeTab, classId]);
+  }, [activeTab, classId, saveCanvasSnapshot]);
 
   // Lắng nghe đồng bộ nét vẽ từ Socket.io
   useEffect(() => {
@@ -264,16 +268,31 @@ export default function VirtualClassroom() {
       const ctx = getContext();
       if (!ctx) return;
       const canvas = canvasRef.current;
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      setHistory(prev => [...prev.slice(-9), imageData]);
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
+    socket.on('undo-board', () => {
+      setHistory(prev => {
+        if (prev.length === 0) return prev;
+        const previousState = prev[prev.length - 1];
+        const ctx = getContext();
+        if (ctx) ctx.putImageData(previousState, 0, 0);
+        return prev.slice(0, -1);
+      });
+    });
+
     return () => {
       socket.off('draw-sync');
       socket.off('clear-board');
+      socket.off('undo-board');
     };
-  }, [socket, activeTab]);
+  }, [socket, activeTab, getContext]);
 
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
@@ -306,9 +325,31 @@ export default function VirtualClassroom() {
     const canvas = canvasRef.current;
     if (!canvas || !ctx) return;
 
+    // Lưu trạng thái trước khi vẽ để Undo (lưu tối đa 10 trạng thái gần nhất)
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    setHistory(prev => [...prev.slice(-9), imageData]);
+
     const { x, y, ratioX, ratioY } = getCoordinates(e);
     lastPointRef.current = { x, y, ratioX, ratioY };
     setIsDrawing(true);
+  };
+
+  const undo = () => {
+    if (history.length === 0) return;
+    const ctx = getContext();
+    const canvas = canvasRef.current;
+    if (!canvas || !ctx) return;
+
+    const previousState = history[history.length - 1];
+    ctx.putImageData(previousState, 0, 0);
+    
+    setHistory(prev => prev.slice(0, -1));
+
+    if (socket) {
+      socket.emit('undo-board', { classId });
+    }
+    
+    saveCanvasSnapshot(canvas);
   };
 
   const draw = (e) => {
@@ -370,6 +411,9 @@ export default function VirtualClassroom() {
     const canvas = canvasRef.current;
     if (!canvas || !ctx) return;
 
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    setHistory(prev => [...prev.slice(-9), imageData]);
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -383,6 +427,11 @@ export default function VirtualClassroom() {
   };
 
   const handleLeaveRoom = () => {
+    setShowLeaveModal(true);
+  };
+
+  const confirmLeaveRoom = () => {
+    setShowLeaveModal(false);
     // Lưu snapshot bảng vẽ lần cuối nếu có
     const canvas = canvasRef.current;
     if (canvas && canvas.width > 0 && canvas.height > 0) {
@@ -409,7 +458,7 @@ export default function VirtualClassroom() {
   const partnerName = user.role === 'tutor' ? classInfo?.student_name : classInfo?.tutor_name;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
       
       {/* Top Classroom Bar */}
       <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
@@ -459,7 +508,7 @@ export default function VirtualClassroom() {
       </div>
 
       {/* Main Body */}
-      <div className="flex-1 flex flex-col lg:flex-row p-6 gap-6 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row p-4 lg:p-6 gap-4 lg:gap-6 overflow-hidden min-h-0">
         
         {/* Left Side: Teaching Screen (Whiteboard or Video call) */}
         <div className="flex-1 flex flex-col h-full bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden relative min-h-[450px]">
@@ -467,59 +516,92 @@ export default function VirtualClassroom() {
           {/* A. Whiteboard Screen */}
           {activeTab === 'whiteboard' && (
             <div className="flex-1 flex flex-col relative bg-white">
-              {/* Whiteboard Controls Overlay */}
-              <div className="absolute top-4 left-4 z-10 flex items-center gap-3.5 bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800 shadow-xl">
-                {/* Colors picker */}
-                <div className="flex items-center gap-2">
-                  {['#2563eb', '#dc2626', '#16a34a', '#0f172a'].map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => {
-                        setColor(c);
-                        setIsEraser(false);
-                      }}
-                      className={`w-6 h-6 rounded-full border transition-all ${
-                        color === c && !isEraser ? 'scale-125 border-white ring-2 ring-blue-500' : 'border-transparent'
-                      }`}
-                      style={{ backgroundColor: c }}
+              {/* Whiteboard Controls Overlay - Vertical, Left, Auto-hide */}
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 left-0 z-10 py-4 px-1"
+                onMouseEnter={() => setIsHoveringToolbar(true)}
+                onMouseLeave={() => setIsHoveringToolbar(false)}
+              >
+                <div className={`flex flex-col items-center gap-2.5 bg-slate-900/95 backdrop-blur-md p-2 rounded-r-2xl border-y border-r border-slate-700 shadow-2xl transition-transform duration-300 relative ${isHoveringToolbar ? 'translate-x-0' : '-translate-x-[80%]'}`}>
+                  
+                  {/* Grip icon to indicate it can be opened */}
+                  <div className={`absolute -right-2 top-1/2 -translate-y-1/2 bg-slate-800 border border-slate-700 rounded-full w-5 h-10 flex flex-col items-center justify-center gap-0.5 cursor-pointer transition-opacity ${isHoveringToolbar ? 'opacity-0' : 'opacity-100'}`}>
+                     <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                     <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                     <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                  </div>
+
+                  {/* Colors picker */}
+                  <div className="flex flex-col items-center gap-2 pr-3 pl-0.5">
+                    {['#2563eb', '#dc2626', '#16a34a', '#0f172a'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          setColor(c);
+                          setIsEraser(false);
+                        }}
+                        className={`w-6 h-6 rounded-full border transition-all ${
+                          color === c && !isEraser ? 'scale-110 border-white ring-[1.5px] ring-blue-500' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: c }}
+                        title="Chọn màu"
+                      />
+                    ))}
+                  </div>
+
+                  <div className="w-6 h-px bg-slate-700 pr-3" />
+
+                  {/* Brush size slider - vertical */}
+                  <div className="pr-3 h-20 flex items-center justify-center">
+                    <input
+                      type="range"
+                      min="2"
+                      max="12"
+                      value={lineWidth}
+                      onChange={(e) => setLineWidth(parseInt(e.target.value, 10))}
+                      className="w-16 accent-blue-500 cursor-pointer -rotate-90"
+                      title="Độ dày nét vẽ"
                     />
-                  ))}
-                </div>
+                  </div>
 
-                <div className="h-6 w-px bg-slate-800" />
+                  <div className="w-6 h-px bg-slate-700 pr-3" />
 
-                {/* Brush size slider */}
-                <input
-                  type="range"
-                  min="2"
-                  max="12"
-                  value={lineWidth}
-                  onChange={(e) => setLineWidth(parseInt(e.target.value, 10))}
-                  className="w-20 accent-blue-500 cursor-pointer"
-                  title="Độ dày nét vẽ"
-                />
+                  {/* Eraser */}
+                  <div className="pr-3 pl-0.5">
+                    <button
+                      onClick={() => setIsEraser(!isEraser)}
+                      className={`p-2 rounded-xl border transition-all ${
+                        isEraser 
+                          ? 'bg-amber-600 border-amber-500 text-white shadow-md shadow-amber-500/20' 
+                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700'
+                      }`}
+                      title="Tẩy xóa"
+                    >
+                      <Eraser className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="w-6 h-px bg-slate-700 pr-3" />
 
-                <div className="h-6 w-px bg-slate-800" />
-
-                {/* Eraser & Clear */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setIsEraser(!isEraser)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${
-                      isEraser 
-                        ? 'bg-amber-600 border-amber-500 text-white' 
-                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    Tẩy xóa
-                  </button>
-                  <button
-                    onClick={clearBoard}
-                    className="p-1.5 bg-slate-800 hover:bg-rose-950 border border-slate-700 hover:border-rose-900 text-rose-400 hover:text-rose-300 rounded-lg transition-all"
-                    title="Xóa toàn bộ bảng"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {/* Undo & Clear */}
+                  <div className="flex flex-col items-center gap-2 pr-3 pl-0.5">
+                    <button
+                      onClick={undo}
+                      disabled={history.length === 0}
+                      className="p-2 bg-slate-800 hover:bg-blue-900 border border-slate-700 text-blue-400 hover:text-blue-300 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      title="Hoàn tác (Undo)"
+                    >
+                      <Undo2 className="w-4 h-4" />
+                    </button>
+                    
+                    <button
+                      onClick={clearBoard}
+                      className="p-2 bg-slate-800 hover:bg-rose-950 border border-slate-700 hover:border-rose-900 text-rose-400 hover:text-rose-300 rounded-xl transition-all"
+                      title="Xóa toàn bộ bảng"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -552,12 +634,13 @@ export default function VirtualClassroom() {
               micActive={micActive}
               onMicToggle={() => setMicActive(prev => !prev)}
               onLeaveRoom={handleLeaveRoom}
+              isActive={activeTab === 'video'}
             />
           </div>
         </div>
 
         {/* Right Side: Chat & File Sharing Container */}
-        <div className="w-full lg:w-[380px] h-[550px] lg:h-auto flex flex-col">
+        <div className="w-full lg:w-[380px] flex flex-col overflow-hidden min-h-0">
           <ClassChat
             classId={classId}
             socket={socket}
@@ -568,6 +651,38 @@ export default function VirtualClassroom() {
         </div>
 
       </div>
+
+      {/* Leave Room Confirmation Modal */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 rounded-3xl max-w-sm w-full shadow-2xl border border-slate-700 animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ArrowLeft className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Rời phòng học?</h3>
+              <p className="text-sm text-slate-400">
+                Bạn có chắc chắn muốn rời khỏi lớp học trực tuyến này không? Kết nối video và âm thanh sẽ bị ngắt.
+              </p>
+            </div>
+            
+            <div className="p-4 bg-slate-900/50 border-t border-slate-800 flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLeaveModal(false)}
+                className="flex-1 px-5 py-2.5 rounded-xl font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                onClick={confirmLeaveRoom}
+                className="flex-1 px-5 py-2.5 rounded-xl font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-colors shadow-lg shadow-rose-500/20"
+              >
+                Đồng ý rời
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

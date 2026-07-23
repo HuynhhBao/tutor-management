@@ -28,7 +28,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
     if (classId) {
       loadChatHistory();
     }
-  }, [classId]);
+  }, [classId, showAlert]);
 
   useEffect(() => {
     if (!socket) return;
@@ -153,14 +153,8 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
   return (
     <div className="flex flex-col h-full bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
       {/* Chat header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-        <div>
-          <h3 className="font-bold text-slate-800 text-sm">Trò chuyện trực tiếp</h3>
-          <p className="text-[10px] text-slate-400 font-medium">Hộp thư được đồng bộ tức thì</p>
-        </div>
-        <div className="px-2.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-full border border-blue-100 uppercase tracking-wider">
-          {messages.length} tin nhắn
-        </div>
+      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
+        <h3 className="font-bold text-slate-800 text-sm">Trò chuyện trực tiếp</h3>
       </div>
 
       {/* Messages stream area */}

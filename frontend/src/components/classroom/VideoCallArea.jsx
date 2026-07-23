@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, CameraOff, Mic, MicOff, Phone, Monitor, Radio, UserCheck, Clock } from 'lucide-react';
 
 export default function VideoCallArea({ 
@@ -12,13 +12,15 @@ export default function VideoCallArea({
   onCameraToggle, 
   micActive, 
   onMicToggle,
-  onLeaveRoom 
+  onLeaveRoom,
+  isActive = true
 }) {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [remoteScreenFrame, setRemoteScreenFrame] = useState(null);
   const [remoteMicActive, setRemoteMicActive] = useState(true);
 
   const localVideoRef = useRef(null);
+  const localCameraRef = useRef(null);
   const localStreamRef = useRef(null);
   const screenStreamRef = useRef(null);
 
@@ -62,22 +64,50 @@ export default function VideoCallArea({
   // 2. Gán stream media vào thẻ <video> khi thẻ <video> được React mount
   useEffect(() => {
     const videoEl = localVideoRef.current;
+    const cameraEl = localCameraRef.current;
     if (!videoEl) return;
+
+    const playVideo = (el) => {
+      if (isActive && el && el.srcObject) {
+        el.play().catch(() => {});
+      }
+    };
 
     if (isScreenSharing && screenStreamRef.current) {
       if (videoEl.srcObject !== screenStreamRef.current) {
         videoEl.srcObject = screenStreamRef.current;
-        videoEl.play().catch(() => {});
+      }
+      playVideo(videoEl);
+      
+      if (cameraActive && localStreamRef.current && cameraEl) {
+        if (cameraEl.srcObject !== localStreamRef.current) {
+          cameraEl.srcObject = localStreamRef.current;
+        }
+        playVideo(cameraEl);
       }
     } else if (cameraActive && localStreamRef.current) {
       if (videoEl.srcObject !== localStreamRef.current) {
         videoEl.srcObject = localStreamRef.current;
-        videoEl.play().catch(() => {});
       }
+      playVideo(videoEl);
     } else {
       videoEl.srcObject = null;
+      if (cameraEl) cameraEl.srcObject = null;
     }
-  }, [isScreenSharing, cameraActive]);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        playVideo(videoEl);
+        if (isScreenSharing && cameraActive) playVideo(cameraEl);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isScreenSharing, cameraActive, isActive]);
 
   // 3. Quản lý việc chụp & phát khung hình màn hình cá nhân sang đối phương qua Socket.io
   useEffect(() => {
@@ -93,7 +123,30 @@ export default function VideoCallArea({
         const h = videoEl.videoHeight || 450;
         captureCanvas.width = Math.min(w, 960);
         captureCanvas.height = Math.min(h, 540);
+        
+        // Vẽ màn hình được share
         captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+        
+        // Vẽ thêm camera (PiP) nếu camera đang bật
+        const camEl = localCameraRef.current;
+        if (cameraActive && camEl && camEl.readyState >= 1) {
+          const pipW = Math.max(120, captureCanvas.width * 0.2); // 20% chiều rộng
+          const pipH = (camEl.videoHeight / (camEl.videoWidth || 1)) * pipW || (pipW * 0.75);
+          const pipX = captureCanvas.width - pipW - 16;
+          const pipY = captureCanvas.height - pipH - 16;
+          
+          // Vẽ viền cho PiP
+          captureCtx.fillStyle = '#1e293b';
+          captureCtx.fillRect(pipX - 2, pipY - 2, pipW + 4, pipH + 4);
+          
+          // Vẽ camera (lật ngang)
+          captureCtx.save();
+          captureCtx.translate(pipX + pipW, pipY);
+          captureCtx.scale(-1, 1);
+          captureCtx.drawImage(camEl, 0, 0, pipW, pipH);
+          captureCtx.restore();
+        }
+
         const frameData = captureCanvas.toDataURL('image/jpeg', 0.5);
         socket.emit('screen-share-frame', {
           classId: String(classId),
@@ -106,7 +159,14 @@ export default function VideoCallArea({
       clearInterval(intervalId);
       socket.emit('screen-share-stop', { classId: String(classId) });
     };
-  }, [isScreenSharing, socket, classId]);
+  }, [isScreenSharing, socket, classId, cameraActive]);
+
+  const stopAllLocalTracks = useCallback(() => {
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+    }
+  }, []);
 
   // 4. Quản lý luồng Camera & Micro local
   useEffect(() => {
@@ -154,14 +214,7 @@ export default function VideoCallArea({
     }
 
     handleMediaStream();
-  }, [cameraActive, micActive]);
-
-  const stopAllLocalTracks = () => {
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
-      localStreamRef.current = null;
-    }
-  };
+  }, [cameraActive, micActive, stopAllLocalTracks]);
 
   // 5. Chức năng chia sẻ màn hình
   const toggleScreenShare = async () => {
@@ -171,7 +224,7 @@ export default function VideoCallArea({
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({
           video: true,
-          audio: false
+          audio: true
         });
         screenStreamRef.current = stream;
         setIsScreenSharing(true);
@@ -202,15 +255,9 @@ export default function VideoCallArea({
 
   // 6. Chức năng rời phòng
   const handleLeave = () => {
-    stopAllLocalTracks();
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach(track => track.stop());
-      screenStreamRef.current = null;
-    }
-    if (socket && classId) {
-      socket.emit('screen-share-stop', { classId: String(classId) });
-      socket.emit('leave-class', { classId: String(classId) });
-    }
+    // Chỉ gọi callback để VirtualClassroom hiển thị Modal xác nhận
+    // Các thao tác dọn dẹp (tắt cam, tắt mic, ngắt socket) sẽ tự động chạy 
+    // khi component thực sự bị unmount (khi người dùng bấm Đồng ý rời).
     if (onLeaveRoom) {
       onLeaveRoom();
     }
@@ -224,7 +271,7 @@ export default function VideoCallArea({
         screenStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [stopAllLocalTracks]);
 
   const oppositeRole = userRole === 'tutor' ? 'Học viên' : 'Gia sư';
   const oppositeName = partnerName || oppositeRole;
@@ -300,8 +347,22 @@ export default function VideoCallArea({
                 className={`w-full h-full object-cover ${isScreenSharing ? '' : 'scale-x-[-1]'}`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
+              
+              {/* Picture in Picture Camera */}
+              {isScreenSharing && cameraActive && (
+                <div className="absolute bottom-12 right-3 w-28 aspect-video bg-slate-950 rounded-lg overflow-hidden border-2 border-slate-700 shadow-2xl z-20">
+                  <video
+                    ref={localCameraRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover scale-x-[-1]"
+                  />
+                </div>
+              )}
+
               {isScreenSharing && (
-                <div className="absolute top-3 left-3 bg-blue-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
+                <div className="absolute top-3 left-3 bg-blue-600/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider z-10">
                   Đang chia sẻ màn hình
                 </div>
               )}
