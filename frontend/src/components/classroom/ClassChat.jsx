@@ -217,7 +217,13 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
                         </div>
                       </div>
                       <a
-                        href={msg.fileUrl}
+                        href={(() => {
+                          const url = msg.fileUrl || '';
+                          if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+                            return url;
+                          }
+                          return '#';
+                        })()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 font-bold text-[10px] rounded-lg transition-all shadow-sm ${
