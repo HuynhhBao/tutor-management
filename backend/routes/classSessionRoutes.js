@@ -66,8 +66,8 @@ router.get('/:classId/snapshot', async (req, res, next) => {
   }
 });
 
-// Lưu snapshot bảng vẽ của lớp học
-router.post('/:classId/snapshot', async (req, res, next) => {
+// Lưu snapshot bảng vẽ của lớp học (Cấu hình payload limit 50mb riêng biệt cho route lưu hình ảnh)
+router.post('/:classId/snapshot', express.json({ limit: '50mb' }), async (req, res, next) => {
   try {
     const { classId } = req.params;
     const { snapshot } = req.body;

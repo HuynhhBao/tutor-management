@@ -426,7 +426,10 @@ export default function VirtualClassroom() {
   const roleLabel = user?.role === 'tutor' ? 'Gia sư' : 'Học viên';
   const partnerName = user?.role === 'tutor' ? classInfo?.student_name : classInfo?.tutor_name;
 
-  const displayUserName = user?.fullName?.replace(/\s*\((Học viên|Gia sư)\)\s*/gi, '').trim() || '';
+  const displayUserName = (user?.fullName || '')
+    .replaceAll('(Học viên)', '')
+    .replaceAll('(Gia sư)', '')
+    .trim();
 
   return (
     <div className="h-screen bg-slate-950 text-slate-100 flex flex-col font-sans overflow-y-auto">

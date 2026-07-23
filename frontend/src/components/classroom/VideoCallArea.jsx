@@ -338,9 +338,15 @@ export default function VideoCallArea({
   }, []);
 
   const oppositeRole = userRole === 'tutor' ? 'Học viên' : 'Gia sư';
-  const cleanUserName = (userName || '').replace(/\s*\((Học viên|Gia sư)\)\s*/gi, '').trim();
+  const cleanUserName = (userName || '')
+    .replaceAll('(Học viên)', '')
+    .replaceAll('(Gia sư)', '')
+    .trim();
   const rawOpposite = partnerName || oppositeRole;
-  const cleanOppositeName = rawOpposite.replace(/\s*\((Học viên|Gia sư)\)\s*/gi, '').trim();
+  const cleanOppositeName = rawOpposite
+    .replaceAll('(Học viên)', '')
+    .replaceAll('(Gia sư)', '')
+    .trim();
 
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white rounded-3xl overflow-hidden border border-slate-800 shadow-2xl relative">
