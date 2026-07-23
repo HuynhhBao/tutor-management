@@ -174,6 +174,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
           messages.map((msg, idx) => {
             const isMe = msg.senderId === userId;
             const msgKey = msg.id || `${msg.senderId}_${msg.createdAt}_${idx}`;
+            const cleanSender = (msg.senderName || '').replace(/\s*\((Học viên|Gia sư)\)\s*/gi, '').trim();
             return (
               <div
                 key={msgKey}
@@ -181,7 +182,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
               >
                 {/* Sender Name */}
                 <span className="text-[10px] font-bold text-slate-400 px-1">
-                  {msg.senderName} ({msg.senderRole === 'tutor' ? 'Gia sư' : 'Học viên'})
+                  {cleanSender} ({msg.senderRole === 'tutor' ? 'Gia sư' : 'Học viên'})
                 </span>
 
                 {/* Message Box */}

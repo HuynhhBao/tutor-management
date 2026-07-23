@@ -148,6 +148,21 @@ export const initSocket = (server) => {
       socket.to(room).emit('toggle-mic', data);
     });
 
+    // Đồng bộ luồng video Camera trực tiếp giữa 2 bên
+    socket.on('camera-frame', (data) => {
+      const classId = parseClassId(data);
+      if (!classId) return;
+      const room = `class_${classId}`;
+      socket.to(room).emit('camera-frame', data);
+    });
+
+    socket.on('camera-stop', (data) => {
+      const classId = parseClassId(data);
+      if (!classId) return;
+      const room = `class_${classId}`;
+      socket.to(room).emit('camera-stop', data);
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected socket:', socket.id);
       if (socket.currentRoom) {
