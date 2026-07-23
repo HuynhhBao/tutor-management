@@ -93,7 +93,7 @@ export default function VirtualClassroom() {
 
     // Lấy hostname để thiết lập kết nối Socket động
     const socketHost = window.location.hostname === 'localhost' ? 'http://localhost:3001' : window.location.origin;
-    const socketConn = io(socketHost, { transports: ['websocket'] });
+    const socketConn = io(socketHost, { transports: ['websocket'], withCredentials: true });
 
 
     socketConn.on('connect', () => {
