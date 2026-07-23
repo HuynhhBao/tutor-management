@@ -67,17 +67,17 @@ export default function VideoCallArea({
     if (isScreenSharing && screenStreamRef.current) {
       if (videoEl.srcObject !== screenStreamRef.current) {
         videoEl.srcObject = screenStreamRef.current;
-        videoEl.play().catch(e => console.warn('Video play error:', e.message));
+        videoEl.play().catch(() => {});
       }
     } else if (cameraActive && localStreamRef.current) {
       if (videoEl.srcObject !== localStreamRef.current) {
         videoEl.srcObject = localStreamRef.current;
-        videoEl.play().catch(e => console.warn('Video play error:', e.message));
+        videoEl.play().catch(() => {});
       }
     } else {
       videoEl.srcObject = null;
     }
-  }, [isScreenSharing, cameraActive, screenStreamRef.current, localStreamRef.current]);
+  }, [isScreenSharing, cameraActive]);
 
   // 3. Quản lý việc chụp & phát khung hình màn hình cá nhân sang đối phương qua Socket.io
   useEffect(() => {
@@ -146,7 +146,7 @@ export default function VideoCallArea({
             }
           }
         } catch (err) {
-          console.warn('Không thể mở thiết bị media (WebRTC):', err.message);
+          // Xử lý lỗi khi không thể mở thiết bị media
         }
       } else {
         stopAllLocalTracks();
@@ -183,7 +183,7 @@ export default function VideoCallArea({
           };
         }
       } catch (err) {
-        console.warn('Người dùng đã hủy chia sẻ màn hình:', err.message);
+        // Người dùng đã hủy chia sẻ màn hình
       }
     }
   };

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
-import { Video, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Video, Trash2, ArrowLeft, Loader2, PenTool } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 import VideoCallArea from '../../components/classroom/VideoCallArea';
 import ClassChat from '../../components/classroom/ClassChat';
@@ -67,7 +67,7 @@ export default function VirtualClassroom() {
         
         if (json.status === 'ok') {
           const list = json.data || [];
-          const currentClass = list.find(b => b.id === parseInt(classId));
+          const currentClass = list.find(b => b.id === parseInt(classId, 10));
           if (currentClass) {
             setClassInfo(currentClass);
           } else {
@@ -97,7 +97,6 @@ export default function VirtualClassroom() {
 
 
     socketConn.on('connect', () => {
-      console.log('Connected to socket server for classroom:', socketConn.id);
       if (user) {
         socketConn.emit('join-class', {
           classId,
@@ -107,7 +106,6 @@ export default function VirtualClassroom() {
     });
 
     socketConn.on('room-presence', ({ members }) => {
-      console.log('Room presence updated:', members);
       setRoomMembers(members || []);
     });
 
@@ -153,15 +151,13 @@ export default function VirtualClassroom() {
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     try {
       const dataUrl = canvas.toDataURL('image/png');
-      console.log(`[Canvas] Saving snapshot for class ${classId}, size: ${Math.round(dataUrl.length / 1024)}KB`);
       const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ snapshot: dataUrl })
       });
-      const json = await res.json();
-      console.log('[Canvas] Save response:', json.status);
+      await res.json();
     } catch (err) {
       console.error('Lỗi lưu snapshot bảng vẽ:', err);
     }
@@ -170,18 +166,15 @@ export default function VirtualClassroom() {
   // Helper load snapshot từ server và vẽ lên canvas
   const loadCanvasSnapshot = async () => {
     try {
-      console.log(`[Canvas] Loading snapshot for class ${classId}...`);
       const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, { credentials: 'include' });
       const json = await res.json();
       const snapshotData = json.snapshot || json.data?.snapshot;
-      console.log('[Canvas] Load response status:', json.status, 'has snapshot:', !!snapshotData);
       if (json.status === 'ok' && snapshotData) {
         const img = new Image();
         img.onload = () => {
           const ctx = getContext();
           if (!ctx) return;
           ctx.drawImage(img, 0, 0);
-          console.log('[Canvas] Snapshot drawn onto canvas successfully.');
         };
         img.src = snapshotData;
       }
@@ -246,7 +239,6 @@ export default function VirtualClassroom() {
     if (!socket) return;
 
     socket.on('draw-sync', (data) => {
-      console.log('Classroom socket received draw-sync:', data);
       if (activeTab !== 'whiteboard') return;
       
       const ctx = getContext();
@@ -341,15 +333,6 @@ export default function VirtualClassroom() {
 
     // Đồng bộ nét vẽ qua Socket
     if (socket) {
-      console.log('Classroom socket emitting draw-sync:', {
-        classId,
-        x1: lastPoint.ratioX,
-        y1: lastPoint.ratioY,
-        x2: ratioX,
-        y2: ratioY,
-        color: activeColor,
-        size: activeWidth
-      });
       socket.emit('draw-sync', {
         classId,
         x1: lastPoint.ratioX,
@@ -423,7 +406,6 @@ export default function VirtualClassroom() {
     );
   }
 
-  const roleLabel = user.role === 'tutor' ? 'Gia sư' : 'Học viên';
   const partnerName = user.role === 'tutor' ? classInfo?.student_name : classInfo?.tutor_name;
 
   return (
@@ -512,7 +494,7 @@ export default function VirtualClassroom() {
                   min="2"
                   max="12"
                   value={lineWidth}
-                  onChange={(e) => setLineWidth(parseInt(e.target.value))}
+                  onChange={(e) => setLineWidth(parseInt(e.target.value, 10))}
                   className="w-20 accent-blue-500 cursor-pointer"
                   title="Độ dày nét vẽ"
                 />
