@@ -13,10 +13,10 @@ export const initSocket = (server) => {
   // Helper lấy classId an toàn từ string hoặc object payload
   const parseClassId = (data) => {
     if (!data) return null;
-    if (typeof data === 'object') {
-      return data.classId ? String(data.classId) : null;
-    }
-    return String(data);
+    let idStr = typeof data === 'object' ? data.classId : data;
+    if (!idStr) return null;
+    const idNum = parseInt(idStr, 10);
+    return isNaN(idNum) ? null : idNum;
   };
 
   // Helper tính toán và phát danh sách thành viên online trong phòng
@@ -98,15 +98,20 @@ export const initSocket = (server) => {
       if (!classId) return;
       const room = `class_${classId}`;
       
+      // Prevent IDOR: Always use server-side authenticated user data if available
+      const senderId = socket.userData?.userId || data.senderId;
+      const senderName = socket.userData?.userName || data.senderName;
+      const senderRole = socket.userData?.userRole || data.senderRole;
+
       try {
         await pool.query(
           `INSERT INTO classroom_messages (booking_id, sender_id, sender_name, sender_role, content, file_url, file_name, file_size)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [
             classId,
-            data.senderId,
-            data.senderName,
-            data.senderRole,
+            senderId,
+            senderName,
+            senderRole,
             data.text || '',
             data.fileUrl || null,
             data.fileName || null,
@@ -117,7 +122,15 @@ export const initSocket = (server) => {
         console.error('Error saving classroom message to DB:', dbErr);
       }
 
-      socket.to(room).emit('receive-message', data);
+      // Ensure the broadcasted data contains the authenticated sender details
+      const broadcastData = {
+        ...data,
+        senderId,
+        senderName,
+        senderRole
+      };
+
+      socket.to(room).emit('receive-message', broadcastData);
     });
 
     // Đồng bộ nét vẽ trên Bảng vẽ

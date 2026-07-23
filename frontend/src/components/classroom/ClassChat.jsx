@@ -15,7 +15,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
   useEffect(() => {
     async function loadChatHistory() {
       try {
-        const res = await fetch(`${API_BASE_URL}/class-session/${classId}/messages`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE_URL}/class-session/${encodeURIComponent(classId)}/messages`, { credentials: 'include' });
         const json = await res.json();
         if (json.status === 'ok') {
           setMessages(json.data || []);
