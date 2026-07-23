@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
-import { BookOpen, Clock, User, MessageSquare, CheckCircle, GraduationCap, Search, Loader2 } from 'lucide-react';
+import { BookOpen, Clock, User, MessageSquare, CheckCircle, GraduationCap, Search, Loader2, Video } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
+
 
 export default function MyClassesPage() {
   const { user } = useAuth();
@@ -208,31 +209,40 @@ export default function MyClassesPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="space-y-2.5">
                   <button
-                    onClick={() => navigate('/tutor-dashboard/chat')}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-blue-200 text-blue-600 text-sm font-bold rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all active:scale-95"
+                    onClick={() => navigate(`/classroom/${b.id}`)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all active:scale-95 shadow-md shadow-blue-100"
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    Nhắn tin
+                    <Video className="w-4.5 h-4.5" />
+                    Vào phòng học trực tuyến
                   </button>
-                  <button
-                    onClick={() => openCompleteModal(b)}
-                    disabled={completingId === b.id}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition-all active:scale-95 shadow-lg shadow-emerald-200"
-                  >
-                    {completingId === b.id ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4" />
-                        Hoàn thành lớp
-                      </>
-                    )}
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => navigate('/tutor-dashboard/chat')}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-blue-200 text-blue-600 text-sm font-bold rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all active:scale-95"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Nhắn tin
+                    </button>
+                    <button
+                      onClick={() => openCompleteModal(b)}
+                      disabled={completingId === b.id}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition-all active:scale-95 shadow-lg shadow-emerald-200"
+                    >
+                      {completingId === b.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Đang xử lý...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          Hoàn thành lớp
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

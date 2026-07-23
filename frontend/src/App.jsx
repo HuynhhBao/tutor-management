@@ -27,6 +27,8 @@ import CvViewerPage from './pages/Admin/CvViewerPage';
 import MyClassesPage from './pages/Tutor/MyClassesPage';
 import ClassManagement from './pages/Admin/ClassManagement';
 import FinanceManagement from './pages/Admin/FinanceManagement';
+import VirtualClassroom from './pages/Classroom/VirtualClassroom';
+
 
 // Component to handle root path redirection based on auth state
 const HomeRedirect = () => {
@@ -148,6 +150,16 @@ function App() {
             <Route path="*" element={<Navigate to="/student-dashboard" replace />} />
           </Route>
 
+
+          {/* Virtual Classroom Route - Protected for both Tutor and Student */}
+          <Route 
+            path="/classroom/:classId" 
+            element={
+              <ProtectedRoute allowedRoles={['user', 'tutor']} redirectPath="/">
+                <VirtualClassroom />
+              </ProtectedRoute>
+            } 
+          />
 
           {/* Fallback Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
