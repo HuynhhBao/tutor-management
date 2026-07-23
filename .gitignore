@@ -45,3 +45,6 @@ coverage/
 
 # SonarCloud scanner cache
 .scannerwork/
+
+# Uploaded media files
+backend/uploads/
