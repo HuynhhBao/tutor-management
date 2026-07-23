@@ -208,7 +208,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
                         </div>
                       </div>
                       <a
-                        href={msg.fileUrl}
+                        href={msg.fileUrl?.startsWith('http') ? msg.fileUrl : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 font-bold text-[10px] rounded-lg transition-all shadow-sm ${
