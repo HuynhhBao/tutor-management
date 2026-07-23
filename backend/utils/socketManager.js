@@ -4,8 +4,9 @@ import pool from '../config/db.js';
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST']
+      origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+      methods: ['GET', 'POST'],
+      credentials: true
     }
   });
 
