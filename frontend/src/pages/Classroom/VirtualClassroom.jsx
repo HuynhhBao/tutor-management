@@ -154,7 +154,7 @@ export default function VirtualClassroom() {
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
     try {
       const dataUrl = canvas.toDataURL('image/png');
-      const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, {
+      const res = await fetch(`${API_BASE_URL}/class-session/${encodeURIComponent(classId)}/snapshot`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -169,7 +169,7 @@ export default function VirtualClassroom() {
   // Helper load snapshot từ server và vẽ lên canvas
   const loadCanvasSnapshot = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/class-session/${classId}/snapshot`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE_URL}/class-session/${encodeURIComponent(classId)}/snapshot`, { credentials: 'include' });
       const json = await res.json();
       const snapshotData = json.snapshot || json.data?.snapshot;
       if (json.status === 'ok' && snapshotData) {
