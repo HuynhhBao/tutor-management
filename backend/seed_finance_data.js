@@ -1,4 +1,6 @@
 import pool from './config/db.js';
+import { randomInt } from 'crypto';
+
 
 async function seedFinanceData() {
   try {
@@ -55,31 +57,32 @@ async function seedFinanceData() {
     // Generate data spread across the last 30 days
     for (let dayAgo = 30; dayAgo >= 0; dayAgo--) {
       // 1-3 transactions per day
-      const dailyTxCount = Math.floor(Math.random() * 3) + 1;
+      const dailyTxCount = randomInt(1, 4); // 1 to 3 transactions
       
       for (let i = 0; i < dailyTxCount; i++) {
-        const txDate = new Date(now.getTime() - dayAgo * 24 * 60 * 60 * 1000 - Math.random() * 12 * 60 * 60 * 1000);
-        const type = types[Math.floor(Math.random() * types.length)];
+        const txDate = new Date(now.getTime() - dayAgo * 24 * 60 * 60 * 1000 - randomInt(0, 12 * 60 * 60 * 1000));
+        const type = types[randomInt(0, types.length)];
         
         let userId;
         let userType;
 
         if (type === 'tutor_payout' && tutorList.length > 0) {
-          userId = tutorList[Math.floor(Math.random() * tutorList.length)].id;
+          userId = tutorList[randomInt(0, tutorList.length)].id;
           userType = 'tutor';
         } else {
-          userId = userList[Math.floor(Math.random() * userList.length)].id;
+          userId = userList[randomInt(0, userList.length)].id;
           userType = 'user';
         }
 
         let amount = 0;
-        if (type === 'deposit') amount = [200000, 500000, 1000000, 2000000, 5000000][Math.floor(Math.random() * 5)];
-        else if (type === 'booking_payment') amount = [300000, 600000, 1200000, 2500000, 4000000][Math.floor(Math.random() * 5)];
-        else if (type === 'tutor_payout') amount = [500000, 1000000, 1800000, 3200000][Math.floor(Math.random() * 4)];
-        else amount = [200000, 500000, 800000][Math.floor(Math.random() * 3)];
+        if (type === 'deposit') amount = [200000, 500000, 1000000, 2000000, 5000000][randomInt(0, 5)];
+        else if (type === 'booking_payment') amount = [300000, 600000, 1200000, 2500000, 4000000][randomInt(0, 5)];
+        else if (type === 'tutor_payout') amount = [500000, 1000000, 1800000, 3200000][randomInt(0, 4)];
+        else amount = [200000, 500000, 800000][randomInt(0, 3)];
 
         const descs = sampleDescriptions[type];
-        const description = descs[Math.floor(Math.random() * descs.length)];
+        const description = descs[randomInt(0, descs.length)];
+
 
         await pool.query(`
           INSERT INTO transactions (user_id, user_type, amount, type, description, created_at)
