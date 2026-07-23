@@ -45,10 +45,17 @@ const globalLimiter = rateLimit({
   skip: () => process.env.NODE_ENV !== 'production',
   message: { status: 'error', message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút' }
 });
-app.use('/api', globalLimiter); // Apply to all API routes
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
+import http from 'http';
+import { initSocket } from './utils/socketManager.js';
+import classSessionRoutes from './routes/classSessionRoutes.js';
+
+// Setup static folders
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Đảm bảo uploads/classroom/ tĩnh có thể truy cập được
+app.use('/uploads/classroom', express.static(path.join(__dirname, 'uploads/classroom')));
 
 // Initialize database
 initDb();
@@ -66,6 +73,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/ai-chat', aiRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/class-session', classSessionRoutes);
 
 
 app.get('/', (req, res) => {
@@ -84,6 +92,11 @@ app.get('/api/health', async (req, res) => {
 // Global Error Handler
 app.use(errorHandler);
 
-app.listen(port, () => {
+// Wrap Express App with HTTP Server to attach Socket.io
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+

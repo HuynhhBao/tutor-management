@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { CalendarCheck, Calendar, BookOpen, CheckCircle, Clock, XCircle, AlertTriangle, RefreshCw, ChevronDown } from 'lucide-react';
+import { CalendarCheck, Calendar, BookOpen, CheckCircle, Clock, XCircle, AlertTriangle, RefreshCw, ChevronDown, Video } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -353,6 +355,15 @@ export default function BookingHistoryPage() {
 
                   {/* Actions */}
                   <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {b.status === 'confirmed' && (
+                      <Link
+                        to={`/classroom/${b.id}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-100"
+                      >
+                        <Video className="w-4 h-4" />
+                        Vào phòng học
+                      </Link>
+                    )}
                     {b.status === 'confirmed' && (
                       <button
                         onClick={() => setDisputeTarget(b)}

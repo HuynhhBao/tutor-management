@@ -247,10 +247,39 @@ export const initDb = async () => {
       )
     `);
 
+    // Tạo bảng classroom_messages để lưu trữ vĩnh viễn tài liệu và tin nhắn trong phòng học trực tuyến
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS classroom_messages (
+        id SERIAL PRIMARY KEY,
+        booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+        sender_id INTEGER NOT NULL,
+        sender_name VARCHAR(255) NOT NULL,
+        sender_role VARCHAR(20) NOT NULL,
+        content TEXT,
+        file_url TEXT,
+        file_name VARCHAR(255),
+        file_size INTEGER,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+
+    // Migration: Thêm cột canvas_snapshot vào bảng bookings để lưu nội dung bảng vẽ
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='canvas_snapshot') THEN
+          ALTER TABLE bookings ADD COLUMN canvas_snapshot TEXT;
+        END IF;
+      END
+      $$;
+    `);
+
     // Tạo bảng ai_chat_messages nếu chưa có
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ai_chat_messages (
         id SERIAL PRIMARY KEY,
+
         user_id INTEGER NOT NULL,
         sender VARCHAR(20) NOT NULL, -- 'user' hoặc 'ai'
         message TEXT NOT NULL,
@@ -279,7 +308,7 @@ export const initDb = async () => {
     const tablesWithTimestamp = [
       'users', 'admins', 'tutors', 'tutor_applications', 
       'tutor_accounts', 'transactions', 'bookings', 
-      'notifications', 'messages', 'ai_chat_messages'
+      'notifications', 'messages', 'ai_chat_messages', 'classroom_messages'
     ];
     
     for (const table of tablesWithTimestamp) {
