@@ -70,7 +70,7 @@ export default function VirtualClassroom() {
         
         if (json.status === 'ok') {
           const list = json.data || [];
-          const currentClass = list.find(b => b.id === parseInt(classId, 10));
+          const currentClass = list.find(b => b.id === Number.parseInt(classId, 10));
           if (currentClass) {
             setClassInfo(currentClass);
           } else {
@@ -79,6 +79,7 @@ export default function VirtualClassroom() {
           }
         }
       } catch (err) {
+        console.error('Lỗi khi lấy thông tin lớp học:', err);
         showAlert('Có lỗi xảy ra khi lấy thông tin lớp học.');
       } finally {
         setLoading(false);
@@ -162,6 +163,7 @@ export default function VirtualClassroom() {
       });
       await res.json();
     } catch (err) {
+      console.error('Lỗi khi lưu snapshot:', err);
       // Bỏ qua nếu lỗi lưu snapshot background
     }
   }, [classId]);
@@ -182,6 +184,7 @@ export default function VirtualClassroom() {
         img.src = snapshotData;
       }
     } catch (err) {
+      console.error('Lỗi khi tải bảng vẽ cũ:', err);
       showAlert('Không thể tải dữ liệu bảng vẽ cũ.');
     }
   }, [classId, getContext, showAlert]);
@@ -280,7 +283,7 @@ export default function VirtualClassroom() {
     socket.on('undo-board', () => {
       setHistory(prev => {
         if (prev.length === 0) return prev;
-        const previousState = prev[prev.length - 1];
+        const previousState = prev.at(-1);
         const ctx = getContext();
         if (ctx) ctx.putImageData(previousState, 0, 0);
         return prev.slice(0, -1);

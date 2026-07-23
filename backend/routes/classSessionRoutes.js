@@ -78,7 +78,7 @@ router.post('/:classId/snapshot', async (req, res, next) => {
       'UPDATE bookings SET canvas_snapshot = $1 WHERE id = $2',
       [snapshot, classId]
     );
-    console.log(`Canvas snapshot saved for booking ${classId}`);
+    // Đã xóa console.log ghi dữ liệu người dùng (classId) để vá lỗi Log Forging
     return sendSuccess(res, 200, 'Đã lưu bảng vẽ thành công');
   } catch (err) {
     next(err);

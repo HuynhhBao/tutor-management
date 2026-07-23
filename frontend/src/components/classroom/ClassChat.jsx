@@ -21,6 +21,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
           setMessages(json.data || []);
         }
       } catch (err) {
+        console.error('Lỗi khi tải lịch sử tin nhắn:', err);
         showAlert('Không thể tải lịch sử tin nhắn.');
       }
     }
@@ -120,6 +121,7 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
         showAlert(json.message || 'Không thể tải file lên');
       }
     } catch (err) {
+      console.error('Lỗi khi upload file:', err);
       showAlert('Lỗi kết nối khi tải file. Vui lòng thử lại!');
     } finally {
       setUploading(false);
@@ -132,10 +134,10 @@ export default function ClassChat({ classId, socket, userRole, userId, userName 
   const formatBytes = (bytes, decimals = 1) => {
     if (!bytes) return '0 Bytes';
     const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
+    const dm = Math.max(0, decimals);
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
   // Trả về icon phù hợp với định dạng file
