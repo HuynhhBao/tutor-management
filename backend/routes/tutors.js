@@ -20,6 +20,7 @@ import {
 
 // Middlewares
 import validate from '../middlewares/validate.js';
+import { checkCache } from '../middlewares/cacheMiddleware.js';
 import {
   createTutorSchema,
   updateTutorSchema,
@@ -43,7 +44,7 @@ const upload = multer({
 
 // --- Tutor CRUD ---
 router.get('/stats', getTutorStats);
-router.get('/', getAllTutors);
+router.get('/', checkCache, getAllTutors);
 router.post('/', validate(createTutorSchema), createTutor);
 router.put('/status', validate(updateTutorStatusSchema), updateTutorStatus);
 router.put('/:id', validate(updateTutorSchema), updateTutor);
