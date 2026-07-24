@@ -13,6 +13,7 @@ export const checkCache = async (req, res, next) => {
         // Miss Cache -> Tiếp tục chạy vào Controller
         next();
     } catch (error) {
+        console.warn('Bỏ qua lỗi Redis Cache, tiếp tục dùng DB:', error.message);
         next(); // Lỗi Redis thì vẫn cho chạy bình thường bằng DB
     }
 };

@@ -76,39 +76,29 @@ Redis là In-memory DB hoàn toàn miễn phí, lưu dữ liệu trên RAM để
           - REDIS_URL=redis://redis:6379 # Liên kết network nội bộ Docker
     ```
 
-*   **`.github/workflows/deploy.yml`**:
-    File tự động hóa của GitHub Actions. Tạo thư mục `.github/workflows/` trong project root.
+*   **`.github/workflows/sonarcloud.yml` (Tích hợp Deploy sau khi SonarCloud quét thành công)**:
+    Sửa file GitHub Actions hiện tại để thêm Job deploy. Job này chỉ chạy khi code được đẩy lên nhánh `main` và job `sonarcloud` đã chạy thành công (PASS).
     ```yaml
-    name: Deploy EduMatch
-    on:
-      push:
-        branches: [ main ] # Kích hoạt khi merge vào main
+    # ... (giữ nguyên cấu hình cũ ở trên) ...
     jobs:
-      build-and-deploy:
+      sonarcloud:
+        name: SonarCloud Scan
+        # ... (các steps quét SonarCloud hiện tại) ...
+
+      deploy:
+        name: Deploy to Server
+        needs: sonarcloud # Yêu cầu job 'sonarcloud' phải chạy thành công trước
+        if: github.ref == 'refs/heads/main' # Chỉ deploy khi code được merge/push vào nhánh main
         runs-on: ubuntu-latest
         steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with: { node-version: '18' }
-
-        - name: Run Backend Tests
-          run: |
-            cd backend
-            npm install
-            npm test # Nếu bạn có viết test
-        
-        # Nếu test pass, tiếp tục deploy (Ví dụ call SSH)
-        - name: Deploy to Server
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.SERVER_IP }}
-            username: ${{ secrets.SERVER_USER }}
-            key: ${{ secrets.SERVER_KEY }}
-            script: |
-              cd /var/www/tutor-management
-              git pull origin main
-              docker-compose up -d --build
+          - name: Deploy to Server
+            uses: appleboy/ssh-action@master
+            with:
+              host: ${{ secrets.SERVER_IP }}
+              username: ${{ secrets.SERVER_USER }}
+              key: ${{ secrets.SERVER_KEY }}
+              script: |
+                cd /var/www/tutor-management
+                git pull origin main
+                docker-compose up -d --build
     ```
