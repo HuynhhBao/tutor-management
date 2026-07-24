@@ -62,7 +62,7 @@ const StudentDashboard = () => {
 
   const quickActions = [
     { 
-      title: 'AI Matchmaker', 
+      title: 'Trợ Lý AI Tìm Gia Sư', 
       desc: 'Gợi ý gia sư thông minh bằng AI Gemini Vector Embedding.',
       icon: Sparkles,
       path: '/student-dashboard/search',

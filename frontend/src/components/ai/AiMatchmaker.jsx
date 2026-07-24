@@ -71,12 +71,9 @@ const AiMatchmaker = ({ onBookingSuccess }) => {
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden mb-6">
         <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/15 backdrop-blur-md rounded-full text-amber-300 text-xs font-bold uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
-            AI Search Engine
-          </div>
+
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            AI Matchmaker — Gợi Ý Gia Sư Thông Minh
+            Trợ Lý AI Tìm Gia Sư
           </h2>
           <p className="text-blue-100 text-sm mt-1 max-w-2xl leading-relaxed">
             Mô tả nhu cầu học tập (độ tuổi, môn học, trình độ, giới tính...), AI sẽ tự động phân tích và ghép nối với những gia sư phù hợp nhất.
