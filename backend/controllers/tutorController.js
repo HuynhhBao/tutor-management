@@ -1,5 +1,6 @@
 import tutorService from '../services/tutorService.js';
 import { sendSuccess } from '../utils/response.js';
+import redisClient from '../utils/redisClient.js';
 
 // GET /api/tutors/stats
 export const getTutorStats = async (req, res, next) => {
@@ -15,7 +16,17 @@ export const getTutorStats = async (req, res, next) => {
 export const getAllTutors = async (req, res, next) => {
   try {
     const data = await tutorService.getAllTutors();
-    return sendSuccess(res, 200, 'Thành công', { data });
+    
+    const responseData = { status: 'ok', message: 'Thành công', data };
+    
+    // Lưu vào Redis, sống trong 3600 giây (1 tiếng)
+    try {
+      await redisClient.setEx(req.originalUrl, 3600, JSON.stringify(responseData));
+    } catch (redisErr) {
+      console.log('Lỗi lưu cache Redis:', redisErr);
+    }
+    
+    return res.status(200).json(responseData);
   } catch (err) {
     next(err);
   }
