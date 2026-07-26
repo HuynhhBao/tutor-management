@@ -1,5 +1,6 @@
 import pool from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
+import notificationService from './notificationService.js';
 
 const BOOKING_FEE = 100000;
 
@@ -44,6 +45,10 @@ class BookingService {
       `, [userId, tutorId, subject, scheduleTime, message || '']);
 
       await pool.query('COMMIT');
+      
+      // Gửi thông báo cho gia sư
+      await notificationService.sendNotification(tutorId, 'tutor', 'Lịch học mới', 'Bạn vừa nhận được yêu cầu học!');
+      
       return result.rows[0];
     } catch (err) {
       await pool.query('ROLLBACK');
@@ -103,6 +108,7 @@ class BookingService {
       if (booking.status === 'confirmed') {
         // Hủy khi đã xác nhận: Không hoàn tiền
         await pool.query('COMMIT');
+        await notificationService.sendNotification(booking.tutor_id, 'tutor', 'Hủy lịch học', 'Học viên đã hủy lịch học với bạn.');
         return 'Hủy lịch thành công. (Lưu ý: Hủy lịch đã xác nhận sẽ không được hoàn tiền theo quy định).';
       }
 
@@ -114,6 +120,7 @@ class BookingService {
       `, [userId, BOOKING_FEE]);
 
       await pool.query('COMMIT');
+      await notificationService.sendNotification(booking.tutor_id, 'tutor', 'Hủy lịch học', 'Học viên đã hủy lịch học chờ xác nhận với bạn.');
       return 'Hủy lịch thành công! Tiền đã được hoàn vào ví của bạn.';
     } catch (err) {
       await pool.query('ROLLBACK');
@@ -250,6 +257,8 @@ class BookingService {
       [tutorId, check.rows[0].user_id, autoMsg]
     );
 
+    await notificationService.sendNotification(check.rows[0].user_id, 'user', 'Lịch học được xác nhận', 'Gia sư đã xác nhận lịch học của bạn.');
+
     return 'Đã xác nhận lịch học thành công!';
   }
 
@@ -274,6 +283,8 @@ class BookingService {
        VALUES ($1, 'tutor', $2, 'user', $3)`,
       [tutorId, check.rows[0].user_id, autoMsg]
     );
+
+    await notificationService.sendNotification(check.rows[0].user_id, 'user', 'Lớp học hoàn thành', 'Gia sư đã đánh dấu hoàn thành lớp học.');
 
     return 'Đã hoàn thành lớp học thành công!';
   }

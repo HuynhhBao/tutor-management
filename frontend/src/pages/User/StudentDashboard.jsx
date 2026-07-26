@@ -24,6 +24,8 @@ const StudentDashboard = () => {
   const [activeTutors, setActiveTutors] = useState(0);
   const [totalHours, setTotalHours] = useState(0);
   const [showBanner, setShowBanner] = useState(true);
+  const [recentMessages, setRecentMessages] = useState([]);
+  const [recommendedTutors, setRecommendedTutors] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +48,29 @@ const StudentDashboard = () => {
           // Giờ học đã thực hiện: Chỉ tính các lịch đã dạy xong (trạng thái completed)
           const completedBookings = dataBookings.data.filter((b) => b.status === 'completed');
           setTotalHours(completedBookings.length * 2);
+        }
+
+        // Fetch conversations
+        try {
+          const resChat = await fetch('http://localhost:3001/api/chat/conversations', { credentials: 'include' });
+          const dataChat = await resChat.json();
+          if (dataChat.status === 'ok') {
+            // Chỉ lấy 3 tin nhắn mới nhất
+            setRecentMessages(dataChat.data.slice(0, 3));
+          }
+        } catch (err) {
+          console.error('Lỗi khi lấy danh sách tin nhắn:', err);
+        }
+
+        // Fetch recommended tutors
+        try {
+          const resTutors = await fetch('http://localhost:3001/api/tutors/recommendations', { credentials: 'include' });
+          const dataTutors = await resTutors.json();
+          if (dataTutors.status === 'ok') {
+            setRecommendedTutors(dataTutors.data);
+          }
+        } catch (err) {
+          console.error('Lỗi khi lấy danh sách gia sư gợi ý:', err);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -182,33 +207,76 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      {/* Placeholder for Recent Activity or Recommendations */}
+      {/* Recent Activity and Recommendations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-blue-600" />
             Tin nhắn mới nhất
           </h3>
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
-            <p>Không có tin nhắn mới</p>
-          </div>
+          
+          {recentMessages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
+              <p>Không có tin nhắn mới</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentMessages.map((msg, idx) => (
+                <div key={idx} onClick={() => navigate(`/student-dashboard/chat/${msg.partner_id}`)} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                    {msg.partner_name?.charAt(0)}
+                  </div>
+                  <div className="flex-1 overflow-hidden">
+                    <h4 className="font-bold text-slate-900 truncate">{msg.partner_name}</h4>
+                    <p className="text-sm text-slate-500 truncate">{msg.last_message}</p>
+                  </div>
+                  <div className="text-xs text-slate-400 whitespace-nowrap">
+                    {new Date(msg.last_message_time).toLocaleDateString('vi-VN')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
         <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <Star className="w-5 h-5 text-amber-500" />
-            Gợi ý gia sư cho bạn
-          </h3>
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <Search className="w-12 h-12 mb-4 opacity-20" />
-            <p>Khám phá gia sư để nhận gợi ý</p>
-            <button 
-              onClick={() => navigate('/student-dashboard/search')}
-              className="mt-4 text-blue-600 font-bold hover:underline"
-            >
-              Tìm kiếm ngay
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500" />
+              Gợi ý gia sư cho bạn
+            </h3>
+            <button onClick={() => navigate('/student-dashboard/search')} className="text-sm font-bold text-blue-600 hover:underline">
+              Xem tất cả
             </button>
           </div>
+
+          {recommendedTutors.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+              <Search className="w-12 h-12 mb-4 opacity-20" />
+              <p>Khám phá gia sư để nhận gợi ý</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recommendedTutors.map((tutor, idx) => (
+                <div key={idx} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
+                  <div className="w-12 h-12 bg-amber-100 rounded-full flex flex-shrink-0 items-center justify-center text-amber-600 font-bold">
+                    {tutor.full_name?.charAt(0)}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{tutor.full_name}</h4>
+                    <p className="text-xs text-slate-500 mt-1">{tutor.subjects || 'Đa môn'}</p>
+                    <button 
+                      onClick={() => navigate('/student-dashboard/search')} 
+                      className="mt-3 px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
+                    >
+                      Xem hồ sơ
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

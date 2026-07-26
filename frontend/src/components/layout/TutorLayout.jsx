@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GraduationCap, LogOut, BookOpen, User, Menu, X, Bell, MessageSquare } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 const TutorLayout = () => {
   const { user, logout } = useAuth();
@@ -120,6 +121,7 @@ const TutorLayout = () => {
 
             {/* Right side: Notification + User Profile & Logout (Desktop) */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+              <NotificationBell />
               {/* Notification Bell */}
               <button
                 onClick={() => navigate('/tutor-dashboard')}

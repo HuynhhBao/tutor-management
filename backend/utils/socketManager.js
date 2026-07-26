@@ -1,6 +1,9 @@
 import { Server } from 'socket.io';
 import pool from '../config/db.js';
 
+// Lưu trữ socket.id tương ứng với userId. VD: { 'student_1': 'socketxyz123' }
+global.onlineUsers = new Map();
+
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -55,6 +58,13 @@ export const initSocket = (server) => {
 
   io.on('connection', (socket) => {
     console.log('A user connected via socket:', socket.id);
+
+    // Frontend gửi event lên sau khi login thành công
+    socket.on('authenticate', ({ userId, role }) => {
+      const key = `${role}_${userId}`;
+      global.onlineUsers.set(key, socket.id);
+      console.log(`User authenticated for notifications: ${key} -> ${socket.id}`);
+    });
 
     // Khi người dùng tham gia phòng học trực tuyến
     socket.on('join-class', (data) => {
@@ -191,8 +201,16 @@ export const initSocket = (server) => {
       if (socket.currentRoom) {
         broadcastRoomPresence(socket.currentRoom);
       }
+      // Xóa khỏi Map khi user tắt tab
+      for (const [key, value] of global.onlineUsers.entries()) {
+        if (value === socket.id) {
+          global.onlineUsers.delete(key);
+          console.log(`Removed user from online tracking: ${key}`);
+        }
+      }
     });
   });
 
+  global.io = io; // Lưu io ra global để các service khác gọi được
   return io;
 };

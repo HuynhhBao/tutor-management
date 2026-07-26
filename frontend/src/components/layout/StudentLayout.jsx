@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck } from 'lucide-react';
 import AIAssistantWidget from '../common/AIAssistantWidget';
+import NotificationBell from './NotificationBell';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -148,6 +149,7 @@ const StudentLayout = () => {
             <div className="flex items-center gap-4 flex-shrink-0 h-16">
               {/* Actions (Desktop only) */}
               <div className="hidden sm:flex items-center gap-4">
+                <NotificationBell />
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden lg:block">
                     <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username || 'Học viên'}</p>
