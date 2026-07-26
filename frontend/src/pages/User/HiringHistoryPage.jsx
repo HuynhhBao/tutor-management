@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { History, AlertCircle, Calendar, Clock, User, XCircle, AlertTriangle } from 'lucide-react';
+import toast from 'react-hot-toast';
+import apiClient from '../../services/apiClient';
 
 const HiringHistoryPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -8,12 +10,10 @@ const HiringHistoryPage = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/student/bookings', {
-          credentials: 'include' // Bắt buộc để gửi kèm cookie/token
-        });
-        const data = await res.json();
-        if (data.status === 'ok') {
-          setBookings(data.data);
+        const res = await apiClient('/student/bookings');
+        if (res.ok) {
+          const data = await res.json();
+          setBookings(data.data || []);
         }
       } catch (error) {
         console.error('Lỗi khi tải lịch sử:', error);
@@ -24,6 +24,43 @@ const HiringHistoryPage = () => {
 
     fetchBookings();
   }, []);
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn hủy lịch học này?')) return;
+    try {
+      const res = await apiClient(`/student/bookings/${bookingId}/cancel`, { method: 'PUT' });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Đã hủy lịch thành công');
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b));
+      } else {
+        toast.error(data.message || 'Lỗi khi hủy lịch');
+      }
+    } catch (err) {
+      toast.error('Có lỗi xảy ra, vui lòng thử lại');
+    }
+  };
+
+  const handleDisputeBooking = async (bookingId) => {
+    const reason = window.prompt('Vui lòng nhập lý do khiếu nại:');
+    if (!reason) return;
+    try {
+      const res = await apiClient(`/student/bookings/${bookingId}/dispute`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message || 'Đã gửi khiếu nại thành công');
+        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'disputed' } : b));
+      } else {
+        toast.error(data.message || 'Lỗi khi gửi khiếu nại');
+      }
+    } catch (err) {
+      toast.error('Có lỗi xảy ra, vui lòng thử lại');
+    }
+  };
 
   const getStatusDisplay = (status) => {
     switch (status) {
@@ -81,14 +118,20 @@ const HiringHistoryPage = () => {
                   
                   {/* Nếu đang chờ xác nhận thì hiển thị nút Hủy */}
                   {booking.status === 'pending' && (
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg border border-red-100 transition-colors">
+                    <button 
+                      onClick={() => handleCancelBooking(booking.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg border border-red-100 transition-colors"
+                    >
                       <XCircle className="w-3.5 h-3.5" /> Hủy lịch
                     </button>
                   )}
 
                   {/* Nếu đã hoàn thành thì hiển thị nút Khiếu nại */}
                   {booking.status === 'completed' && (
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition-colors">
+                    <button 
+                      onClick={() => handleDisputeBooking(booking.id)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition-colors"
+                    >
                       <AlertTriangle className="w-3.5 h-3.5" /> Khiếu nại
                     </button>
                   )}

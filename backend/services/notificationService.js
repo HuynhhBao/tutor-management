@@ -1,4 +1,5 @@
 import pool from '../config/db.js';
+import { getIo, getOnlineUsers } from '../utils/socketManager.js';
 
 class NotificationService {
     async sendNotification(userId, role, title, message) {
@@ -10,10 +11,10 @@ class NotificationService {
             );
 
             // 2. Bắn Socket nếu user đang online
-            const socketId = global.onlineUsers?.get(`${role}_${userId}`);
-            if (socketId && global.io) {
-                global.io.to(socketId).emit('new_notification', { title, message });
-                console.log(`Sent realtime notification to ${role}_${userId}`);
+            const socketId = getOnlineUsers()?.get(`${role}_${userId}`);
+            const io = getIo();
+            if (socketId && io) {
+                io.to(socketId).emit('new_notification', { title, message });
             }
         } catch (error) {
             console.error('Error sending notification:', error);

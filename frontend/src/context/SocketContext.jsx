@@ -14,18 +14,22 @@ export const SocketProvider = ({ children }) => {
         let newSocket;
         
         if (user) {
-            newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001');
+            // Use environment variable for backend URL to avoid SonarCloud security hotspot for hardcoded URIs
+            // If VITE_API_URL is 'http://localhost:3001/api', we take 'http://localhost:3001'
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+            const backendUrl = apiUrl.replace('/api', '');
+            
+            newSocket = io(backendUrl);
             
             newSocket.on('connect', () => {
-                console.log('Socket connected:', newSocket.id);
                 newSocket.emit('authenticate', { userId: user.id, role: user.role });
             });
             
             newSocket.on('disconnect', () => {
-                console.log('Socket disconnected');
+                // socket disconnected
             });
             
-            setSocket(newSocket);
+            setSocket({ socket: newSocket });
         }
 
         return () => {
@@ -33,5 +37,6 @@ export const SocketProvider = ({ children }) => {
         };
     }, [user]);
 
+    // Provide the socket inside an object matching how NotificationBell uses it: const { socket } = useSocket() || {};
     return <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>;
 };

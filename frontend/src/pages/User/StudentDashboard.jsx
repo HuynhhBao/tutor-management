@@ -15,6 +15,7 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
+import apiClient from '../../services/apiClient';
 
 
 const StudentDashboard = () => {
@@ -31,18 +32,19 @@ const StudentDashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch balance
-        const resWallet = await fetch('http://localhost:3001/api/wallet', { credentials: 'include' });
-        const dataWallet = await resWallet.json();
-        if (dataWallet.status === 'ok') {
-          setBalance(dataWallet.data.balance || 0);
+        const resWallet = await apiClient('/wallet');
+        if (resWallet.ok) {
+          const dataWallet = await resWallet.json();
+          setBalance(dataWallet.data?.balance || 0);
         }
 
         // Fetch bookings
-        const resBookings = await fetch('http://localhost:3001/api/student/bookings', { credentials: 'include' });
-        const dataBookings = await resBookings.json();
-        if (dataBookings.status === 'ok' && Array.isArray(dataBookings.data)) {
+        const resBookings = await apiClient('/student/bookings');
+        if (resBookings.ok) {
+          const dataBookings = await resBookings.json();
+          const bookings = dataBookings.data || [];
           // Gia sư đang thuê: Các lịch đã được xác nhận và đang chờ dạy/đang dạy
-          const confirmedBookings = dataBookings.data.filter((b) => b.status === 'confirmed');
+          const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
           setActiveTutors(confirmedBookings.length);
 
           // Giờ học đã thực hiện: Chỉ tính các lịch đã dạy xong (trạng thái completed)
@@ -52,11 +54,10 @@ const StudentDashboard = () => {
 
         // Fetch conversations
         try {
-          const resChat = await fetch('http://localhost:3001/api/chat/conversations', { credentials: 'include' });
-          const dataChat = await resChat.json();
-          if (dataChat.status === 'ok') {
-            // Chỉ lấy 3 tin nhắn mới nhất
-            setRecentMessages(dataChat.data.slice(0, 3));
+          const resChat = await apiClient('/chat/conversations');
+          if (resChat.ok) {
+            const dataChat = await resChat.json();
+            setRecentMessages(dataChat.data?.slice(0, 3) || []);
           }
         } catch (err) {
           console.error('Lỗi khi lấy danh sách tin nhắn:', err);
@@ -64,10 +65,10 @@ const StudentDashboard = () => {
 
         // Fetch recommended tutors
         try {
-          const resTutors = await fetch('http://localhost:3001/api/tutors/recommendations', { credentials: 'include' });
-          const dataTutors = await resTutors.json();
-          if (dataTutors.status === 'ok') {
-            setRecommendedTutors(dataTutors.data);
+          const resTutors = await apiClient('/tutors/recommendations');
+          if (resTutors.ok) {
+            const dataTutors = await resTutors.json();
+            setRecommendedTutors(dataTutors.data || []);
           }
         } catch (err) {
           console.error('Lỗi khi lấy danh sách gia sư gợi ý:', err);
