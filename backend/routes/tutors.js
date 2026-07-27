@@ -7,6 +7,7 @@ import {
   deleteTutor,
   getTutorStats,
   updateTutorStatus,
+  getRecommendedTutors,
 } from '../controllers/tutorController.js';
 import {
   sendApplyOtp,
@@ -44,6 +45,7 @@ const upload = multer({
 
 // --- Tutor CRUD ---
 router.get('/stats', getTutorStats);
+router.get('/recommendations', getRecommendedTutors);
 router.get('/', checkCache, getAllTutors);
 router.post('/', validate(createTutorSchema), createTutor);
 router.put('/status', validate(updateTutorStatusSchema), updateTutorStatus);

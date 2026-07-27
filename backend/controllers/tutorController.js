@@ -73,3 +73,12 @@ export const updateTutorStatus = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getRecommendedTutors = async (req, res, next) => {
+  try {
+    const data = await tutorService.getRecommendedTutors(2);
+    return sendSuccess(res, 200, 'Lấy danh sách gợi ý thành công', { data });
+  } catch (err) {
+    next(err);
+  }
+};

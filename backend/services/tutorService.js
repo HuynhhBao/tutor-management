@@ -59,6 +59,15 @@ class TutorService {
     }
     return result.rows[0];
   }
+
+  async getRecommendedTutors(limit = 2) {
+    // Lấy ngẫu nhiên gia sư bằng RANDOM()
+    const result = await pool.query(
+      'SELECT * FROM tutors ORDER BY RANDOM() LIMIT $1',
+      [limit]
+    );
+    return result.rows;
+  }
 }
 
 export default new TutorService();

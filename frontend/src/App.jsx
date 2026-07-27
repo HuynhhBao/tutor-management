@@ -12,6 +12,8 @@ import RegisterPage from './pages/Auth/RegisterPage';
 import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ProfilePage from './pages/User/ProfilePage';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
+import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TutorLayout from './components/layout/TutorLayout';
 import TutorDashboard from './pages/Tutor/TutorDashboard';
@@ -66,8 +68,10 @@ function App() {
 
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <SocketProvider>
+        <Toaster position="top-right" />
+        <BrowserRouter>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomeRedirect />} />
 
@@ -165,6 +169,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </SocketProvider>
     </AuthProvider>
   );
 }

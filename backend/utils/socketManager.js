@@ -1,6 +1,10 @@
 import { Server } from 'socket.io';
 import pool from '../config/db.js';
 
+// Lưu trữ socket.id tương ứng với userId. VD: { 'student_1': 'socketxyz123' }
+const onlineUsers = new Map();
+let ioInstance = null;
+
 export const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
@@ -55,6 +59,12 @@ export const initSocket = (server) => {
 
   io.on('connection', (socket) => {
     console.log('A user connected via socket:', socket.id);
+
+    // Frontend gửi event lên sau khi login thành công
+    socket.on('authenticate', ({ userId, role }) => {
+      const key = `${role}_${userId}`;
+      onlineUsers.set(key, socket.id);
+    });
 
     // Khi người dùng tham gia phòng học trực tuyến
     socket.on('join-class', (data) => {
@@ -191,8 +201,18 @@ export const initSocket = (server) => {
       if (socket.currentRoom) {
         broadcastRoomPresence(socket.currentRoom);
       }
+      // Xóa khỏi Map khi user tắt tab
+      for (const [key, value] of onlineUsers.entries()) {
+        if (value === socket.id) {
+          onlineUsers.delete(key);
+        }
+      }
     });
   });
 
+  ioInstance = io;
   return io;
 };
+
+export const getIo = () => ioInstance;
+export const getOnlineUsers = () => onlineUsers;
