@@ -124,6 +124,7 @@ const StudentDashboard = () => {
       {showBanner && (
         <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm overflow-hidden relative animate-in fade-in zoom-in-95 duration-300">
           <button 
+            type="button"
             onClick={() => setShowBanner(false)}
             className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-20"
             title="Đóng thông báo"
@@ -139,6 +140,7 @@ const StudentDashboard = () => {
             </p>
             <div className="mt-6 flex flex-wrap gap-4">
               <button 
+                type="button"
                 onClick={() => navigate('/student-dashboard/search')}
                 className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
               >
@@ -158,10 +160,10 @@ const StudentDashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, idx) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div key={stat.label} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
               <div className={`p-4 rounded-xl ${stat.bg}`}>
                 <Icon className={`w-6 h-6 ${stat.color}`} />
               </div>
@@ -183,11 +185,12 @@ const StudentDashboard = () => {
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickActions.map((action, idx) => {
+          {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <button
-                key={idx}
+                key={action.title}
+                type="button"
                 onClick={() => navigate(action.path)}
                 className="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all text-left flex flex-col"
               >
@@ -224,8 +227,13 @@ const StudentDashboard = () => {
           ) : (
             <div className="space-y-4">
               {recentMessages.map((msg, idx) => (
-                <div key={idx} onClick={() => navigate(`/student-dashboard/chat/${msg.partner_id}`)} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                <button 
+                  key={msg.id || msg.partner_id || idx} 
+                  type="button"
+                  onClick={() => navigate(`/student-dashboard/chat/${msg.partner_id}`)} 
+                  className="w-full text-left flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all"
+                >
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex flex-shrink-0 items-center justify-center text-blue-600 font-bold">
                     {msg.partner_name?.charAt(0)}
                   </div>
                   <div className="flex-1 overflow-hidden">
@@ -235,7 +243,7 @@ const StudentDashboard = () => {
                   <div className="text-xs text-slate-400 whitespace-nowrap">
                     {new Date(msg.last_message_time).toLocaleDateString('vi-VN')}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -247,7 +255,7 @@ const StudentDashboard = () => {
               <Star className="w-5 h-5 text-amber-500" />
               Gợi ý gia sư cho bạn
             </h3>
-            <button onClick={() => navigate('/student-dashboard/search')} className="text-sm font-bold text-blue-600 hover:underline">
+            <button type="button" onClick={() => navigate('/student-dashboard/search')} className="text-sm font-bold text-blue-600 hover:underline">
               Xem tất cả
             </button>
           </div>
@@ -260,7 +268,7 @@ const StudentDashboard = () => {
           ) : (
             <div className="space-y-4">
               {recommendedTutors.map((tutor, idx) => (
-                <div key={idx} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
+                <div key={tutor.id || tutor.user_id || tutor.email || idx} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
                   <div className="w-12 h-12 bg-amber-100 rounded-full flex flex-shrink-0 items-center justify-center text-amber-600 font-bold">
                     {tutor.full_name?.charAt(0)}
                   </div>
@@ -268,6 +276,7 @@ const StudentDashboard = () => {
                     <h4 className="font-bold text-slate-900">{tutor.full_name}</h4>
                     <p className="text-xs text-slate-500 mt-1">{tutor.subjects || 'Đa môn'}</p>
                     <button 
+                      type="button"
                       onClick={() => navigate('/student-dashboard/search')} 
                       className="mt-3 px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
                     >

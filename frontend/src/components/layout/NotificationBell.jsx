@@ -33,6 +33,7 @@ export default function NotificationBell() {
 
     return (
         <button 
+            type="button"
             onClick={handleBellClick}
             className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
         >
