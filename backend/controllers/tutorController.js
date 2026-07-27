@@ -34,7 +34,7 @@ export const getAllTutors = async (req, res, next) => {
 
 const clearTutorsCache = async () => {
   try {
-    if (redisClient && redisClient.isOpen) {
+    if (redisClient?.isOpen) {
       const keys = await redisClient.keys('*tutors*');
       if (keys.length > 0) await redisClient.del(keys);
     }

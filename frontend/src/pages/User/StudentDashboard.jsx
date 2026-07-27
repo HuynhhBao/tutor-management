@@ -287,10 +287,18 @@ const StudentDashboard = () => {
                   : '0.00';
 
                 return (
-                  <div 
+                  <div
+                    role="button"
+                    tabIndex={0}
                     key={tutor.id || tutor.user_id || tutor.email || idx} 
                     onClick={() => navigate('/student-dashboard/search')}
-                    className="flex flex-col gap-4 p-5 border border-slate-200/80 rounded-2xl bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate('/student-dashboard/search');
+                      }
+                    }}
+                    className="w-full text-left flex flex-col gap-4 p-5 border border-slate-200/80 rounded-2xl bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {/* Avatar + Tên + Rating + Nút Xem hồ sơ */}
                     <div className="flex items-start justify-between gap-3">

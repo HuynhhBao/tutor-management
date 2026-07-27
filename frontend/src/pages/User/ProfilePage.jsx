@@ -124,7 +124,7 @@ const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNum
 
         {user?.role === 'tutor' ? (
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Khối lớp giảng dạy (Chọn các khối lớp bạn nhận dạy)</label>
+            <p className="block text-sm font-medium text-gray-700 mb-2">Khối lớp giảng dạy (Chọn các khối lớp bạn nhận dạy)</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 border border-gray-200 rounded-xl">
               {['Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12', 'Ôn thi Đại học'].map((grade) => {
                 const currentGrades = gradeLevels ? gradeLevels.split(',').map(g => g.trim()).filter(Boolean) : [];

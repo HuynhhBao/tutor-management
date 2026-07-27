@@ -87,7 +87,7 @@ const TutorFormModal = ({ isOpen, editingId, formData, onChange, onSubmit, onClo
 
       {/* Khối lớp giảng dạy */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-2">Khối lớp giảng dạy (Chọn các lớp nhận dạy)</label>
+        <p className="block text-sm font-medium text-slate-700 mb-2">Khối lớp giảng dạy (Chọn các lớp nhận dạy)</p>
         <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto">
           {['Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12', 'Ôn thi Đại học'].map((grade) => {
             const currentGrades = formData.gradeLevels ? formData.gradeLevels.split(',').map(g => g.trim()).filter(Boolean) : [];

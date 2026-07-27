@@ -13,6 +13,7 @@ export const verifyUser = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('Lỗi xác thực token (User):', err.message);
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
@@ -29,6 +30,7 @@ export const verifyAdmin = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('Lỗi xác thực token (Admin):', err.message);
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
@@ -45,6 +47,7 @@ export const verifyTutor = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('Lỗi xác thực token (Tutor):', err.message);
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
@@ -58,6 +61,7 @@ export const verifyAuth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('Lỗi xác thực token (Auth):', err.message);
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
