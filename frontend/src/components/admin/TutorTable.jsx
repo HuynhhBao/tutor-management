@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { GraduationCap, CheckCircle, Clock, Edit2, Trash2, KeyRound, BookOpen, Loader2, Moon } from 'lucide-react';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const StatusBadge = ({ status }) => {
   if (status === 'Sẵn sàng nhận lớp') {
@@ -51,9 +52,7 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
       <tr key={tutor.id} className="hover:bg-slate-100/80 transition-colors">
         <td className="px-6 py-4">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold uppercase border border-primary-200">
-              {tutor.full_name.charAt(0)}
-            </div>
+            <img src={getAvatarUrl(tutor.avatar_url, tutor.full_name, 'tutor')} alt={tutor.full_name} className="w-10 h-10 rounded-full object-cover border border-primary-200 shadow-xs" />
             <div className="ml-3">
               <p className="font-medium text-gray-900">{tutor.full_name}</p>
               <p className="text-xs text-gray-500">ID: TS-{tutor.id.toString().padStart(4, '0')} • {tutor.gender}, {tutor.age} tuổi</p>
@@ -69,6 +68,15 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
               </span>
             ))}
           </div>
+          {tutor.grade_levels && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {tutor.grade_levels.split(',').map(grade => grade.trim() && (
+                <span key={grade} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                  {grade.trim()}
+                </span>
+              ))}
+            </div>
+          )}
         </td>
         <td className="px-6 py-4">
           <div className="flex items-center text-slate-600">

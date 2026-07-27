@@ -65,6 +65,9 @@ export const initDb = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='is_active') THEN
           ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='current_grade') THEN
+          ALTER TABLE users ADD COLUMN current_grade VARCHAR(50) DEFAULT '';
+        END IF;
       END
       $$;
     `);
@@ -112,6 +115,9 @@ export const initDb = async () => {
       BEGIN
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='email') THEN
           ALTER TABLE tutors ADD COLUMN email VARCHAR(255);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='grade_levels') THEN
+          ALTER TABLE tutors ADD COLUMN grade_levels VARCHAR(255) DEFAULT '';
         END IF;
       END
       $$;

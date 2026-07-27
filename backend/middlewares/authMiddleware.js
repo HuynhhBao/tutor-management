@@ -48,3 +48,16 @@ export const verifyTutor = (req, res, next) => {
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };
+
+export const verifyAuth = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return next(new ApiError(401, 'Chưa đăng nhập'));
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return next(new ApiError(401, 'Token không hợp lệ'));
+  }
+};

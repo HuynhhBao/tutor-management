@@ -23,18 +23,18 @@ class TutorService {
     return result.rows;
   }
 
-  async createTutor({ fullName, email, gender, age, subject, qualification }) {
+  async createTutor({ fullName, email, gender, age, subject, qualification, gradeLevels }) {
     const result = await pool.query(
-      'INSERT INTO tutors (full_name, email, gender, age, subjects, qualification) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [fullName, email, gender, age, subject, qualification]
+      'INSERT INTO tutors (full_name, email, gender, age, subjects, qualification, grade_levels) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [fullName, email, gender, age, subject, qualification, gradeLevels || '']
     );
     return result.rows[0];
   }
 
-  async updateTutor(id, { fullName, email, gender, age, subject, qualification }) {
+  async updateTutor(id, { fullName, email, gender, age, subject, qualification, gradeLevels }) {
     const result = await pool.query(
-      'UPDATE tutors SET full_name = $1, email = $2, gender = $3, age = $4, subjects = $5, qualification = $6 WHERE id = $7 RETURNING *',
-      [fullName, email, gender, age, subject, qualification, id]
+      'UPDATE tutors SET full_name = $1, email = $2, gender = $3, age = $4, subjects = $5, qualification = $6, grade_levels = $7 WHERE id = $8 RETURNING *',
+      [fullName, email, gender, age, subject, qualification, gradeLevels || '', id]
     );
     
     if (result.rows.length === 0) {

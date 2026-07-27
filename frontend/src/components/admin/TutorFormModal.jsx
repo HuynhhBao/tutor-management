@@ -85,6 +85,37 @@ const TutorFormModal = ({ isOpen, editingId, formData, onChange, onSubmit, onClo
         </div>
       </div>
 
+      {/* Khối lớp giảng dạy */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Khối lớp giảng dạy (Chọn các lớp nhận dạy)</label>
+        <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto">
+          {['Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12', 'Ôn thi Đại học'].map((grade) => {
+            const currentGrades = formData.gradeLevels ? formData.gradeLevels.split(',').map(g => g.trim()).filter(Boolean) : [];
+            const isChecked = currentGrades.includes(grade);
+            const toggleGrade = (e) => {
+              let nextGrades = [...currentGrades];
+              if (e.target.checked) {
+                if (!nextGrades.includes(grade)) nextGrades.push(grade);
+              } else {
+                nextGrades = nextGrades.filter(g => g !== grade);
+              }
+              onChange({ target: { name: 'gradeLevels', value: nextGrades.join(', ') } });
+            };
+            return (
+              <label key={grade} className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer hover:text-primary-600 font-medium">
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={toggleGrade}
+                  className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                />
+                <span>{grade}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex gap-3 pt-4">
         <button type="button" onClick={onClose}
           className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors">

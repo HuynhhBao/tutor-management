@@ -8,6 +8,7 @@ import { API_BASE_URL } from '../../utils/constants';
 
 import AiMatchmaker from '../../components/ai/AiMatchmaker';
 import BookingModal from '../../components/common/BookingModal';
+import { getAvatarUrl } from '../../utils/avatar';
 
 
 /* ─── Main Page ───────────────────────────────────────────── */
@@ -17,6 +18,7 @@ const TutorSearchPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState('');
   const [bookingTutor, setBookingTutor] = useState(null); // tutor đang mở modal
 
   const fetchMyBookings = async () => {
@@ -59,25 +61,27 @@ const TutorSearchPage = () => {
     tutors.flatMap(t => (t.subjects ? t.subjects.split(',').map(s => s.trim()) : []))
   )].filter(Boolean);
 
+  const allGrades = ['Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12', 'Ôn thi Đại học'];
+
   const filtered = tutors.filter(t => {
     const matchSearch =
       !searchQuery ||
       t.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.subjects?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.grade_levels?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.qualification?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchSubject =
       !selectedSubject ||
       t.subjects?.toLowerCase().includes(selectedSubject.toLowerCase());
-    return matchSearch && matchSubject;
+    const matchGrade =
+      !selectedGrade ||
+      t.grade_levels?.toLowerCase().includes(selectedGrade.toLowerCase());
+    return matchSearch && matchSubject && matchGrade;
   });
 
   const getInitials = (name = '') =>
     name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
 
-  const avatarColors = [
-    'bg-blue-500', 'bg-violet-500', 'bg-emerald-500',
-    'bg-rose-500', 'bg-amber-500', 'bg-cyan-500',
-  ];
 
   return (
     <div className="space-y-6">
@@ -125,6 +129,19 @@ const TutorSearchPage = () => {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Khối lớp giảng dạy</label>
+                <select
+                  value={selectedGrade}
+                  onChange={e => setSelectedGrade(e.target.value)}
+                  className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm"
+                >
+                  <option value="">Tất cả khối lớp</option>
+                  {allGrades.map(g => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -167,7 +184,6 @@ const TutorSearchPage = () => {
                 const subjects = tutor.subjects
                   ? tutor.subjects.split(',').map(s => s.trim()).filter(Boolean)
                   : [];
-                const colorClass = avatarColors[idx % avatarColors.length];
                 return (
                   <div
                     key={tutor.id}
@@ -175,8 +191,12 @@ const TutorSearchPage = () => {
                   >
                     {/* Avatar + Tên */}
                     <div className="flex items-center gap-3">
-                      <div className={`w-14 h-14 ${colorClass} rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0`}>
-                        {getInitials(tutor.full_name)}
+                      <div className="w-14 h-14 rounded-full flex flex-shrink-0 items-center justify-center overflow-hidden border border-slate-200 shadow-xs">
+                        <img 
+                          src={getAvatarUrl(tutor.avatar_url, tutor.full_name, 'tutor')} 
+                          alt={tutor.full_name || 'Gia sư'} 
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-slate-900 text-base truncate">{tutor.full_name}</p>
@@ -224,6 +244,15 @@ const TutorSearchPage = () => {
                             {sub}
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {/* Khối lớp dạy */}
+                    {tutor.grade_levels && (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs text-amber-800 font-bold bg-amber-50 border border-amber-200/80 px-2.5 py-1 rounded-xl shadow-2xs flex items-center gap-1">
+                          Nhận dạy: {tutor.grade_levels}
+                        </span>
                       </div>
                     )}
 

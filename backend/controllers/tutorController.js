@@ -32,10 +32,22 @@ export const getAllTutors = async (req, res, next) => {
   }
 };
 
+const clearTutorsCache = async () => {
+  try {
+    if (redisClient && redisClient.isOpen) {
+      const keys = await redisClient.keys('*tutors*');
+      if (keys.length > 0) await redisClient.del(keys);
+    }
+  } catch (err) {
+    console.error('Lỗi khi xóa cache Redis:', err);
+  }
+};
+
 // POST /api/tutors
 export const createTutor = async (req, res, next) => {
   try {
     const data = await tutorService.createTutor(req.body);
+    await clearTutorsCache();
     return sendSuccess(res, 201, 'Tạo gia sư thành công', { data });
   } catch (err) {
     next(err);
@@ -47,6 +59,7 @@ export const updateTutor = async (req, res, next) => {
   try {
     const { id } = req.params;
     const data = await tutorService.updateTutor(id, req.body);
+    await clearTutorsCache();
     return sendSuccess(res, 200, 'Cập nhật gia sư thành công', { data });
   } catch (err) {
     next(err);
@@ -58,6 +71,7 @@ export const deleteTutor = async (req, res, next) => {
   try {
     const { id } = req.params;
     await tutorService.deleteTutor(id);
+    await clearTutorsCache();
     return sendSuccess(res, 200, 'Xóa gia sư thành công');
   } catch (err) {
     next(err);
@@ -68,6 +82,7 @@ export const deleteTutor = async (req, res, next) => {
 export const updateTutorStatus = async (req, res, next) => {
   try {
     const data = await tutorService.updateTutorStatus(req.body);
+    await clearTutorsCache();
     return sendSuccess(res, 200, 'Cập nhật trạng thái thành công', { data });
   } catch (err) {
     next(err);

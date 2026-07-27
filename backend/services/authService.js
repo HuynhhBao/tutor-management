@@ -4,6 +4,7 @@ import pool from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
 import transporter from '../utils/mailer.js';
 import crypto from 'crypto';
+import redisClient from '../utils/redisClient.js';
 
 // In-memory OTP store: email -> { otp, expiresAt, verified? }
 const otpStore = new Map();
@@ -192,13 +193,13 @@ class AuthService {
       userResult = await pool.query('SELECT id, username as email, full_name, role, avatar_url FROM admins WHERE id = $1', [decoded.id]);
     } else if (decoded.role === 'tutor') {
       userResult = await pool.query(`
-        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email, t.avatar_url, t.status 
+        SELECT t.id, a.id as account_id, a.username, t.full_name, t.email, t.avatar_url, t.status, t.grade_levels 
         FROM tutors t 
         JOIN tutor_accounts a ON t.id = a.tutor_id 
         WHERE t.id = $1
       `, [decoded.id]);
     } else {
-      userResult = await pool.query('SELECT id, email, full_name, phone_number, avatar_url FROM users WHERE id = $1', [decoded.id]);
+      userResult = await pool.query('SELECT id, email, full_name, phone_number, avatar_url, current_grade FROM users WHERE id = $1', [decoded.id]);
     }
 
     const user = userResult.rows[0];
@@ -207,17 +208,29 @@ class AuthService {
     }
 
     if (decoded.role === 'tutor') {
-      return { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor', avatarUrl: user.avatar_url, status: user.status };
+      return { id: user.id, accountId: user.account_id, username: user.username, email: user.email, fullName: user.full_name, role: 'tutor', avatarUrl: user.avatar_url, status: user.status, gradeLevels: user.grade_levels };
     } else {
-      return { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user', avatarUrl: user.avatar_url };
+      return { id: user.id, email: user.email, fullName: user.full_name, phoneNumber: user.phone_number, role: user.role || 'user', avatarUrl: user.avatar_url, currentGrade: user.current_grade };
     }
   }
 
-  async updateProfile(decoded, { fullName, phoneNumber }) {
+  async updateProfile(decoded, { fullName, phoneNumber, currentGrade, gradeLevels }) {
     if (decoded.role === 'admin' || decoded.role === 'staff') {
       await pool.query('UPDATE admins SET full_name = $1 WHERE id = $2', [fullName, decoded.id]);
+    } else if (decoded.role === 'tutor') {
+      const gradesVal = gradeLevels !== undefined && gradeLevels !== null ? gradeLevels : (currentGrade || '');
+      await pool.query('UPDATE tutors SET full_name = $1, grade_levels = $2 WHERE id = $3', [fullName, gradesVal, decoded.id]);
+      try {
+        if (redisClient && redisClient.isOpen) {
+          const keys = await redisClient.keys('*tutors*');
+          if (keys.length > 0) await redisClient.del(keys);
+        }
+      } catch (err) {
+        console.error('Lỗi khi xóa cache Redis:', err);
+      }
     } else {
-      await pool.query('UPDATE users SET full_name = $1, phone_number = $2 WHERE id = $3', [fullName, phoneNumber, decoded.id]);
+      const gradeVal = currentGrade !== undefined && currentGrade !== null ? currentGrade : '';
+      await pool.query('UPDATE users SET full_name = $1, phone_number = $2, current_grade = $3 WHERE id = $4', [fullName, phoneNumber, gradeVal, decoded.id]);
     }
     return true;
   }

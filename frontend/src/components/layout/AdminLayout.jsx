@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   CalendarCheck
 } from 'lucide-react';
+import { getAvatarUrl } from '../../utils/avatar';
+import NotificationBell from './NotificationBell';
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
@@ -74,7 +76,7 @@ const AdminLayout = () => {
                 aria-label="EduMatch Admin Dashboard"
               >
                 <ShieldCheck className="h-8 w-8 text-primary-600" />
-                <span className="ml-2 text-xl font-bold text-slate-900 hidden lg:block">TutorAdmin</span>
+                <span className="ml-2 text-xl font-bold text-slate-900 hidden lg:block">EduMatch</span>
               </button>
             </div>
 
@@ -137,28 +139,23 @@ const AdminLayout = () => {
             <div className="flex items-center gap-4 flex-shrink-0 h-16">
               {/* Actions (Desktop only) */}
               <div className="hidden sm:flex items-center gap-4">
-                <button className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
+                <NotificationBell />
                 
                 <div className="h-8 w-px bg-slate-200 mx-1"></div>
 
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden lg:block">
-                    <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || 'Admin'}</p>
-                    <p className="text-xs text-slate-500 capitalize">{user?.role || 'Quản trị viên'}</p>
+                    <span className="text-[11px] text-slate-500 block leading-tight uppercase font-bold tracking-wider">
+                      {user?.role === 'staff' ? 'Nhân viên' : 'Quản trị viên'}
+                    </span>
+                    <span className="text-sm font-bold text-slate-900">{user?.fullName || 'Admin'}</span>
                   </div>
-                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
-                    {user?.avatarUrl ? (
-                      <img 
-                        src={user.avatarUrl.startsWith('data:image/') ? user.avatarUrl : `http://localhost:3001${user.avatarUrl}`} 
-                        alt="Avatar" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (user?.fullName || 'A').charAt(0)
-                    )}
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold border border-purple-200 overflow-hidden shadow-sm">
+                    <img 
+                      src={getAvatarUrl(user?.avatarUrl, user?.fullName || 'Admin', 'admin')} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 </div>
 
@@ -217,20 +214,18 @@ const AdminLayout = () => {
             </div>
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
-                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 overflow-hidden shadow-sm">
-                  {user?.avatarUrl ? (
-                    <img 
-                      src={user.avatarUrl.startsWith('data:image/') ? user.avatarUrl : `http://localhost:3001${user.avatarUrl}`} 
-                      alt="Avatar" 
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (user?.fullName || 'A').charAt(0)
-                  )}
+                <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold border border-purple-200 overflow-hidden shadow-sm">
+                  <img 
+                    src={getAvatarUrl(user?.avatarUrl, user?.fullName || 'Admin', 'admin')} 
+                    alt="Avatar" 
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-slate-800">{user?.fullName}</div>
-                  <div className="text-sm font-medium text-slate-500 uppercase">{user?.role}</div>
+                  <div className="text-base font-bold text-slate-900">{user?.fullName || 'Admin'}</div>
+                  <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">
+                    {user?.role === 'staff' ? 'Nhân viên' : 'Quản trị viên'}
+                  </div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">

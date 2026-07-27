@@ -10,7 +10,7 @@ import { useAlert } from '../../context/AlertContext';
 import { API_BASE_URL } from '../../utils/constants';
 import { formatDateTime } from '../../utils/formatters';
 
-const EMPTY_FORM = { fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' };
+const EMPTY_FORM = { fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '', gradeLevels: '' };
 
 export default function TutorManagement() {
   const { showAlert, showConfirm } = useAlert();
@@ -93,7 +93,7 @@ export default function TutorManagement() {
   // --- Tutor handlers ---
   const handleEdit = (tutor) => {
     setEditingId(tutor.id);
-    setFormData({ fullName: tutor.full_name, email: tutor.email || '', gender: tutor.gender, age: tutor.age, subject: tutor.subjects, qualification: tutor.qualification });
+    setFormData({ fullName: tutor.full_name, email: tutor.email || '', gender: tutor.gender, age: tutor.age, subject: tutor.subjects, qualification: tutor.qualification, gradeLevels: tutor.grade_levels || '' });
     setIsModalOpen(true);
   };
 

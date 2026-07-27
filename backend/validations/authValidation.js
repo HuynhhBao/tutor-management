@@ -47,6 +47,8 @@ export const updateProfileSchema = Joi.object({
     'any.required': 'Họ tên là bắt buộc',
   }),
   phoneNumber: Joi.string().allow('', null),
+  currentGrade: Joi.string().allow('', null).optional(),
+  gradeLevels: Joi.string().allow('', null).optional(),
 });
 
 export const changePasswordSchema = Joi.object({
