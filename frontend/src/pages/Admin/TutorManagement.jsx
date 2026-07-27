@@ -13,7 +13,7 @@ import { formatDateTime } from '../../utils/formatters';
 const EMPTY_FORM = { fullName: '', email: '', gender: 'Nam', age: '', subject: '', qualification: '' };
 
 export default function TutorManagement() {
-  const { showAlert } = useAlert();
+  const { showAlert, showConfirm } = useAlert();
   const [activeTab, setActiveTab] = useState('tutors'); // 'tutors' | 'applications'
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({ totalTutors: 0, pendingApplications: 0 });
@@ -97,16 +97,17 @@ export default function TutorManagement() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa gia sư này?')) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/tutors/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        fetchTutors();
-        showSuccess('Đã xóa gia sư thành công!');
-      }
-      else showAlert('Có lỗi xảy ra khi xóa gia sư');
-    } catch { showAlert('Không thể kết nối đến server'); }
+  const handleDelete = (id) => {
+    showConfirm('Bạn có chắc chắn muốn xóa gia sư này?', async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/tutors/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          fetchTutors();
+          showSuccess('Đã xóa gia sư thành công!');
+        }
+        else showAlert('Có lỗi xảy ra khi xóa gia sư');
+      } catch { showAlert('Không thể kết nối đến server'); }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -150,19 +151,20 @@ export default function TutorManagement() {
     } catch { setApproveStatus({ loading: false, error: 'Không thể kết nối đến server' }); }
   };
 
-  const handleRejectClick = async (appId, status) => {
+  const handleRejectClick = (appId, status) => {
     const isApproved = status === 'approved';
     const confirmMsg = isApproved 
       ? 'Bạn có chắc chắn muốn từ chối ứng viên này vì không đạt phỏng vấn? Hệ thống sẽ gửi email thông báo kết quả phỏng vấn.'
       : 'Bạn có chắc chắn muốn từ chối và xóa hồ sơ này? Ứng viên sẽ nhận được email thông báo từ chối CV.';
       
-    if (!window.confirm(confirmMsg)) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/tutors/applications/${appId}/reject`, { method: 'DELETE' });
-      const data = await response.json();
-      if (response.ok) { fetchApplications(); showSuccess('Đã từ chối và gửi email thông báo thành công!'); }
-      else showAlert(data.message || 'Lỗi từ chối hồ sơ');
-    } catch { showAlert('Không thể kết nối đến server'); }
+    showConfirm(confirmMsg, async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/tutors/applications/${appId}/reject`, { method: 'DELETE' });
+        const data = await response.json();
+        if (response.ok) { fetchApplications(); showSuccess('Đã từ chối và gửi email thông báo thành công!'); }
+        else showAlert(data.message || 'Lỗi từ chối hồ sơ');
+      } catch { showAlert('Không thể kết nối đến server'); }
+    });
   };
 
   // --- Grant account handlers ---

@@ -339,8 +339,18 @@ export default function BookingHistoryPage() {
                       </div>
                       <div className="flex items-center gap-1.5 text-sm text-slate-600">
                         <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Thời gian:</span> {formatDateTime(b.schedule_time)}
+                        <span className="font-medium">Thời gian Buổi 1:</span> {formatDateTime(b.schedule_time)} ({b.duration || 1}h)
                       </div>
+                      {b.recurring_days && (
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 shadow-2xs">
+                          🔄 <span>Chu kỳ định kỳ: {b.recurring_days} hàng tuần</span>
+                        </div>
+                      )}
+                      {b.total_fee && (
+                        <div className="text-xs font-bold text-emerald-600">
+                          💳 Học phí Buổi 1: {parseFloat(b.total_fee).toLocaleString('vi-VN')} đ
+                        </div>
+                      )}
                       <div className="flex items-center gap-1.5 text-xs text-slate-400">
                         <Clock className="w-3.5 h-3.5 shrink-0" />
                         Đặt lúc: {formatDateTime(b.created_at)}
@@ -355,6 +365,15 @@ export default function BookingHistoryPage() {
 
                   {/* Actions */}
                   <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    {b.status === 'completed' && (
+                      <Link
+                        to="/student-dashboard/search"
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-200/80 animate-bounce hover:animate-none"
+                        title="Tiếp tục đóng góp chu kỳ hoặc đặt ca mới để bảo lưu vị trí slot học với gia sư này"
+                      >
+                        <span>🔄 Gia hạn & Học tiếp</span>
+                      </Link>
+                    )}
                     {b.status === 'confirmed' && (
                       <Link
                         to={`/classroom/${b.id}`}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAlert } from '../../context/AlertContext';
 import { 
   Search, 
   Download, 
@@ -36,10 +37,11 @@ export default function TransactionTable({
   onRefresh,
   loading = false
 }) {
+  const { showAlert } = useAlert();
   // Export CSV function
   const exportToCSV = () => {
     if (!transactions || transactions.length === 0) {
-      alert('Không có dữ liệu để xuất file CSV!');
+      showAlert('Không có dữ liệu để xuất file CSV!');
       return;
     }
 

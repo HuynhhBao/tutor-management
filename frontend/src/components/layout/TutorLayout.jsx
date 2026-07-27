@@ -11,6 +11,32 @@ const TutorLayout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  // Poll số tin nhắn chưa đọc và booking pending
+  React.useEffect(() => {
+    const fetchUnreadChat = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/chat/unread-count', { credentials: 'include' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status === 'ok') {
+            const count = json.data?.total_unread !== undefined ? json.data.total_unread : json.total_unread;
+            setUnreadChatCount(count || 0);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching unread chat count:', err);
+      }
+    };
+    fetchUnreadChat();
+    const interval = setInterval(fetchUnreadChat, 5000);
+    window.addEventListener('unread_message_update', fetchUnreadChat);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('unread_message_update', fetchUnreadChat);
+    };
+  }, []);
 
   // Poll số yêu cầu pending mỗi 30 giây
   React.useEffect(() => {
@@ -33,8 +59,11 @@ const TutorLayout = () => {
     navigate('/', { replace: true });
   }, [logout, navigate]);
 
-  // Handle browser back button to confirm logout
+  // Handle browser back button to confirm logout ONLY on root dashboard
   React.useEffect(() => {
+    const isRootDashboard = location.pathname === '/tutor-dashboard' || location.pathname === '/tutor-dashboard/';
+    if (!isRootDashboard) return;
+
     const lockHistory = () => {
       // Use a hash to force the browser to treat this as a real navigation point
       const lockedUrl = globalThis.location.pathname + '#dashboard';
@@ -112,7 +141,14 @@ const TutorLayout = () => {
                       }`}
                     >
                       <Icon className={`mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
-                      {item.label}
+                      <span className="flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        {item.path === '/tutor-dashboard/chat' && unreadChatCount > 0 && (
+                          <span className="px-1.5 py-0.5 bg-rose-500 text-white font-extrabold text-[10px] rounded-full min-w-[18px] text-center shadow-xs animate-bounce">
+                            {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                          </span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
@@ -198,7 +234,14 @@ const TutorLayout = () => {
                     }`}
                   >
                     <Icon className={`mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`} />
-                    {item.label}
+                    <span className="flex items-center gap-2">
+                      <span>{item.label}</span>
+                      {item.path === '/tutor-dashboard/chat' && unreadChatCount > 0 && (
+                        <span className="px-2 py-0.5 bg-rose-500 text-white font-extrabold text-xs rounded-full shadow-xs animate-pulse">
+                          {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 );
               })}

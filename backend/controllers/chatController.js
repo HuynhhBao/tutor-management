@@ -40,3 +40,14 @@ export const getConversations = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getTotalUnreadMessages = async (req, res, next) => {
+  try {
+    const myId = req.user.id;
+    const myType = req.user.role === 'user' ? 'user' : 'tutor';
+    const total_unread = await chatService.getTotalUnreadMessages(myId, myType);
+    return sendSuccess(res, 200, 'Thành công', { total_unread });
+  } catch (err) {
+    next(err);
+  }
+};

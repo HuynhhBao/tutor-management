@@ -1,11 +1,71 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, X, Sparkles, Trash2, CheckCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useAlert } from '../../context/AlertContext';
 
 const API_BASE = 'http://localhost:3001/api';
 
+// Hàm định dạng thời gian thông minh
+const formatSmartTime = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (isToday) return timeStr;
+  if (isYesterday) return `Hôm qua lúc ${timeStr}`;
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  if (year === now.getFullYear()) return `${day}/${month} - ${timeStr}`;
+  return `${day}/${month}/${year} - ${timeStr}`;
+};
+
+const formatDateDivider = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  if (isToday) return `Hôm nay, ${date.getDate()} Tháng ${date.getMonth() + 1}`;
+  if (isYesterday) return `Hôm qua, ${date.getDate()} Tháng ${date.getMonth() + 1}`;
+  return `${date.getDate()} Tháng ${date.getMonth() + 1}, ${date.getFullYear()}`;
+};
+
+const isSameDay = (d1, d2) => {
+  if (!d1 || !d2) return false;
+  const date1 = new Date(d1);
+  const date2 = new Date(d2);
+  return date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear();
+};
+
 const AIAssistantWidget = () => {
   const { user } = useAuth();
+  const { showConfirm, showAlert } = useAlert();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -101,21 +161,22 @@ const AIAssistantWidget = () => {
   };
 
   // 4. Xóa lịch sử chat
-  const handleClearHistory = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện với AI?')) return;
-    
-    try {
-      const res = await fetch(`${API_BASE}/ai-chat/clear`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        setMessages([]);
+  const handleClearHistory = () => {
+    showConfirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện với AI?', async () => {
+      try {
+        const res = await fetch(`${API_BASE}/ai-chat/history`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          setMessages([]);
+          showAlert('Đã xóa toàn bộ lịch sử trò chuyện với AI.');
+        }
+      } catch (err) {
+        console.error('Lỗi khi xóa lịch sử chat:', err);
       }
-    } catch (err) {
-      console.error('Lỗi khi xóa lịch sử chat:', err);
-    }
+    });
   };
 
   // 5. Gợi ý câu hỏi nhanh
@@ -267,29 +328,40 @@ const AIAssistantWidget = () => {
                     Cuộc hội thoại bảo mật với AI
                   </span>
                 </div>
-                {messages.map((msg) => {
+                {messages.map((msg, idx) => {
                   const isMe = msg.sender === 'user';
+                  const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                  const showDateDivider = !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
+
                   return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}
-                    >
-                      <div className={`max-w-[85%] ${isMe ? 'order-1' : 'order-2'}`}>
-                        <div className={`px-4 py-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                          isMe
-                            ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-tr-none'
-                            : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
-                        }`}>
-                          {isMe ? msg.message : formatMessageText(msg.message)}
-                        </div>
-                        <div className={`flex items-center gap-1 mt-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                          <span className="text-[9px] text-slate-400 font-medium">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <React.Fragment key={msg.id || idx}>
+                      {showDateDivider && (
+                        <div className="flex justify-center my-4">
+                          <span className="px-3 py-0.5 bg-slate-200/90 text-slate-600 rounded-full text-[10px] font-bold shadow-2xs tracking-tight">
+                            {formatDateDivider(msg.created_at)}
                           </span>
-                          {isMe && <CheckCheck className="h-3 w-3 text-blue-400" />}
+                        </div>
+                      )}
+                      <div
+                        className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in fade-in duration-200`}
+                      >
+                        <div className={`max-w-[85%] ${isMe ? 'order-1' : 'order-2'}`}>
+                          <div className={`px-4 py-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                            isMe
+                              ? 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-tr-none'
+                              : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                          }`}>
+                            {isMe ? msg.message : formatMessageText(msg.message)}
+                          </div>
+                          <div className={`flex items-center gap-1 mt-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <span className="text-[9px] text-slate-400 font-medium">
+                              {formatSmartTime(msg.created_at)}
+                            </span>
+                            {isMe && <CheckCheck className="h-3 w-3 text-blue-400" />}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </React.Fragment>
                   );
                 })}
               </>

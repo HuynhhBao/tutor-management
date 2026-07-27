@@ -226,25 +226,33 @@ const StudentDashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {recentMessages.map((msg, idx) => (
-                <button 
-                  key={msg.id || msg.partner_id || idx} 
-                  type="button"
-                  onClick={() => navigate(`/student-dashboard/chat/${msg.partner_id}`)} 
-                  className="w-full text-left flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex flex-shrink-0 items-center justify-center text-blue-600 font-bold">
-                    {msg.partner_name?.charAt(0)}
-                  </div>
-                  <div className="flex-1 overflow-hidden">
-                    <h4 className="font-bold text-slate-900 truncate">{msg.partner_name}</h4>
-                    <p className="text-sm text-slate-500 truncate">{msg.last_message}</p>
-                  </div>
-                  <div className="text-xs text-slate-400 whitespace-nowrap">
-                    {new Date(msg.last_message_time).toLocaleDateString('vi-VN')}
-                  </div>
-                </button>
-              ))}
+              {recentMessages.map((msg, idx) => {
+                const partnerId = msg.id || msg.partner_id;
+                const partnerName = msg.full_name || msg.partner_name || 'Người dùng';
+                return (
+                  <button 
+                    key={partnerId || idx} 
+                    type="button"
+                    onClick={() => navigate(`/student-dashboard/chat/${partnerId}`)} 
+                    className="w-full text-left flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all"
+                  >
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex flex-shrink-0 items-center justify-center text-blue-600 font-bold overflow-hidden border border-blue-200">
+                      {msg.avatar_url ? (
+                        <img src={`http://localhost:3001${msg.avatar_url}`} alt={partnerName} className="w-full h-full object-cover" />
+                      ) : (
+                        partnerName.charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <h4 className="font-bold text-slate-900 truncate">{partnerName}</h4>
+                      <p className="text-sm text-slate-500 truncate">{msg.last_message}</p>
+                    </div>
+                    <div className="text-xs text-slate-400 whitespace-nowrap">
+                      {msg.last_message_time ? new Date(msg.last_message_time).toLocaleDateString('vi-VN') : ''}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

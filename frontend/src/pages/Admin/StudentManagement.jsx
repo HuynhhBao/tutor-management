@@ -3,8 +3,10 @@ import { api } from '../../services/apiClient';
 import { toast } from 'react-hot-toast';
 import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 import StudentTable from '../../components/admin/StudentTable';
+import { useAlert } from '../../context/AlertContext';
 
 const StudentManagement = () => {
+  const { showConfirm } = useAlert();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,24 +35,23 @@ const StudentManagement = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
 
-  const handleToggleStatus = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của học viên này?')) {
-      return;
-    }
-    try {
-      const res = await api.put(`/admin/students/${id}/toggle-status`);
-      if (res.data.status === 'ok') {
-        toast.success(res.data.message);
-        // Update state locally
-        setStudents(prev => prev.map(student => 
-          student.id === id 
-            ? { ...student, is_active: res.data.student.is_active } 
-            : student
-        ));
+  const handleToggleStatus = (id) => {
+    showConfirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của học viên này?', async () => {
+      try {
+        const res = await api.put(`/admin/students/${id}/toggle-status`);
+        if (res.data.status === 'ok') {
+          toast.success(res.data.message);
+          // Update state locally
+          setStudents(prev => prev.map(student => 
+            student.id === id 
+              ? { ...student, is_active: res.data.student.is_active } 
+              : student
+          ));
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Lỗi khi cập nhật trạng thái');
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Lỗi khi cập nhật trạng thái');
-    }
+    });
   };
 
   return (

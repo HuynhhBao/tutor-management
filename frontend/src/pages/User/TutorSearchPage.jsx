@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Search, Filter, GraduationCap, User, Calendar,
-  BookOpen, ChevronRight, X, Clock, MessageSquare, CheckCircle,
+  BookOpen, ChevronRight, X, Clock, MessageSquare, CheckCircle, Star
 } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 
@@ -12,10 +13,21 @@ import BookingModal from '../../components/common/BookingModal';
 /* ─── Main Page ───────────────────────────────────────────── */
 const TutorSearchPage = () => {
   const [tutors, setTutors] = useState([]);
+  const [myBookings, setMyBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [bookingTutor, setBookingTutor] = useState(null); // tutor đang mở modal
+
+  const fetchMyBookings = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/student/bookings`, { credentials: 'include' });
+      const json = await res.json();
+      if (json.status === 'ok') setMyBookings(json.data || []);
+    } catch (err) {
+      console.error('Lỗi khi tải lịch học của tôi:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -31,7 +43,17 @@ const TutorSearchPage = () => {
       }
     };
     fetchTutors();
+    fetchMyBookings();
   }, []);
+
+  const tutorBookingMap = myBookings.reduce((acc, b) => {
+    if (b.status === 'pending' || b.status === 'confirmed') {
+      if (!acc[b.tutor_id] || b.status === 'confirmed') {
+        acc[b.tutor_id] = b;
+      }
+    }
+    return acc;
+  }, {});
 
   const allSubjects = [...new Set(
     tutors.flatMap(t => (t.subjects ? t.subjects.split(',').map(s => s.trim()) : []))
@@ -59,8 +81,11 @@ const TutorSearchPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* AI Matchmaker Section */}
-      <AiMatchmaker />
+        {/* ── Matchmaker AI ── */}
+        <AiMatchmaker 
+          tutorBookingMap={tutorBookingMap} 
+          onBookingSuccess={() => fetchMyBookings()} 
+        />
 
       {/* Header */}
 
@@ -153,9 +178,21 @@ const TutorSearchPage = () => {
                       <div className={`w-14 h-14 ${colorClass} rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0`}>
                         {getInitials(tutor.full_name)}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <p className="font-bold text-slate-900 text-base truncate">{tutor.full_name}</p>
-                        <p className="text-xs text-slate-400 truncate">{tutor.email}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {tutor.rating ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md">
+                              <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                              {tutor.rating} {tutor.review_count ? `(${tutor.review_count})` : ''}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/80 rounded-md">
+                              <Star className="w-3.5 h-3.5 text-slate-400" />
+                              Chưa có đánh giá
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -190,14 +227,48 @@ const TutorSearchPage = () => {
                       </div>
                     )}
 
-                    {/* Nút đặt lịch */}
-                    <button
-                      onClick={() => setBookingTutor(tutor)}
-                      className="mt-auto w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-1.5 group-hover:shadow-sm"
-                    >
-                      Đặt lịch học
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    {/* Học phí theo giờ */}
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-sm mt-1">
+                      <span className="text-slate-500 font-medium">Học phí:</span>
+                      <span className="font-extrabold text-blue-600 bg-blue-50/80 border border-blue-100 px-2.5 py-1 rounded-xl shadow-2xs">100.000đ / giờ</span>
+                    </div>
+
+                    {/* Nút đặt lịch hoặc huy hiệu trạng thái */}
+                    {(() => {
+                      const activeBooking = tutorBookingMap[tutor.id];
+                      if (activeBooking?.status === 'pending') {
+                        return (
+                          <Link
+                            to="/student-dashboard/booking-history"
+                            className="mt-auto w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 border border-amber-200/80 shadow-2xs group-hover:shadow-sm"
+                            title="Bạn có lịch chờ xác nhận với gia sư này. Bấm để chuyển đến Lịch của tôi."
+                          >
+                            <span>⏳ Đang chờ gia sư xác nhận...</span>
+                          </Link>
+                        );
+                      }
+                      if (activeBooking?.status === 'confirmed') {
+                        return (
+                          <Link
+                            to="/student-dashboard/booking-history"
+                            className="mt-auto w-full py-2.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-1.5 border border-emerald-200/80 hover:border-emerald-600 shadow-2xs group-hover:shadow-sm"
+                            title="Gia sư này đã chốt lịch với bạn. Bấm để truy cập Lịch của tôi / Phòng học."
+                          >
+                            <CheckCircle className="w-4 h-4 text-emerald-600 group-hover:text-white" />
+                            <span>🎓 Đang theo học (Đã chốt lịch)</span>
+                          </Link>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={() => setBookingTutor(tutor)}
+                          className="mt-auto w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-1.5 group-hover:shadow-sm"
+                        >
+                          Đặt lịch học
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -211,7 +282,9 @@ const TutorSearchPage = () => {
         <BookingModal
           tutor={bookingTutor}
           onClose={() => setBookingTutor(null)}
-          onSuccess={() => {/* có thể refresh booking list ở đây nếu cần */}}
+          onSuccess={() => {
+            fetchMyBookings();
+          }}
         />
       )}
     </div>

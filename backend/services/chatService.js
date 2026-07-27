@@ -36,7 +36,14 @@ class ChatService {
       query = `
         SELECT DISTINCT ON (t.id) 
           t.id, t.full_name, t.avatar_url, 'tutor' as partner_type,
-          m.content as last_message, m.created_at as last_message_time
+          m.content as last_message, m.created_at as last_message_time,
+          (
+            SELECT COUNT(*) 
+            FROM messages 
+            WHERE sender_id = t.id AND sender_type = 'tutor' 
+              AND receiver_id = $1 AND receiver_type = 'user' 
+              AND is_read = FALSE
+          )::int as unread_count
         FROM tutors t
         JOIN messages m ON (m.sender_id = t.id AND m.sender_type = 'tutor' AND m.receiver_id = $1 AND m.receiver_type = 'user')
                         OR (m.receiver_id = t.id AND m.receiver_type = 'tutor' AND m.sender_id = $1 AND m.sender_type = 'user')
@@ -46,7 +53,14 @@ class ChatService {
       query = `
         SELECT DISTINCT ON (u.id) 
           u.id, u.full_name, u.avatar_url, 'user' as partner_type,
-          m.content as last_message, m.created_at as last_message_time
+          m.content as last_message, m.created_at as last_message_time,
+          (
+            SELECT COUNT(*) 
+            FROM messages 
+            WHERE sender_id = u.id AND sender_type = 'user' 
+              AND receiver_id = $1 AND receiver_type = 'tutor' 
+              AND is_read = FALSE
+          )::int as unread_count
         FROM users u
         JOIN messages m ON (m.sender_id = u.id AND m.sender_type = 'user' AND m.receiver_id = $1 AND m.receiver_type = 'tutor')
                         OR (m.receiver_id = u.id AND m.receiver_type = 'user' AND m.sender_id = $1 AND m.sender_type = 'tutor')
@@ -59,6 +73,14 @@ class ChatService {
     return result.rows.sort((a, b) => 
       new Date(b.last_message_time) - new Date(a.last_message_time)
     );
+  }
+
+  async getTotalUnreadMessages(myId, myType) {
+    const result = await pool.query(
+      `SELECT COUNT(*)::int as total_unread FROM messages WHERE receiver_id = $1 AND receiver_type = $2 AND is_read = FALSE`,
+      [myId, myType]
+    );
+    return result.rows[0]?.total_unread || 0;
   }
 }
 

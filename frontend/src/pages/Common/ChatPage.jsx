@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   Send, 
   Search, 
@@ -15,8 +16,73 @@ import { useAuth } from '../../context/AuthContext';
 
 const API_BASE = 'http://localhost:3001/api';
 
+// Hàm hiển thị định dạng ngày giờ thông minh theo ngữ cảnh (Hôm nay, Hôm qua, Ngày/Tháng - Giờ)
+const formatSmartTime = (timestamp, isShort = false) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (isToday) {
+    return timeStr;
+  }
+  if (isYesterday) {
+    return isShort ? 'Hôm qua' : `Hôm qua lúc ${timeStr}`;
+  }
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  if (year === now.getFullYear()) {
+    return isShort ? `${day}/${month}` : `${day}/${month} - ${timeStr}`;
+  }
+  return isShort ? `${day}/${month}/${year}` : `${day}/${month}/${year} - ${timeStr}`;
+};
+
+const formatDateDivider = (timestamp) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  if (isToday) return `Hôm nay, ${date.getDate()} Tháng ${date.getMonth() + 1}`;
+  if (isYesterday) return `Hôm qua, ${date.getDate()} Tháng ${date.getMonth() + 1}`;
+  return `${date.getDate()} Tháng ${date.getMonth() + 1}, ${date.getFullYear()}`;
+};
+
+const isSameDay = (d1, d2) => {
+  if (!d1 || !d2) return false;
+  const date1 = new Date(d1);
+  const date2 = new Date(d2);
+  return date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear();
+};
+
 const ChatPage = () => {
   const { user } = useAuth();
+  const { partnerId } = useParams();
   const [conversations, setConversations] = useState([]);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -24,6 +90,7 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingMessages, setFetchingMessages] = useState(false);
   const messagesEndRef = useRef(null);
+  const initialScrollDoneRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,6 +118,7 @@ const ChatPage = () => {
       const data = await res.json();
       if (data.status === 'ok') {
         setMessages(data.data);
+        window.dispatchEvent(new CustomEvent('unread_message_update'));
       }
     } catch (err) {
       console.error('fetchMessages error:', err);
@@ -67,7 +135,17 @@ const ChatPage = () => {
   }, [fetchConversations]);
 
   useEffect(() => {
+    if (partnerId && conversations.length > 0) {
+      const target = conversations.find(c => String(c.id) === String(partnerId));
+      if (target && selectedPartner?.id !== target.id) {
+        setSelectedPartner(target);
+      }
+    }
+  }, [partnerId, conversations, selectedPartner?.id]);
+
+  useEffect(() => {
     if (selectedPartner) {
+      initialScrollDoneRef.current = false;
       fetchMessages(selectedPartner.id, selectedPartner.partner_type);
       // Polling tin nhắn mới mỗi 3s
       const interval = setInterval(() => {
@@ -78,7 +156,10 @@ const ChatPage = () => {
   }, [selectedPartner, fetchMessages]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (!initialScrollDoneRef.current && messages.length > 0) {
+      scrollToBottom();
+      initialScrollDoneRef.current = true;
+    }
   }, [messages]);
 
   // 3. Gửi tin nhắn
@@ -104,6 +185,7 @@ const ChatPage = () => {
       if (data.status === 'ok') {
         setMessages(prev => [...prev, data.data]);
         fetchConversations(); // Cập nhật lại danh sách hội thoại để hiện tin nhắn mới nhất
+        setTimeout(() => scrollToBottom(), 50);
       }
     } catch (err) {
       console.error('handleSendMessage error:', err);
@@ -138,7 +220,11 @@ const ChatPage = () => {
               {conversations.map((conv) => (
                 <button
                   key={`${conv.id}-${conv.partner_type}`}
-                  onClick={() => setSelectedPartner(conv)}
+                  onClick={() => {
+                    setSelectedPartner(conv);
+                    setConversations(prev => prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c));
+                    window.dispatchEvent(new CustomEvent('unread_message_update'));
+                  }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${
                     selectedPartner?.id === conv.id 
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-100' 
@@ -166,11 +252,24 @@ const ChatPage = () => {
                       <h4 className={`font-bold truncate ${selectedPartner?.id === conv.id ? 'text-white' : 'text-slate-900'}`}>
                         {conv.full_name}
                       </h4>
-                      <span className={`text-[10px] ${selectedPartner?.id === conv.id ? 'text-blue-100' : 'text-slate-400'}`}>
-                        {new Date(conv.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {conv.unread_count > 0 && selectedPartner?.id !== conv.id && (
+                          <span className="px-2 py-0.5 bg-rose-500 text-white font-extrabold text-[10px] rounded-full min-w-[20px] text-center shadow-md shadow-rose-200 animate-pulse">
+                            {conv.unread_count}
+                          </span>
+                        )}
+                        <span className={`text-[10px] ${selectedPartner?.id === conv.id ? 'text-blue-100 font-semibold' : 'text-slate-500 font-medium'}`}>
+                          {formatSmartTime(conv.last_message_time, true)}
+                        </span>
+                      </div>
                     </div>
-                    <p className={`text-xs truncate ${selectedPartner?.id === conv.id ? 'text-blue-100' : 'text-slate-500'}`}>
+                    <p className={`text-xs truncate ${
+                      selectedPartner?.id === conv.id 
+                        ? 'text-blue-100' 
+                        : conv.unread_count > 0 
+                        ? 'text-slate-900 font-extrabold' 
+                        : 'text-slate-500'
+                    }`}>
                       {conv.last_message}
                     </p>
                   </div>
@@ -243,24 +342,36 @@ const ChatPage = () => {
                     const isMe = msg.sender_id === user.id && 
                                ((user.role === 'user' && msg.sender_type === 'user') || 
                                 (user.role === 'tutor' && msg.sender_type === 'tutor'));
+                    const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                    const showDateDivider = !prevMsg || !isSameDay(prevMsg.created_at, msg.created_at);
+
                     return (
-                      <div key={msg.id || idx} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
-                        <div className={`max-w-[75%] lg:max-w-[60%] ${isMe ? 'order-1' : 'order-2'}`}>
-                          <div className={`px-5 py-3.5 rounded-2xl shadow-sm text-sm leading-relaxed ${
-                            isMe 
-                              ? 'bg-blue-600 text-white rounded-br-none' 
-                              : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
-                          }`}>
-                            {msg.content}
-                          </div>
-                          <div className={`flex items-center gap-1.5 mt-1.5 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <React.Fragment key={msg.id || idx}>
+                        {showDateDivider && (
+                          <div className="flex justify-center my-6">
+                            <span className="px-3.5 py-1 bg-slate-200 text-slate-600 rounded-full text-[11px] font-bold shadow-2xs tracking-tight">
+                              {formatDateDivider(msg.created_at)}
                             </span>
-                            {isMe && <CheckCheck className="h-3 w-3 text-blue-400" />}
+                          </div>
+                        )}
+                        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}>
+                          <div className={`max-w-[75%] lg:max-w-[60%] ${isMe ? 'order-1' : 'order-2'}`}>
+                            <div className={`px-5 py-3.5 rounded-2xl shadow-sm text-sm leading-relaxed ${
+                              isMe 
+                                ? 'bg-blue-600 text-white rounded-br-none' 
+                                : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+                            }`}>
+                              {msg.content}
+                            </div>
+                            <div className={`flex items-center gap-1.5 mt-1.5 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {formatSmartTime(msg.created_at)}
+                              </span>
+                              {isMe && <CheckCheck className="h-3 w-3 text-blue-400" />}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </React.Fragment>
                     );
                   })}
                   <div ref={messagesEndRef} />
