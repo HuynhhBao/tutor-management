@@ -33,7 +33,10 @@ export const SocketProvider = ({ children }) => {
         }
 
         return () => {
-            if (newSocket) newSocket.disconnect();
+            if (newSocket) {
+                newSocket.disconnect();
+                setSocket(null);
+            }
         };
     }, [user]);
 
