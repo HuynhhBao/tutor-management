@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { History, AlertCircle, Calendar, User, XCircle, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient';
+import { useAlert } from '../../context/AlertContext';
 
 const HiringHistoryPage = () => {
+  const { showConfirm, showPrompt } = useAlert();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,43 +27,45 @@ const HiringHistoryPage = () => {
     fetchBookings();
   }, []);
 
-  const handleCancelBooking = async (bookingId) => {
-    if (!window.confirm('Bạn có chắc chắn muốn hủy lịch học này?')) return;
-    try {
-      const res = await apiClient(`/student/bookings/${bookingId}/cancel`, { method: 'PUT' });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || 'Đã hủy lịch thành công');
-        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b));
-      } else {
-        toast.error(data.message || 'Lỗi khi hủy lịch');
+  const handleCancelBooking = (bookingId) => {
+    showConfirm('Bạn có chắc chắn muốn hủy lịch học này?', async () => {
+      try {
+        const res = await apiClient(`/student/bookings/${bookingId}/cancel`, { method: 'PUT' });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success(data.message || 'Đã hủy lịch thành công');
+          setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b));
+        } else {
+          toast.error(data.message || 'Lỗi khi hủy lịch');
+        }
+      } catch (err) {
+        console.error('Lỗi khi hủy lịch:', err);
+        toast.error('Có lỗi xảy ra, vui lòng thử lại');
       }
-    } catch (err) {
-      console.error('Lỗi khi hủy lịch:', err);
-      toast.error('Có lỗi xảy ra, vui lòng thử lại');
-    }
+    });
   };
 
-  const handleDisputeBooking = async (bookingId) => {
-    const reason = window.prompt('Vui lòng nhập lý do khiếu nại:');
-    if (!reason) return;
-    try {
-      const res = await apiClient(`/student/bookings/${bookingId}/dispute`, { 
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || 'Đã gửi khiếu nại thành công');
-        setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'disputed' } : b));
-      } else {
-        toast.error(data.message || 'Lỗi khi gửi khiếu nại');
+  const handleDisputeBooking = (bookingId) => {
+    showPrompt('Vui lòng nhập lý do khiếu nại:', async (reason) => {
+      if (!reason) return;
+      try {
+        const res = await apiClient(`/student/bookings/${bookingId}/dispute`, { 
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast.success(data.message || 'Đã gửi khiếu nại thành công');
+          setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'disputed' } : b));
+        } else {
+          toast.error(data.message || 'Lỗi khi gửi khiếu nại');
+        }
+      } catch (err) {
+        console.error('Lỗi khi gửi khiếu nại:', err);
+        toast.error('Có lỗi xảy ra, vui lòng thử lại');
       }
-    } catch (err) {
-      console.error('Lỗi khi gửi khiếu nại:', err);
-      toast.error('Có lỗi xảy ra, vui lòng thử lại');
-    }
+    });
   };
 
   const getStatusDisplay = (status) => {

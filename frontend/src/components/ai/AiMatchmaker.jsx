@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Search, GraduationCap, Calendar, User, BookOpen, ChevronRight, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Sparkles, Search, GraduationCap, Calendar, User, BookOpen, ChevronRight, RefreshCw, CheckCircle2, Star } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 import BookingModal from '../common/BookingModal';
 
-const AiMatchmaker = ({ onBookingSuccess }) => {
+const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
@@ -12,10 +13,10 @@ const AiMatchmaker = ({ onBookingSuccess }) => {
   const [bookingTutor, setBookingTutor] = useState(null);
 
   const quickPrompts = [
-    { label: '🧮 Gia sư Toán lớp 10 giỏi', text: 'Cần tìm gia sư dạy môn Toán lớp 10 có kinh nghiệm luyện thi học sinh giỏi, kiên nhẫn' },
-    { label: '🇬🇧 Gia sư Tiếng Anh IELTS 7.0+', text: 'Tìm gia sư Nữ dạy Tiếng Anh giao tiếp và ôn thi IELTS target 7.0+' },
-    { label: '🧪 Gia sư Hóa học lớp 12', text: 'Cần gia sư Hóa học lớp 12 ôn thi THPT Quốc Gia cấp tốc' },
-    { label: '💻 Gia sư Lập trình căn bản', text: 'Tìm gia sư dạy Lập trình CNTT cơ bản cho người mới bắt đầu' }
+    { label: 'Gia sư Toán lớp 10 giỏi', text: 'Cần tìm gia sư dạy môn Toán lớp 10 có kinh nghiệm luyện thi học sinh giỏi, kiên nhẫn' },
+    { label: 'Gia sư Tiếng Anh IELTS 7.0+', text: 'Tìm gia sư Nữ dạy Tiếng Anh giao tiếp và ôn thi IELTS target 7.0+' },
+    { label: 'Gia sư Hóa học lớp 12', text: 'Cần gia sư Hóa học lớp 12 ôn thi THPT Quốc Gia cấp tốc' },
+    { label: 'Gia sư Lập trình căn bản', text: 'Tìm gia sư dạy Lập trình CNTT cơ bản cho người mới bắt đầu' }
   ];
 
   const handleSearch = async (textToSearch) => {
@@ -190,7 +191,18 @@ const AiMatchmaker = ({ onBookingSuccess }) => {
                             <h4 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
                               {tutor.full_name}
                             </h4>
-                            <p className="text-xs text-slate-500">{tutor.qualification || 'Gia sư EduMatch'}</p>
+                            <p className="text-xs text-slate-500 mb-1.5">{tutor.qualification || 'Gia sư EduMatch'}</p>
+                            {tutor.rating ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md">
+                                <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                {tutor.rating} {tutor.review_count ? `(${tutor.review_count})` : ''}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/80 rounded-md">
+                                <Star className="w-3 h-3 text-slate-400" />
+                                Chưa có đánh giá
+                              </span>
+                            )}
                           </div>
                         </div>
 
@@ -241,13 +253,39 @@ const AiMatchmaker = ({ onBookingSuccess }) => {
                     </div>
 
                     {/* Action Button */}
-                    <button
-                      onClick={() => setBookingTutor(tutor)}
-                      className="w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
-                    >
-                      <span>Đặt lịch học ngay</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                    {(() => {
+                      const activeBooking = tutorBookingMap[tutor.id];
+                      if (activeBooking?.status === 'pending') {
+                        return (
+                          <Link
+                            to="/student-dashboard/booking-history"
+                            className="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 border border-amber-200/80 shadow-2xs"
+                          >
+                            <span>⏳ Đang chờ gia sư xác nhận...</span>
+                          </Link>
+                        );
+                      }
+                      if (activeBooking?.status === 'confirmed') {
+                        return (
+                          <Link
+                            to="/student-dashboard/booking-history"
+                            className="w-full py-2.5 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 border border-emerald-200/80 hover:border-emerald-600 shadow-2xs group-hover:shadow-sm"
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 group-hover:text-white" />
+                            <span>🎓 Đang theo học (Đã chốt lịch)</span>
+                          </Link>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={() => setBookingTutor(tutor)}
+                          className="w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
+                        >
+                          <span>Đặt lịch học ngay</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      );
+                    })()}
                   </div>
                 );
               })}

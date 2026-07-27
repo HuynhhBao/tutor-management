@@ -5,9 +5,13 @@ import notificationService from './notificationService.js';
 const BOOKING_FEE = 100000;
 
 class BookingService {
-  async createBooking(userId, { tutorId, subject, scheduleTime, message }) {
+  async createBooking(userId, { tutorId, subject, scheduleTime, message, duration = 1, recurringDays = '' }) {
     try {
       await pool.query('BEGIN');
+
+      const hourlyRate = 100000;
+      const parsedDuration = Number(duration) || 1;
+      const totalFee = hourlyRate * parsedDuration;
 
       // Kiểm tra gia sư có tồn tại không
       const tutorCheck = await pool.query('SELECT * FROM tutors WHERE id = $1', [tutorId]);
@@ -18,11 +22,11 @@ class BookingService {
       // Kiểm tra số dư ví
       const userResult = await pool.query('SELECT balance FROM users WHERE id = $1', [userId]);
       const balance = parseFloat(userResult.rows[0]?.balance || 0);
-      if (balance < BOOKING_FEE) {
-        throw new ApiError(400, `Số dư ví không đủ. Cần ít nhất ${BOOKING_FEE.toLocaleString('vi-VN')}đ để đặt lịch. Số dư hiện tại: ${balance.toLocaleString('vi-VN')}đ`);
+      if (balance < totalFee) {
+        throw new ApiError(400, `Số dư ví không đủ. Cần ít nhất ${totalFee.toLocaleString('vi-VN')}đ để đặt lịch (${parsedDuration} giờ). Số dư hiện tại: ${balance.toLocaleString('vi-VN')}đ`);
       }
 
-      // Kiểm tra trùng lịch
+      // Kiểm tra trùng lịch cá nhân (chính học viên đã đặt gia sư này mà chưa duyệt chưa)
       const dupCheck = await pool.query(`
         SELECT id FROM bookings 
         WHERE user_id = $1 AND tutor_id = $2 AND status IN ('pending', 'confirmed')
@@ -31,18 +35,32 @@ class BookingService {
         throw new ApiError(400, 'Bạn đã có lịch đặt đang chờ xác nhận với gia sư này');
       }
 
+      // Kiểm tra xung đột ca dạy của gia sư (Strict Slot Lock - Khóa buồng giờ tuyệt đối)
+      const slotCheck = await pool.query(`
+        SELECT id, status 
+        FROM bookings 
+        WHERE tutor_id = $1 
+          AND status IN ('pending', 'confirmed')
+          AND schedule_time = $2
+      `, [tutorId, scheduleTime]);
+      if (slotCheck.rows.length > 0) {
+        const statusText = slotCheck.rows[0].status === 'confirmed' ? 'đã có lịch dạy (Đã xác nhận)' : 'đang có học viên khác chờ xác nhận';
+        const formattedTime = scheduleTime.replace('T', ' lúc ');
+        throw new ApiError(400, `Khung giờ [${formattedTime}] của gia sư này ${statusText}. Vui lòng chọn thời gian khác!`);
+      }
+
       // Trừ tiền ví học viên
-      await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [BOOKING_FEE, userId]);
+      await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [totalFee, userId]);
       await pool.query(`
         INSERT INTO transactions (user_id, user_type, amount, type, description)
-        VALUES ($1, 'user', $2, 'payment', 'Thanh toán phí đặt lịch gia sư')
-      `, [userId, BOOKING_FEE]);
+        VALUES ($1, 'user', $2, 'payment', $3)
+      `, [userId, totalFee, `Thanh toán phí đặt lịch gia sư (${parsedDuration} giờ)`]);
 
       // Tạo booking
       const result = await pool.query(`
-        INSERT INTO bookings (user_id, tutor_id, subject, schedule_time, message, status)
-        VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING *
-      `, [userId, tutorId, subject, scheduleTime, message || '']);
+        INSERT INTO bookings (user_id, tutor_id, subject, schedule_time, message, status, total_fee, duration, recurring_days)
+        VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8) RETURNING *
+      `, [userId, tutorId, subject, scheduleTime, message || '', totalFee, parsedDuration, recurringDays || '']);
 
       await pool.query('COMMIT');
       
@@ -59,7 +77,7 @@ class BookingService {
   async getStudentBookings(userId, status) {
     let query = `
       SELECT 
-        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at,
+        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at, b.total_fee, b.duration, b.recurring_days,
         t.id AS tutor_id,
         t.full_name AS tutor_name,
         t.email AS tutor_email,
@@ -113,11 +131,12 @@ class BookingService {
       }
 
       // Hủy khi đang chờ xác nhận: Hoàn tiền 100%
-      await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [BOOKING_FEE, userId]);
+      const refundAmount = parseFloat(booking.total_fee || BOOKING_FEE);
+      await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [refundAmount, userId]);
       await pool.query(`
         INSERT INTO transactions (user_id, user_type, amount, type, description)
         VALUES ($1, 'user', $2, 'deposit', 'Hoàn tiền do học viên hủy lịch')
-      `, [userId, BOOKING_FEE]);
+      `, [userId, refundAmount]);
 
       await pool.query('COMMIT');
       await notificationService.sendNotification(booking.tutor_id, 'tutor', 'Hủy lịch học', 'Học viên đã hủy lịch học chờ xác nhận với bạn.');
@@ -131,7 +150,7 @@ class BookingService {
   async getAllBookings(status, search) {
     let query = `
       SELECT 
-        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at,
+        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at, b.total_fee, b.duration, b.recurring_days,
         u.full_name AS student_name, u.email AS student_email, u.phone_number AS student_phone, u.avatar_url AS student_avatar,
         t.full_name AS tutor_name, t.email AS tutor_email, t.avatar_url AS tutor_avatar
       FROM bookings b
@@ -190,11 +209,12 @@ class BookingService {
       await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', id]);
 
       if (booking.status === 'pending' || booking.status === 'confirmed') {
-        await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [BOOKING_FEE, booking.user_id]);
+        const adminRefundAmount = parseFloat(booking.total_fee || BOOKING_FEE);
+        await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [adminRefundAmount, booking.user_id]);
         await pool.query(`
           INSERT INTO transactions (user_id, user_type, amount, type, description)
           VALUES ($1, 'user', $2, 'deposit', 'Hoàn tiền do Admin hủy lịch')
-        `, [booking.user_id, BOOKING_FEE]);
+        `, [booking.user_id, adminRefundAmount]);
       }
 
       await pool.query('COMMIT');
@@ -208,7 +228,7 @@ class BookingService {
   async getTutorBookings(tutorId, status) {
     let query = `
       SELECT
-        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at,
+        b.id, b.subject, b.schedule_time, b.message, b.status, b.created_at, b.total_fee, b.duration, b.recurring_days,
         u.full_name AS student_name, u.email AS student_email, u.phone_number AS student_phone
       FROM bookings b
       JOIN users u ON b.user_id = u.id
@@ -284,7 +304,12 @@ class BookingService {
       [tutorId, check.rows[0].user_id, autoMsg]
     );
 
-    await notificationService.sendNotification(check.rows[0].user_id, 'user', 'Lớp học hoàn thành', 'Gia sư đã đánh dấu hoàn thành lớp học.');
+    await notificationService.sendNotification(
+      check.rows[0].user_id, 
+      'user', 
+      '🎓 Hoàn thành Buổi 1 & Gia hạn', 
+      `Gia sư đã xác nhận hoàn thành ca học môn ${check.rows[0].subject}. Hãy vào mục "Lịch của tôi" để tiếp tục gia hạn hoặc đăng ký chặng học mới nhằm bảo lưu khung giờ của bạn nhé!`
+    );
 
     return 'Đã hoàn thành lớp học thành công!';
   }

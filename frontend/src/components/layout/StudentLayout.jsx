@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarPlus, CalendarCheck } from 'lucide-react';
+import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarCheck } from 'lucide-react';
 import AIAssistantWidget from '../common/AIAssistantWidget';
 import NotificationBell from './NotificationBell';
 
@@ -11,14 +11,42 @@ const StudentLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  React.useEffect(() => {
+    const fetchUnreadChat = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/chat/unread-count', { credentials: 'include' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status === 'ok') {
+            const count = json.data?.total_unread !== undefined ? json.data.total_unread : json.total_unread;
+            setUnreadChatCount(count || 0);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching unread chat count:', err);
+      }
+    };
+    fetchUnreadChat();
+    const interval = setInterval(fetchUnreadChat, 5000);
+    window.addEventListener('unread_message_update', fetchUnreadChat);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('unread_message_update', fetchUnreadChat);
+    };
+  }, []);
 
   const handleLogout = React.useCallback(async () => {
     await logout();
     navigate('/', { replace: true });
   }, [logout, navigate]);
 
-  // Handle browser back button to confirm logout
+  // Handle browser back button to confirm logout ONLY on root dashboard
   React.useEffect(() => {
+    const isRootDashboard = location.pathname === '/student-dashboard' || location.pathname === '/student-dashboard/';
+    if (!isRootDashboard) return;
+
     const lockHistory = () => {
       // Use a hash to force the browser to treat this as a real navigation point
       const lockedUrl = globalThis.location.pathname + '#dashboard';
@@ -53,13 +81,11 @@ const StudentLayout = () => {
   const primaryNavItems = [
     { path: '/student-dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { path: '/student-dashboard/search', label: 'Tìm gia sư', icon: Search },
-    { path: '/student-dashboard/booking', label: 'Đặt lịch', icon: CalendarPlus },
     { path: '/student-dashboard/booking-history', label: 'Lịch của tôi', icon: CalendarCheck },
-    { path: '/student-dashboard/history', label: 'Lịch sử thuê', icon: History },
+    { path: '/student-dashboard/wallet', label: 'Ví tiền', icon: Wallet },
   ];
 
   const secondaryNavItems = [
-    { path: '/student-dashboard/wallet', label: 'Ví tiền', icon: Wallet },
     { path: '/student-dashboard/chat', label: 'Trò chuyện', icon: MessageSquare },
     { path: '/student-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
@@ -78,11 +104,11 @@ const StudentLayout = () => {
       {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between gap-4">
-            {/* Logo Row (Left) */}
-            <div className="flex items-center flex-shrink-0 h-16">
+          <div className="flex justify-between items-center gap-4 py-2 min-h-[4rem]">
+            {/* Left side: Logo & Desktop Menu */}
+            <div className="flex items-center flex-1 overflow-x-auto">
               <button 
-                className="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-4" 
+                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-4 mr-4 py-1" 
                 onClick={() => navigate('/student-dashboard')}
                 aria-label="EduMatch Dashboard"
               >
@@ -92,13 +118,10 @@ const StudentLayout = () => {
                   Học viên
                 </span>
               </button>
-            </div>
 
-            {/* Middle Column: Primary (Row 1) and Secondary (Row 2) Menus */}
-            <div className="hidden lg:flex flex-col flex-1">
-              {/* Top Row: Primary Menu */}
-              <div className="flex items-center h-16 space-x-1">
-                {primaryNavItems.map((item) => {
+              {/* Desktop Menu - Single Row */}
+              <div className="hidden lg:flex items-center space-x-1 flex-wrap gap-y-1">
+                {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
                   const btnClass = `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
@@ -114,31 +137,14 @@ const StudentLayout = () => {
                       className={btnClass}
                     >
                       <Icon className={iconClass} />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Bottom Row: Secondary Menu (Aligned with Primary) */}
-              <div className="flex items-center space-x-1 pb-2">
-                {secondaryNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.path;
-                  const btnClass = `inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                    isActive 
-                      ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`;
-                  const iconClass = `mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
-                  return (
-                    <button
-                      key={item.path}
-                      onClick={() => navigate(item.path)}
-                      className={btnClass}
-                    >
-                      <Icon className={iconClass} />
-                      {item.label}
+                      <span className="flex items-center gap-1.5">
+                        <span>{item.label}</span>
+                        {item.path === '/student-dashboard/chat' && unreadChatCount > 0 && (
+                          <span className="px-1.5 py-0.5 bg-rose-500 text-white font-extrabold text-[10px] rounded-full min-w-[18px] text-center shadow-xs">
+                            {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                          </span>
+                        )}
+                      </span>
                     </button>
                   );
                 })}
@@ -146,7 +152,7 @@ const StudentLayout = () => {
             </div>
 
             {/* Right side Row: Notifications & Profile & Logout */}
-            <div className="flex items-center gap-4 flex-shrink-0 h-16">
+            <div className="flex items-center gap-4 flex-shrink-0">
               {/* Actions (Desktop only) */}
               <div className="hidden sm:flex items-center gap-4">
                 <NotificationBell />
@@ -204,11 +210,10 @@ const StudentLayout = () => {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
-                const btnClass = `flex items-center w-full pl-3 pr-4 py-3 text-base font-medium border-l-4 ${
-                  isActive
+                const btnClass = `flex items-center w-full pl-3 pr-4 py-3 text-base font-medium border-l-4 ${isActive
                     ? 'bg-blue-100 border-blue-500 text-blue-700'
                     : 'border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'
-                }`;
+                  }`;
                 const iconClass = `mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`;
                 return (
                   <button
@@ -220,7 +225,14 @@ const StudentLayout = () => {
                     className={btnClass}
                   >
                     <Icon className={iconClass} />
-                    {item.label}
+                    <span className="flex items-center gap-2">
+                      <span>{item.label}</span>
+                      {item.path === '/student-dashboard/chat' && unreadChatCount > 0 && (
+                        <span className="px-2 py-0.5 bg-rose-500 text-white font-extrabold text-xs rounded-full shadow-xs animate-pulse">
+                          {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                        </span>
+                      )}
+                    </span>
                   </button>
                 );
               })}
@@ -268,13 +280,13 @@ const StudentLayout = () => {
               Bạn có chắc chắn muốn đăng xuất khỏi hệ thống và quay về trang chủ không?
             </p>
             <div className="flex flex-col gap-3">
-              <button 
+              <button
                 onClick={handleLogout}
                 className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
               >
                 Đăng xuất ngay
               </button>
-              <button 
+              <button
                 onClick={() => setShowLogoutModal(false)}
                 className="w-full py-4 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
               >

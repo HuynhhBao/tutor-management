@@ -20,9 +20,7 @@ import TutorDashboard from './pages/Tutor/TutorDashboard';
 import StudentLayout from './components/layout/StudentLayout';
 import StudentDashboard from './pages/User/StudentDashboard';
 import TutorSearchPage from './pages/User/TutorSearchPage';
-import HiringHistoryPage from './pages/User/HiringHistoryPage';
 import WalletPage from './pages/User/WalletPage';
-import BookingPage from './pages/User/BookingPage';
 import BookingHistoryPage from './pages/User/BookingHistoryPage';
 import ChatPage from './pages/Common/ChatPage';
 import CvViewerPage from './pages/Admin/CvViewerPage';
@@ -130,6 +128,7 @@ function App() {
             <Route index element={<TutorDashboard />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="chat" element={<ChatPage />} />
+            <Route path="chat/:partnerId" element={<ChatPage />} />
             <Route path="my-classes" element={<MyClassesPage />} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
@@ -145,11 +144,12 @@ function App() {
           >
             <Route index element={<StudentDashboard />} />
             <Route path="search" element={<TutorSearchPage />} />
-            <Route path="booking" element={<BookingPage />} />
+            <Route path="booking" element={<Navigate to="/student-dashboard/search" replace />} />
             <Route path="booking-history" element={<BookingHistoryPage />} />
-            <Route path="history" element={<HiringHistoryPage />} />
+            <Route path="history" element={<Navigate to="/student-dashboard/booking-history" replace />} />
             <Route path="wallet" element={<WalletPage />} />
             <Route path="chat" element={<ChatPage />} />
+            <Route path="chat/:partnerId" element={<ChatPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/student-dashboard" replace />} />
           </Route>

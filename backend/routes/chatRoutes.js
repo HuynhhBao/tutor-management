@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendMessage, getMessages, getConversations } from '../controllers/chatController.js';
+import { sendMessage, getMessages, getConversations, getTotalUnreadMessages } from '../controllers/chatController.js';
 import validate from '../middlewares/validate.js';
 import { sendMessageSchema } from '../validations/chatValidation.js';
 import { verifyUser, verifyTutor } from '../middlewares/authMiddleware.js';
@@ -40,5 +40,6 @@ router.use(verifyAuthAny);
 router.post('/send', validate(sendMessageSchema), sendMessage);
 router.get('/messages/:partnerId/:partnerType', getMessages);
 router.get('/conversations', getConversations);
+router.get('/unread-count', getTotalUnreadMessages);
 
 export default router;

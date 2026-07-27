@@ -10,6 +10,8 @@ export const createBookingSchema = Joi.object({
   scheduleTime: Joi.string().required().messages({
     'any.required': 'Vui lòng chọn thời gian',
   }),
+  duration: Joi.number().optional().default(1),
+  recurringDays: Joi.string().allow('', null).optional(),
   message: Joi.string().allow('', null),
 });
 

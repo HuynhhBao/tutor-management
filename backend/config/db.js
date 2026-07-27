@@ -216,6 +216,15 @@ export const initDb = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='admin_note') THEN
           ALTER TABLE bookings ADD COLUMN admin_note TEXT;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='total_fee') THEN
+          ALTER TABLE bookings ADD COLUMN total_fee DECIMAL(12,2) DEFAULT 100000.0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='duration') THEN
+          ALTER TABLE bookings ADD COLUMN duration DECIMAL(3,1) DEFAULT 1.0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bookings' AND column_name='recurring_days') THEN
+          ALTER TABLE bookings ADD COLUMN recurring_days VARCHAR(255) DEFAULT '';
+        END IF;
       END
       $$;
     `);
