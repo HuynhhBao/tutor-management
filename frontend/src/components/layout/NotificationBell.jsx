@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle2, Clock, Check, BellOff, ExternalLink, Loader2, Sparkles } from 'lucide-react';
+import { Bell, CheckCircle2, Clock, Check, BellOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -142,6 +142,62 @@ export default function NotificationBell() {
         return date.toLocaleDateString('vi-VN');
     };
 
+    const renderNotificationList = () => {
+        if (loading && notifications.length === 0) {
+            return (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary-500 mb-2" />
+                    <p className="text-xs font-semibold">Đang tải thông báo...</p>
+                </div>
+            );
+        }
+        if (notifications.length === 0) {
+            return (
+                <div className="py-12 px-6 flex flex-col items-center justify-center text-center text-slate-500">
+                    <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3 shadow-inner">
+                        <BellOff className="w-7 h-7" />
+                    </div>
+                    <p className="font-bold text-slate-700 mb-1">Hộp thư thông báo trống!</p>
+                    <p className="text-xs text-slate-500">Khi có hoạt động mới về lịch học hoặc cập nhật, hệ thống sẽ thông báo tại đây.</p>
+                </div>
+            );
+        }
+        return notifications.map((notif) => (
+            <button
+                type="button"
+                key={notif.id}
+                onClick={() => handleNotificationClick(notif)}
+                className={`w-full text-left p-4 transition-all cursor-pointer hover:bg-slate-100/80 flex items-start space-x-3.5 ${
+                    !notif.is_read 
+                        ? 'bg-blue-50/70 border-l-4 border-l-blue-500' 
+                        : 'bg-white opacity-80 hover:opacity-100'
+                }`}
+            >
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                        <p className={`text-sm truncate pr-2 ${!notif.is_read ? 'font-extrabold text-blue-950' : 'font-semibold text-slate-700'}`}>
+                            {notif.title}
+                        </p>
+                        <span className="text-[11px] font-semibold text-slate-400 flex items-center flex-shrink-0 gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {formatRelativeTime(notif.created_at)}
+                        </span>
+                    </div>
+                    <p className={`text-xs leading-relaxed line-clamp-2 ${!notif.is_read ? 'text-slate-700 font-medium' : 'text-slate-500'}`}>
+                        {notif.message}
+                    </p>
+                </div>
+                <div className="flex-shrink-0 self-center">
+                    {!notif.is_read ? (
+                        <span className="w-2.5 h-2.5 bg-blue-600 rounded-full block shadow-sm shadow-blue-500/50"></span>
+                    ) : (
+                        <Check className="w-4 h-4 text-slate-300" />
+                    )}
+                </div>
+            </button>
+        ));
+    };
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button 
@@ -186,54 +242,7 @@ export default function NotificationBell() {
 
                     {/* Content List */}
                     <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-100 bg-slate-50/50">
-                        {loading && notifications.length === 0 ? (
-                            <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-                                <Loader2 className="w-8 h-8 animate-spin text-primary-500 mb-2" />
-                                <p className="text-xs font-semibold">Đang tải thông báo...</p>
-                            </div>
-                        ) : notifications.length === 0 ? (
-                            <div className="py-12 px-6 flex flex-col items-center justify-center text-center text-slate-500">
-                                <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mb-3 shadow-inner">
-                                    <BellOff className="w-7 h-7" />
-                                </div>
-                                <p className="font-bold text-slate-700 mb-1">Hộp thư thông báo trống!</p>
-                                <p className="text-xs text-slate-500">Khi có hoạt động mới về lịch học hoặc cập nhật, hệ thống sẽ thông báo tại đây.</p>
-                            </div>
-                        ) : (
-                            notifications.map((notif) => (
-                                <div
-                                    key={notif.id}
-                                    onClick={() => handleNotificationClick(notif)}
-                                    className={`p-4 transition-all cursor-pointer hover:bg-slate-100/80 flex items-start space-x-3.5 ${
-                                        !notif.is_read 
-                                            ? 'bg-blue-50/70 border-l-4 border-l-blue-500' 
-                                            : 'bg-white opacity-80 hover:opacity-100'
-                                    }`}
-                                >
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <p className={`text-sm truncate pr-2 ${!notif.is_read ? 'font-extrabold text-blue-950' : 'font-semibold text-slate-700'}`}>
-                                                {notif.title}
-                                            </p>
-                                            <span className="text-[11px] font-semibold text-slate-400 flex items-center flex-shrink-0 gap-1">
-                                                <Clock className="w-3 h-3 text-slate-400" />
-                                                {formatRelativeTime(notif.created_at)}
-                                            </span>
-                                        </div>
-                                        <p className={`text-xs leading-relaxed line-clamp-2 ${!notif.is_read ? 'text-slate-700 font-medium' : 'text-slate-500'}`}>
-                                            {notif.message}
-                                        </p>
-                                    </div>
-                                    <div className="flex-shrink-0 self-center">
-                                        {!notif.is_read ? (
-                                            <span className="w-2.5 h-2.5 bg-blue-600 rounded-full block shadow-sm shadow-blue-500/50"></span>
-                                        ) : (
-                                            <Check className="w-4 h-4 text-slate-300" />
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                        {renderNotificationList()}
                     </div>
                 </div>
             )}

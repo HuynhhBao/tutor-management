@@ -8,7 +8,6 @@ import {
   CalendarDays, 
   Wallet,
   LogOut,
-  Bell,
   Menu,
   X,
   ShieldCheck,

@@ -60,9 +60,6 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
     }
   };
 
-  const getInitials = (name = '') =>
-    name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
-
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">

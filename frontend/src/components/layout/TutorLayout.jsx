@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, BookOpen, User, Menu, X, Bell, CalendarCheck, MessageSquare } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, User, Menu, X, MessageSquare } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { getAvatarUrl } from '../../utils/avatar';
 
@@ -11,7 +11,6 @@ const TutorLayout = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   // Poll số tin nhắn chưa đọc và booking pending
@@ -39,21 +38,6 @@ const TutorLayout = () => {
     };
   }, []);
 
-  // Poll số yêu cầu pending mỗi 30 giây
-  React.useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const res = await fetch('http://localhost:3001/api/tutor/bookings/unread-count', { credentials: 'include' });
-        const json = await res.json();
-        if (json.status === 'ok') setPendingCount(json.count);
-      } catch (error) {
-        console.error('Error fetching unread count:', error);
-      }
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleLogout = React.useCallback(async () => {
     await logout();

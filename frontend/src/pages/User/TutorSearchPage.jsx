@@ -79,10 +79,6 @@ const TutorSearchPage = () => {
     return matchSearch && matchSubject && matchGrade;
   });
 
-  const getInitials = (name = '') =>
-    name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
-
-
   return (
     <div className="space-y-6">
         {/* ── Matchmaker AI ── */}
@@ -117,8 +113,9 @@ const TutorSearchPage = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Môn học</label>
+                <label htmlFor="filter-subject" className="block text-sm font-medium text-slate-700 mb-1">Môn học</label>
                 <select
+                  id="filter-subject"
                   value={selectedSubject}
                   onChange={e => setSelectedSubject(e.target.value)}
                   className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm"
@@ -130,8 +127,9 @@ const TutorSearchPage = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Khối lớp giảng dạy</label>
+                <label htmlFor="filter-grade" className="block text-sm font-medium text-slate-700 mb-1">Khối lớp giảng dạy</label>
                 <select
+                  id="filter-grade"
                   value={selectedGrade}
                   onChange={e => setSelectedGrade(e.target.value)}
                   className="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm"
