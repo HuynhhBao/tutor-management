@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 
 export default function NotificationBell() {
-    const socket = useSocket();
+    const { socket } = useSocket() || {};
     const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
