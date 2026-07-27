@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarCheck } from 'lucide-react';
 import AIAssistantWidget from '../common/AIAssistantWidget';
 import NotificationBell from './NotificationBell';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const StudentLayout = () => {
   const { user, logout } = useAuth();
@@ -92,44 +93,36 @@ const StudentLayout = () => {
 
   const navItems = [...primaryNavItems, ...secondaryNavItems];
 
-  let avatarSrc = null;
-  if (user?.avatarUrl) {
-    avatarSrc = user.avatarUrl.startsWith('data:image/')
-      ? user.avatarUrl
-      : `http://localhost:3001${user.avatarUrl}`;
-  }
+  const avatarSrc = getAvatarUrl(user?.avatarUrl, user?.fullName || user?.username || 'Học viên', 'user');
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
       {/* Top Navigation Bar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center gap-4 py-2 min-h-[4rem]">
+          <div className="flex justify-between items-center gap-2 py-2 min-h-[4rem]">
             {/* Left side: Logo & Desktop Menu */}
             <div className="flex items-center flex-1 overflow-x-auto">
               <button 
-                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-4 mr-4 py-1" 
+                className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-2 mr-2 py-1" 
                 onClick={() => navigate('/student-dashboard')}
                 aria-label="EduMatch Dashboard"
               >
                 <GraduationCap className="h-8 w-8 text-blue-600" />
-                <span className="ml-2 text-xl font-bold text-slate-900 hidden sm:block">EduMatch</span>
-                <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider hidden xl:block">
-                  Học viên
-                </span>
+                <span className="ml-1.5 text-xl font-bold text-slate-900 hidden sm:block">EduMatch</span>
               </button>
 
               {/* Desktop Menu - Single Row */}
-              <div className="hidden lg:flex items-center space-x-1 flex-wrap gap-y-1">
+              <div className="hidden lg:flex items-center space-x-0.5 flex-wrap gap-y-1">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
-                  const btnClass = `inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  const btnClass = `inline-flex items-center px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                     isActive 
                       ? 'bg-blue-50 text-blue-700 shadow-sm' 
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`;
-                  const iconClass = `mr-2 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
+                  const iconClass = `mr-1.5 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
                   return (
                     <button
                       key={item.path}
@@ -158,19 +151,15 @@ const StudentLayout = () => {
                 <NotificationBell />
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden lg:block">
-                    <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.fullName || user?.username || 'Học viên'}</p>
-                    <p className="text-xs text-slate-500">{user?.email || 'Học viên'}</p>
+                    <span className="text-[11px] text-slate-500 block leading-tight uppercase font-bold tracking-wider">Học viên</span>
+                    <span className="text-sm font-bold text-slate-900">{user?.fullName || user?.username || 'Học viên'}</span>
                   </div>
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                    {avatarSrc ? (
-                      <img 
-                        src={avatarSrc} 
-                        alt="Avatar" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (user?.fullName || user?.username || 'H').charAt(0)
-                    )}
+                    <img 
+                      src={avatarSrc} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 </div>
 
@@ -240,13 +229,17 @@ const StudentLayout = () => {
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase">
-                    {(user?.fullName || user?.username || 'H').charAt(0)}
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold uppercase overflow-hidden">
+                    <img 
+                      src={avatarSrc} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 </div>
                 <div className="ml-3">
-                  <div className="text-base font-medium text-slate-800">{user?.fullName || user?.username}</div>
-                  <div className="text-sm font-medium text-slate-500">{user?.email || 'Học viên'}</div>
+                  <div className="text-base font-bold text-slate-900">{user?.fullName || user?.username || 'Học viên'}</div>
+                  <div className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Học viên</div>
                 </div>
               </div>
               <div className="mt-3 space-y-1">

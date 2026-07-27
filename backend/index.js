@@ -20,6 +20,7 @@ import tutorBookingsRoutes from './routes/tutorBookings.js';
 import walletRoutes from './routes/wallet.js';
 import chatRoutes from './routes/chatRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -74,6 +75,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/ai-chat', aiRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/class-session', classSessionRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.get('/', (req, res) => {

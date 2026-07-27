@@ -143,7 +143,7 @@ Dưới đây là lịch sử cuộc trò chuyện gần đây giữa bạn và 
         if (vector && Array.isArray(vector)) {
           try {
             const query = `
-              SELECT id, full_name, email, gender, age, subjects, qualification, rating, avatar_url,
+              SELECT id, full_name, email, gender, age, subjects, qualification, rating, avatar_url, grade_levels,
                      1 - (profile_embedding <=> $1::vector) as similarity
               FROM tutors
               ORDER BY profile_embedding <=> $1::vector
@@ -187,10 +187,11 @@ ${JSON.stringify(tutors.map(t => ({
   age: t.age,
   subjects: t.subjects,
   qualification: t.qualification,
-  rating: t.rating
+  rating: t.rating,
+  grade_levels: t.grade_levels
 })))}
 
-Nhiệm vụ: Phân tích nhu cầu của học viên (bao gồm các tiêu chí: tuổi, giới tính, môn học, trình độ, kinh nghiệm...). Hãy chọn ra top tối đa 4 gia sư phù hợp nhất.
+Nhiệm vụ: Phân tích nhu cầu của học viên (bao gồm các tiêu chí: tuổi, giới tính, môn học, trình độ lớp học / khối lớp mong muốn, kinh nghiệm...). Hãy chọn ra top tối đa 4 gia sư phù hợp nhất.
 Trả về định dạng JSON array chuẩn chứa danh sách gia sư phù hợp, cấu trúc mỗi phần tử:
 [
   {
@@ -289,6 +290,19 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
 
     const matchedSubjectObj = subjectList.find(s => s.regex.test(searchBody));
 
+    // Nhận diện khối lớp mong muốn (Lớp 6 đến Lớp 12 & Ôn thi đại học)
+    const gradeList = [
+      { key: 'lớp 6', norm: 'lop 6', regex: /\blop\s*6\b/i },
+      { key: 'lớp 7', norm: 'lop 7', regex: /\blop\s*7\b/i },
+      { key: 'lớp 8', norm: 'lop 8', regex: /\blop\s*8\b/i },
+      { key: 'lớp 9', norm: 'lop 9', regex: /\blop\s*9\b/i },
+      { key: 'lớp 10', norm: 'lop 10', regex: /\blop\s*10\b/i },
+      { key: 'lớp 11', norm: 'lop 11', regex: /\blop\s*11\b/i },
+      { key: 'lớp 12', norm: 'lop 12', regex: /\blop\s*12\b/i },
+      { key: 'ôn thi đại học', norm: 'on thi dai hoc', regex: /\bon\s*(?:thi\s*)?(?:dai\s*hoc|dh|thpt)\b|\bdai\s*hoc\b/i }
+    ];
+    const matchedGradeObj = gradeList.find(g => g.regex.test(normPrompt) || lowerPrompt.includes(g.key));
+
     // Tách các từ trong câu tìm kiếm để kiểm tra tên gia sư (Ví dụ: "tên Huy", "Bảo Huy", "HB", "tìm Huy")
     const searchTokens = searchBody
       .replace(/\bten\b/g, '')
@@ -309,10 +323,11 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
     const scored = tutors.map((t) => {
       const subjectsStr = (t.subjects || '').toLowerCase();
       const normSubjectsStr = removeAccents(subjectsStr);
+      const gradesStr = (t.grade_levels || '').toLowerCase();
+      const normGradesStr = removeAccents(gradesStr);
       const normTutorName = removeAccents(t.full_name || '');
       const tutorNameTokens = normTutorName.split(/\s+/).filter(w => w.length >= 1);
       const tutorAge = parseInt(t.age) || 25;
-
 
       let isThisTutorNameMatched = false;
       searchTokens.forEach(st => {
@@ -327,6 +342,11 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
                           normSubjectsStr.includes(matchedSubjectObj.norm) ||
                           matchedSubjectObj.regex.test(normSubjectsStr) ||
                           (matchedSubjectObj.norm === 'toan' && normSubjectsStr.includes('tooan'));
+      }
+
+      let hasGradeMatch = false;
+      if (matchedGradeObj) {
+        hasGradeMatch = gradesStr.includes(matchedGradeObj.key) || normGradesStr.includes(matchedGradeObj.norm);
       }
 
       // Điểm cơ sở
@@ -388,14 +408,26 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
       if ((lowerPrompt.includes('nữ') || normPrompt.includes('nu')) && (t.gender || '').toLowerCase() === 'nữ') score += 6;
       if (lowerPrompt.includes('nam') && (t.gender || '').toLowerCase() === 'nam') score += 6;
 
+      // Kiểm tra Khối lớp
+      if (matchedGradeObj) {
+        if (hasGradeMatch) {
+          score += 20;
+        } else if (gradesStr) {
+          score -= 15;
+        }
+      }
+
       const finalScore = Math.min(Math.max(Math.round(score), 50), 98);
-      const matchedSubjectText = t.subjects ? `chuyên dạy ${t.subjects}` : 'trình độ chuyên môn cao';
+      const matchedGradeText = t.grade_levels ? `dạy ${t.grade_levels}` : '';
+      const matchedSubjectText = [t.subjects ? `chuyên dạy ${t.subjects}` : '', matchedGradeText].filter(Boolean).join(' - ') || 'trình độ chuyên môn cao';
 
       let reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} (${t.age ? `${t.age} tuổi` : ''}, ${t.qualification || 'Kinh nghiệm'}), ${matchedSubjectText}.`;
       if (isThisTutorNameMatched) {
         reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} khớp chính xác từ khóa tên bạn đang tìm kiếm.`;
       } else if (isAnyTutorNameMatched && !isThisTutorNameMatched) {
         reason = `Độ tương thích ${finalScore}%: Gia sư ${t.full_name} (${matchedSubjectText}) khác tên với từ khóa bạn tìm kiếm.`;
+      } else if (matchedGradeObj && hasGradeMatch && matchedSubjectObj && hasSubjectMatch) {
+        reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} hoàn toàn khớp chuyên môn môn ${matchedSubjectObj.key.toUpperCase()} và khối ${matchedGradeObj.key.toUpperCase()}!`;
       } else if (targetExactAge && ageMatchText) {
         reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} (${ageMatchText}), ${matchedSubjectText}.`;
       } else if (matchedSubjectObj && hasSubjectMatch) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, Eye, EyeOff, Camera, X } from 'lucide-react';
+import { User, Lock, Mail, CheckCircle2, AlertCircle, Save, Loader2, Phone, Eye, EyeOff, Camera, X, GraduationCap } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import PropTypes from 'prop-types';
 import { useAuth } from '../../context/AuthContext';
@@ -67,7 +67,7 @@ AvatarSection.propTypes = {
   loading: PropTypes.bool
 };
 
-const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNumber, loading, onSubmit, onAvatarChange }) => (
+const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNumber, currentGrade, setCurrentGrade, gradeLevels, setGradeLevels, loading, onSubmit, onAvatarChange }) => (
   <div className="space-y-8">
     <AvatarSection user={user} onAvatarChange={onAvatarChange} loading={loading} />
     
@@ -121,6 +121,63 @@ const ProfileInfoForm = ({ user, fullName, setFullName, phoneNumber, setPhoneNum
             />
           </div>
         </div>
+
+        {user?.role === 'tutor' ? (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Khối lớp giảng dạy (Chọn các khối lớp bạn nhận dạy)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-50 border border-gray-200 rounded-xl">
+              {['Lớp 6', 'Lớp 7', 'Lớp 8', 'Lớp 9', 'Lớp 10', 'Lớp 11', 'Lớp 12', 'Ôn thi Đại học'].map((grade) => {
+                const currentGrades = gradeLevels ? gradeLevels.split(',').map(g => g.trim()).filter(Boolean) : [];
+                const isChecked = currentGrades.includes(grade);
+                const toggleGrade = (e) => {
+                  let nextGrades = [...currentGrades];
+                  if (e.target.checked) {
+                    if (!nextGrades.includes(grade)) nextGrades.push(grade);
+                  } else {
+                    nextGrades = nextGrades.filter(g => g !== grade);
+                  }
+                  setGradeLevels(nextGrades.join(', '));
+                };
+                return (
+                  <label key={grade} className="flex items-center space-x-2 text-sm text-slate-700 cursor-pointer hover:text-primary-600 font-bold bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={toggleGrade}
+                      className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
+                    />
+                    <span>{grade}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <label htmlFor="current-grade-input" className="block text-sm font-medium text-gray-700 mb-2">Trình độ / Khối lớp hiện tại</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <GraduationCap className="h-5 w-5 text-gray-400" />
+              </div>
+              <select
+                id="current-grade-input"
+                value={currentGrade || ''}
+                onChange={(e) => setCurrentGrade(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all bg-white"
+              >
+                <option value="">-- Chưa chọn Khối lớp --</option>
+                <option value="Lớp 6">Lớp 6</option>
+                <option value="Lớp 7">Lớp 7</option>
+                <option value="Lớp 8">Lớp 8</option>
+                <option value="Lớp 9">Lớp 9</option>
+                <option value="Lớp 10">Lớp 10</option>
+                <option value="Lớp 11">Lớp 11</option>
+                <option value="Lớp 12">Lớp 12</option>
+                <option value="Ôn thi Đại học">Ôn thi Đại học</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex justify-end pt-4">
@@ -145,6 +202,10 @@ ProfileInfoForm.propTypes = {
   setFullName: PropTypes.func.isRequired,
   phoneNumber: PropTypes.string,
   setPhoneNumber: PropTypes.func.isRequired,
+  currentGrade: PropTypes.string,
+  setCurrentGrade: PropTypes.func.isRequired,
+  gradeLevels: PropTypes.string,
+  setGradeLevels: PropTypes.func,
   loading: PropTypes.bool,
   onSubmit: PropTypes.func.isRequired,
   onAvatarChange: PropTypes.func.isRequired
@@ -267,6 +328,8 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [currentGrade, setCurrentGrade] = useState(user?.currentGrade || '');
+  const [gradeLevels, setGradeLevels] = useState(user?.gradeLevels || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -288,6 +351,8 @@ export default function ProfilePage() {
     if (user) {
       setFullName(user.fullName || '');
       setPhoneNumber(user.phoneNumber || '');
+      setCurrentGrade(user.currentGrade || '');
+      setGradeLevels(user.gradeLevels || '');
     }
   }, [user]);
 
@@ -304,14 +369,14 @@ export default function ProfilePage() {
       const response = await fetch('http://localhost:3001/api/auth/update-profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, phoneNumber }),
+        body: JSON.stringify({ fullName, phoneNumber, currentGrade, gradeLevels }),
         credentials: 'include',
       });
 
       const data = await response.json();
       if (response.ok) {
         setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công!' });
-        setUserFromLogin({ ...user, fullName, phoneNumber });
+        setUserFromLogin({ ...user, fullName, phoneNumber, currentGrade, gradeLevels });
       } else {
         setMessage({ type: 'error', text: data.message || 'Có lỗi xảy ra' });
       }
@@ -440,6 +505,8 @@ export default function ProfilePage() {
               user={user} 
               fullName={fullName} setFullName={setFullName} 
               phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber} 
+              currentGrade={currentGrade} setCurrentGrade={setCurrentGrade}
+              gradeLevels={gradeLevels} setGradeLevels={setGradeLevels}
               loading={loading} 
               onSubmit={handleUpdateProfile}
               onAvatarChange={setImageToCrop}

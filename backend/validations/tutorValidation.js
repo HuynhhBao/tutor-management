@@ -7,6 +7,7 @@ export const createTutorSchema = Joi.object({
   age: Joi.number().integer().min(18).required().messages({ 'any.required': 'Tuổi là bắt buộc', 'number.min': 'Tuổi phải từ 18 trở lên' }),
   subject: Joi.string().required().messages({ 'any.required': 'Môn học là bắt buộc' }),
   qualification: Joi.string().required().messages({ 'any.required': 'Trình độ là bắt buộc' }),
+  gradeLevels: Joi.string().allow('', null).optional(),
 });
 
 export const updateTutorSchema = createTutorSchema; // Same fields for update

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Sparkles, Search, GraduationCap, Calendar, User, BookOpen, ChevronRight, RefreshCw, CheckCircle2, Star } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 import BookingModal from '../common/BookingModal';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
   const [prompt, setPrompt] = useState('');
@@ -59,12 +60,9 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
     }
   };
 
-  const avatarColors = [
-    'bg-blue-600', 'bg-indigo-600', 'bg-emerald-600', 'bg-violet-600', 'bg-amber-600'
-  ];
-
   const getInitials = (name = '') =>
     name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase();
+
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
@@ -167,7 +165,6 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
                 const subjects = tutor.subjects
                   ? tutor.subjects.split(',').map(s => s.trim()).filter(Boolean)
                   : [];
-                const colorClass = avatarColors[idx % avatarColors.length];
                 const score = tutor.matchScore || 85;
 
                 // Color score badge dynamically
@@ -184,8 +181,12 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
                       {/* Top Header Row */}
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 ${colorClass} rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-sm`}>
-                            {getInitials(tutor.full_name)}
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-200 shadow-xs flex-shrink-0">
+                            <img 
+                              src={getAvatarUrl(tutor.avatar_url, tutor.full_name, 'tutor')} 
+                              alt={tutor.full_name || 'Gia sư'} 
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                           <div>
                             <h4 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors">

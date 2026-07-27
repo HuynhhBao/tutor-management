@@ -13,6 +13,7 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -232,19 +233,11 @@ const ChatPage = () => {
                   }`}
                 >
                   <div className="relative flex-shrink-0">
-                    {conv.avatar_url ? (
-                      <img 
-                        src={`http://localhost:3001${conv.avatar_url}`} 
-                        alt={conv.full_name} 
-                        className="h-12 w-12 rounded-full object-cover border-2 border-white"
-                      />
-                    ) : (
-                      <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg ${
-                        selectedPartner?.id === conv.id ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {conv.full_name?.charAt(0) || 'U'}
-                      </div>
-                    )}
+                    <img 
+                      src={getAvatarUrl(conv.avatar_url, conv.full_name, conv.partner_type || 'user')} 
+                      alt={conv.full_name || 'Partner'} 
+                      className="h-12 w-12 rounded-full object-cover border-2 border-white shadow-xs"
+                    />
                     <div className="absolute bottom-0 right-0 h-3 w-3 bg-emerald-500 border-2 border-white rounded-full"></div>
                   </div>
                   <div className="flex-1 text-left min-w-0">
@@ -288,17 +281,11 @@ const ChatPage = () => {
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  {selectedPartner.avatar_url ? (
-                    <img 
-                      src={`http://localhost:3001${selectedPartner.avatar_url}`} 
-                      alt={selectedPartner.full_name} 
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-                      {selectedPartner.full_name?.charAt(0)}
-                    </div>
-                  )}
+                  <img 
+                    src={getAvatarUrl(selectedPartner.avatar_url, selectedPartner.full_name, selectedPartner.partner_type || 'user')} 
+                    alt={selectedPartner.full_name || 'Partner'} 
+                    className="h-10 w-10 rounded-full object-cover shadow-xs"
+                  />
                   <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-emerald-500 border-2 border-white rounded-full"></div>
                 </div>
                 <div>

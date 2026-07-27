@@ -12,11 +12,14 @@ import {
   TrendingUp, 
   ArrowRight,
   ShieldCheck,
+  Sparkles,
   X,
-  Sparkles
+  Calendar,
+  GraduationCap,
+  BookOpen
 } from 'lucide-react';
 import apiClient from '../../services/apiClient';
-
+import { getAvatarUrl } from '../../utils/avatar';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -237,11 +240,11 @@ const StudentDashboard = () => {
                     className="w-full text-left flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-100 transition-all"
                   >
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex flex-shrink-0 items-center justify-center text-blue-600 font-bold overflow-hidden border border-blue-200">
-                      {msg.avatar_url ? (
-                        <img src={`http://localhost:3001${msg.avatar_url}`} alt={partnerName} className="w-full h-full object-cover" />
-                      ) : (
-                        partnerName.charAt(0).toUpperCase()
-                      )}
+                      <img 
+                        src={getAvatarUrl(msg.avatar_url, partnerName, msg.partner_type || 'user')} 
+                        alt={partnerName} 
+                        className="w-full h-full object-cover" 
+                      />
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <h4 className="font-bold text-slate-900 truncate">{partnerName}</h4>
@@ -275,24 +278,91 @@ const StudentDashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {recommendedTutors.map((tutor, idx) => (
-                <div key={tutor.id || tutor.user_id || tutor.email || idx} className="flex items-start gap-4 p-4 border border-slate-100 rounded-xl bg-slate-50">
-                  <div className="w-12 h-12 bg-amber-100 rounded-full flex flex-shrink-0 items-center justify-center text-amber-600 font-bold">
-                    {tutor.full_name?.charAt(0)}
+              {recommendedTutors.map((tutor, idx) => {
+                const subjects = tutor.subjects
+                  ? tutor.subjects.split(',').map(s => s.trim()).filter(Boolean)
+                  : [];
+                const displayRating = tutor.rating && Number(tutor.rating) > 0 
+                  ? Number(tutor.rating).toFixed(2) 
+                  : '0.00';
+
+                return (
+                  <div 
+                    key={tutor.id || tutor.user_id || tutor.email || idx} 
+                    onClick={() => navigate('/student-dashboard/search')}
+                    className="flex flex-col gap-4 p-5 border border-slate-200/80 rounded-2xl bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm"
+                  >
+                    {/* Avatar + Tên + Rating + Nút Xem hồ sơ */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="w-14 h-14 rounded-full flex flex-shrink-0 items-center justify-center overflow-hidden border border-slate-200 shadow-xs bg-indigo-50">
+                          <img 
+                            src={getAvatarUrl(tutor.avatar_url, tutor.full_name, 'tutor')} 
+                            alt={tutor.full_name || 'Gia sư'} 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors truncate">
+                            {tutor.full_name}
+                          </h4>
+                          <div className="inline-flex items-center gap-1.5 mt-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-700 font-extrabold text-xs border border-amber-200/80 rounded-lg shadow-2xs">
+                            <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                            {displayRating}
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); navigate('/student-dashboard/search'); }} 
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap flex-shrink-0"
+                      >
+                        Xem hồ sơ
+                      </button>
+                    </div>
+
+                    {/* Thông tin Tuổi - Giới tính - Bằng cấp */}
+                    <div className="grid grid-cols-2 gap-2 text-sm pt-2 text-slate-600 font-medium">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <span>{tutor.age ? `${tutor.age} tuổi` : '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <span>{tutor.gender || '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 col-span-2 mt-1">
+                        <GraduationCap className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                        <span className="truncate">{tutor.qualification || 'Chuyên viên giảng dạy'}</span>
+                      </div>
+                    </div>
+
+                    {/* Môn dạy & Khối lớp */}
+                    <div className="flex flex-col gap-2 pt-1 border-t border-slate-100">
+                      {subjects.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap pt-1">
+                          <BookOpen className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                          {subjects.map(sub => (
+                            <span
+                              key={sub}
+                              className="px-3 py-1 bg-blue-50/90 text-blue-600 text-xs font-bold rounded-xl border border-blue-100 shadow-2xs"
+                            >
+                              {sub}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {tutor.grade_levels && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs text-amber-800 font-bold bg-amber-50 border border-amber-200/80 px-3 py-1 rounded-xl shadow-2xs flex items-center gap-1">
+                            Nhận dạy: {tutor.grade_levels}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">{tutor.full_name}</h4>
-                    <p className="text-xs text-slate-500 mt-1">{tutor.subjects || 'Đa môn'}</p>
-                    <button 
-                      type="button"
-                      onClick={() => navigate('/student-dashboard/search')} 
-                      className="mt-3 px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all"
-                    >
-                      Xem hồ sơ
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, BookOpen, User, Menu, X, Bell, MessageSquare } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, User, Menu, X, Bell, CalendarCheck, MessageSquare } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const TutorLayout = () => {
   const { user, logout } = useAuth();
@@ -101,12 +102,8 @@ const TutorLayout = () => {
     { path: '/tutor-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
 
-  let avatarSrc = null;
-  if (user?.avatarUrl) {
-    avatarSrc = user.avatarUrl.startsWith('data:image/')
-      ? user.avatarUrl
-      : `http://localhost:3001${user.avatarUrl}`;
-  }
+  const avatarSrc = getAvatarUrl(user?.avatarUrl, user?.fullName || user?.username || 'Gia sư', 'tutor');
+
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans flex flex-col">
@@ -158,34 +155,17 @@ const TutorLayout = () => {
             {/* Right side: Notification + User Profile & Logout (Desktop) */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
               <NotificationBell />
-              {/* Notification Bell */}
-              <button
-                onClick={() => navigate('/tutor-dashboard')}
-                className="relative p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                title="Yêu cầu đặt lịch"
-              >
-                <Bell className="w-5 h-5" />
-                {pendingCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 animate-pulse">
-                    {pendingCount > 9 ? '9+' : pendingCount}
-                  </span>
-                )}
-              </button>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden lg:block">
                   <span className="text-[11px] text-slate-500 block leading-tight uppercase font-bold tracking-wider">Gia sư</span>
                   <span className="text-sm font-bold text-slate-900">{user?.fullName || user?.username}</span>
                 </div>
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                  {avatarSrc ? (
-                    <img 
-                      src={avatarSrc} 
-                      alt="Avatar" 
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    (user?.fullName || user?.username || 'G').charAt(0)
-                  )}
+                <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold border border-indigo-200 overflow-hidden shadow-sm">
+                  <img 
+                    src={avatarSrc} 
+                    alt="Avatar" 
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </div>
               <button
@@ -249,16 +229,12 @@ const TutorLayout = () => {
             <div className="pt-4 pb-4 border-t border-slate-200">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200 overflow-hidden shadow-sm">
-                    {avatarSrc ? (
-                      <img 
-                        src={avatarSrc} 
-                        alt="Avatar" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (user?.fullName || user?.username || 'G').charAt(0)
-                    )}
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center font-bold border border-indigo-200 overflow-hidden shadow-sm">
+                    <img 
+                      src={avatarSrc} 
+                      alt="Avatar" 
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 </div>
                 <div className="ml-3">

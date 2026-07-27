@@ -20,5 +20,35 @@ class NotificationService {
             console.error('Error sending notification:', error);
         }
     }
+
+    async getNotificationsByUser(userId, role) {
+        let typeParam = role;
+        if (role === 'student' || role === 'user') typeParam = 'user';
+        if (role === 'admin' || role === 'staff') typeParam = 'admin';
+
+        const res = await pool.query(
+            `SELECT * FROM notifications 
+             WHERE user_id = $1 AND (user_type = $2 OR user_type = 'all' OR ($2 = 'admin' AND user_type IN ('admin', 'staff')))
+             ORDER BY created_at DESC LIMIT 30`,
+            [userId, typeParam]
+        );
+        return res.rows;
+    }
+
+    async markNotificationRead(id, userId) {
+        const res = await pool.query(
+            `UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2 RETURNING *`,
+            [id, userId]
+        );
+        return res.rows[0];
+    }
+
+    async markAllNotificationsRead(userId) {
+        await pool.query(
+            `UPDATE notifications SET is_read = TRUE WHERE user_id = $1`,
+            [userId]
+        );
+        return true;
+    }
 }
 export default new NotificationService();
