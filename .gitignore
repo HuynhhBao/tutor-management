@@ -48,3 +48,12 @@ coverage/
 
 # Uploaded media files
 backend/uploads/
+
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env.python
+

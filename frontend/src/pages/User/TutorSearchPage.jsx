@@ -202,7 +202,7 @@ const TutorSearchPage = () => {
                           {tutor.rating ? (
                             <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md">
                               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                              {tutor.rating} {tutor.review_count ? `(${tutor.review_count})` : ''}
+                              {Number(tutor.rating)} {tutor.review_count ? `(${tutor.review_count})` : ''}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/80 rounded-md">
@@ -257,7 +257,9 @@ const TutorSearchPage = () => {
                     {/* Học phí theo giờ */}
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-sm mt-1">
                       <span className="text-slate-500 font-medium">Học phí:</span>
-                      <span className="font-extrabold text-blue-600 bg-blue-50/80 border border-blue-100 px-2.5 py-1 rounded-xl shadow-2xs">100.000đ / giờ</span>
+                      <span className="font-extrabold text-blue-600 bg-blue-50/80 border border-blue-100 px-2.5 py-1 rounded-xl shadow-2xs">
+                        {(tutor.hourly_rate || 200000).toLocaleString('vi-VN')}đ / giờ
+                      </span>
                     </div>
 
                     {/* Nút đặt lịch hoặc huy hiệu trạng thái */}

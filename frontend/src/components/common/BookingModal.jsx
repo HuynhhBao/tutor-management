@@ -18,7 +18,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
     ? tutor.subjects.split(',').map(s => s.trim()).filter(Boolean)
     : [];
 
-  const hourlyRate = 100000;
+  const hourlyRate = tutor.hourly_rate ? Number(tutor.hourly_rate) : 100000;
   const totalFee = hourlyRate * Number(duration);
 
   const quickGoals = [
@@ -177,7 +177,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
                   {tutor.rating ? (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md">
                       <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                      {tutor.rating} {tutor.review_count ? `(${tutor.review_count})` : ''}
+                      {Number(tutor.rating)} {tutor.review_count ? `(${tutor.review_count})` : ''}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200/80 rounded-md" title="Gia sư chưa có lượt đánh giá nào">
@@ -193,7 +193,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
               </div>
               <div className="text-right sm:border-l sm:border-slate-200 sm:pl-4">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">Đơn giá tiêu chuẩn</span>
-                <span className="text-sm font-black text-blue-600">100.000đ / giờ</span>
+                <span className="text-sm font-black text-blue-600">{hourlyRate.toLocaleString('vi-VN')}đ / giờ</span>
               </div>
             </div>
 
