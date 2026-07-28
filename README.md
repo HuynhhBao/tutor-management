@@ -1,117 +1,126 @@
-# 🎓 EduMatch - Nền Tảng Kết Nối Gia Sư và Học Viên
+# 🎓 EduMatch - Nền Tảng Kết Nối Gia Sư & Lọc Học Viên Thông Minh
 
-EduMatch là một hệ thống ứng dụng web chuyên nghiệp, giúp kết nối học viên với các gia sư chất lượng cao. Dự án được thiết kế với giao diện hiện đại, quy trình xử lý giao dịch tự động và được kiến trúc theo tiêu chuẩn **Modular Monolith**, đảm bảo khả năng mở rộng, dễ bảo trì và tính bảo mật cao.
+EduMatch là một hệ thống ứng dụng web chuyên nghiệp toàn diện, giúp kết nối học viên với các gia sư chất lượng cao thông qua trợ lý AI thông minh và phòng học tương tác thời gian thực. Dự án được thiết kế theo tiêu chuẩn công nghiệp **Modular Monolith**, kết hợp các công nghệ hiệu năng cao như **Redis Caching**, **WebSockets**, và đạt chuẩn đánh giá an ninh mã nguồn cao nhất **SonarCloud Quality Gate - Hạng 'A'**.
 
 ---
 
 ## 🌟 Tính Năng Nổi Bật
 
-### 👨‍🎓 Dành cho Học Viên
-- **Tìm kiếm thông minh:** Lọc gia sư theo môn học, đánh giá, chi phí và trạng thái hoạt động.
-- **Ví tiền ảo (Wallet):** Quản lý số dư cá nhân, nạp tiền tự động qua mã QR thanh toán.
-- **Hệ thống đặt lịch (Booking):** Đặt lịch học theo giờ, tự động trừ tiền cọc an toàn.
-- **Trợ lý ảo AI (Gemini):** Chatbot hỗ trợ giải đáp thắc mắc và hướng dẫn sử dụng nền tảng 24/7.
-- **Trò chuyện trực tiếp (Chat):** Nhắn tin trao đổi trực tiếp với gia sư trước và sau khi đặt lịch.
+### 👨‍🎓 Dành Cho Học Viên
+- **Trợ Lý AI Tìm Gia Sư (AI Matching Assistant - Gemini):** Chatbot tư vấn thông minh 24/7, phân tích nhu cầu học tập để gợi ý chính xác hồ sơ gia sư phù hợp nhất.
+- **Phòng Học Trực Tuyến Thời gian thực (Virtual Classroom):** Tự động mở khi lớp được xác nhận, tích hợp các công cụ giao tiếp thời gian thực, bảng tin nhắn thảo luận và chuẩn bị tài liệu trực tiếp.
+- **Hệ Thống Đặt Lịch & Hợp Đồng (Booking & Classes):** Theo dõi trạng thái đặt lịch minh bạch (*Chờ xác nhận, Đã xác nhận, Hoàn thành, Đã hủy*) với lịch học linh hoạt theo giờ.
+- **Ví Học Tập (EduMatch Wallet):** Quản lý số dư cá nhân, hiển thị lịch sử giao dịch và nạp tiền tự động qua quét mã QR an toàn.
 
-### 👨‍🏫 Dành cho Gia Sư
-- **Tuyển dụng tự động:** Nộp CV ứng tuyển, nhận email phản hồi tự động và cấp tài khoản khi được duyệt.
-- **Quản lý lịch dạy:** Duyệt yêu cầu đặt lịch, lên lịch biểu và cập nhật trạng thái các buổi học.
-- **Thống kê thu nhập:** Theo dõi lịch sử giao dịch và doanh thu cá nhân.
+### 👨‍🏫 Dành Cho Gia Sư
+- **Quản Lý Lịch Dạy & Phòng Học:** Chủ động tiếp nhận, từ chối hoặc xác nhận yêu cầu sắp xếp ca dạy; khởi tạo và điều hành phòng học tương tác trực tuyến cùng học viên.
+- **Quản Lý Tài Chính & Rút Tiền VietQR:** Theo dõi chi tiết tổng doanh thu ròng sau chiết khấu theo thời gian thực. Gia sư có thể liên kết trực tiếp tài khoản Ngân hàng VNĐ và chủ động gửi **Yêu cầu Rút Tiền** bất cứ lúc nào.
+- **Tuyển Dụng Tự Động:** Nộp CV ứng tuyển, tự động nhận email phản hồi mời phỏng vấn hoặc kết quả và nhận tài khoản đăng nhập khi hồ sơ được phê duyệt.
 
-### 👨‍💻 Dành cho Quản trị viên (Admin)
-- Quản lý toàn bộ hệ thống Gia Sư và Học Viên.
-- Xét duyệt đơn ứng tuyển, gửi thư mời phỏng vấn và từ chối hồ sơ chỉ với một cú click.
-- Kiểm soát dòng tiền và lịch sử giao dịch toàn hệ thống.
-
----
-
-## 🏗️ Kiến Trúc Hệ Thống (Architecture)
-
-Dự án áp dụng kiến trúc **Modular Monolith**, phân rã chặt chẽ các thành phần hệ thống:
-
-### Backend (Node.js + Express + PostgreSQL)
-Được cấu trúc theo mô hình đa tầng (Layered Architecture):
-- **Routes:** Định tuyến API và áp dụng Middleware bảo mật.
-- **Validations (`Joi`):** Bộ lọc đầu vào nghiêm ngặt, chặn dữ liệu rác.
-- **Controllers (Thin Controllers):** Chỉ làm nhiệm vụ tiếp nhận Request và trả về Response chuẩn hóa (`sendSuccess`, `ApiError`).
-- **Services:** Chứa 100% Business Logic và tương tác cơ sở dữ liệu (`AuthService`, `BookingService`, `WalletService`, v.v...).
-
-### Frontend (React + Vite + TailwindCSS)
-Áp dụng **Component-based Architecture**:
-- Tích hợp Proxy Client với Axios Interceptors để bắt lỗi toàn cục (Global Error Handling).
-- Triển khai `ErrorBoundary` bảo vệ UI khỏi crash diện rộng.
-- State management thông qua React Context (`AuthContext`).
+### 👨‍💻 Dành Cho Quản Trị Viên (Admin Dashboard)
+- **Trang Tổng Quan & Số Liệu Thời Gian Thực (Real-time Overview):** Thống kê tổng quan số lượng gia sư, học viên, lớp học đang vận hành và tổng doanh thu hệ thống 30 ngày.
+- **Quản Trị Gia Sư Linh Hoạt (Gia Sư Ảo & Thật):** 
+  - *Gia sư thủ công/ảo:* Cho phép thêm nhanh hồ sơ gia sư theo môn học, bằng cấp mà chưa cần bắt buộc nhập email hay tài khoản.
+  - *Gia sư thật:* Quản lý đơn ứng tuyển, lên lịch gửi email phỏng vấn tự động và cấp tài khoản chính thức chỉ với một lượt nhấp chuột.
+- **Duyệt Chi & Giải Ngân VietQR (Automated Payouts):** Đối soát danh sách ưu tiên theo gia sư có số dư cao nhất, xem chi tiết lệnh rút tiền và quét mã **VietQR** được tạo tự động chuẩn xác theo tài khoản đích để giải ngân tiền thù lao tức thì.
+- **Quản Trị Học Viên & Lịch Sử Thuê:** Xem số dư từng học viên, khóa/mở khóa tài khoản bảo mật và tra cứu lịch sử đặt lịch chi tiết qua Modal tương tác.
+- **Xuất Báo cáo Kế toán:** Xử lý và trích xuất toàn bộ lịch sử biến động dòng tiền (Nạp tiền, Thanh toán lớp, Chuyển cho gia sư, Hoàn tiền) sang file **CSV/Excel** tiêu chuẩn.
 
 ---
 
-## 🛡️ Bảo Mật (Security Features)
+## 🏗️ Kiến Trúc Hệ Thống & Hiệu Năng Nâng Cao
 
-Hệ thống được trang bị các cơ chế bảo mật nâng cao cấp doanh nghiệp:
-- **Helmet:** Ẩn và tăng cường các HTTP Headers để phòng chống XSS, Clickjacking.
-- **Rate Limiting:** Chống tấn công DDoS bằng cách giới hạn số lượt truy cập API trên mỗi IP (100 reqs/15m). Áp dụng giới hạn cực kỳ khắt khe cho luồng đăng nhập/đăng ký (5 reqs/1m) để chống Brute-force.
-- **JWT (JSON Web Token):** Tối ưu hóa thời gian sống của token (1 giờ) để ngăn ngừa rủi ro bị đánh cắp phiên đăng nhập.
-- **CORS Restricted:** Chỉ cho phép Server xử lý request đến từ các domain Frontend được chỉ định sẵn.
-- **SQL Injection Prevention:** Sử dụng `pg` (node-postgres) parameterization.
+Dự án tuân thủ nghiêm ngặt mô hình **Modular Monolith** kết hợp **Layered Architecture**, phân tách trách nhiệm tối đa giữa các thành phần nghiệp vụ:
+
+```
++-----------------------------------------------------------------------+
+|                       Frontend (React + Vite + Tailwind)              |
+|        UI Components -> Status Localization -> Proxy Client           |
++-----------------------------------+-+---------------------------------+
+                                    | ^
+             REST APIs & WebSockets | | JSON Response (Standardized)
+                                    v |
++-----------------------------------+-+---------------------------------+
+|                    Backend (Node.js + Express + Joi)                  |
+|    Router -> Rate Limiters -> Validations -> Thin Controllers         |
+|                              |                                        |
+|                              v                                        |
+|       Services (100% Business Logic) <---> Redis Cache Layer          |
++------------------------------+----------------------------------------+
+                               |
+                               v
+               PostgreSQL Database (Parameterized SQL)
+```
+
+### Điểm Sáng Công Nghệ (Technical Highlights):
+1. **Redis Caching Layer:** Tối ưu hóa hiệu năng truy vấn cho các API thống kê nặng ở Quản trị viên, hỗ trợ cơ chế fallback thông minh (tự động bỏ qua Cache, tiếp tục truy vấn DB mượt mà khi phát triển local không kết nối Redis).
+2. **WebSockets / Real-time Notification:** Đảm bảo luồng giao tiếp tức thì cho Lớp học ảo (Virtual Classroom) và hệ thống thông báo sự kiện (đặt lịch mới, cập nhật ví).
+3. **Chuẩn Hóa Typography & Từ Điển Trạng Thái (UI/UX Standardization):** Xây dựng module dịch trạng thái tự động (`statusFormatter.js`), biến hóa toàn bộ trạng thái hệ thống (*cancelled, rejected, pending, completed*) sang Tiếng Việt nhã nhặn, đồng nhất font chữ toàn dự án, loại bỏ hoàn toàn tình trạng in hoa (`uppercase`) thô ráp.
+4. **Mã Nguồn "Sạch" & Kiểm Toán An Ninh (SonarCloud 'A' Quality Gate):** Đảm bảo không rò rỉ bộ nhớ, loại bỏ lỗ hổng tạo số ngẫu nhiên yếu (Pseudo-random flaws) và chống tấn công giả mạo log (Log Forging).
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt (Installation)
+## 🛡️ Tiêu Chuẩn Bảo Mật Cấp Doanh Nghiệp
 
-### Yêu cầu hệ thống (Prerequisites)
-- Node.js (v18 trở lên)
-- PostgreSQL (v14 trở lên)
+- **Bảo vệ toàn diện HTTP Headers:** Sử dụng `Helmet` phòng chống các phương thức XSS, Clickjacking và MIME sniffing.
+- **Chống Tấn Công DDoS & Brute-Force:** Tự động khống chế nhịp truy cập bằng `express-rate-limit` (100 reqs/15m cho API thường, và cực kỳ khắt khe 5 reqs/1m cho các cổng Auth).
+- **Phân Quyền Triệt Để (RBAC):** Ranh giới phân quyền rõ rệt qua JWT Token cho 3 vai trò độc lập: *Admin - Tutor - Student*.
+- **Validation Kép Kín Kẽ (Joi Schema):** Làm sạch tuyệt đối mọi payload từ người dùng trước khi chạm vào CSDL, xử lý êm ái các chuỗi rỗng thành `null` để bảo vệ ràng buộc Unique.
+- **SQL Injection Prevention:** 100% truy vấn CSDL sử dụng Parameterized queries thông qua `pg` (node-postgres).
 
-### Bước 1: Khởi tạo Cơ sở dữ liệu (Database)
-1. Tạo một database mới trong PostgreSQL có tên `tutor_management`.
-2. Hệ thống backend đã tích hợp module `initDb()` tự động khởi tạo các Table nếu chưa có.
+---
 
-### Bước 2: Thiết lập môi trường Backend
-1. Chuyển vào thư mục backend:
+## 🚀 Hướng Dẫn Cài Đặt (Installation & Development)
+
+### 1. Yêu cầu Hệ thống (Prerequisites)
+- **Node.js** (v18.0.0 hoặc cao hơn)
+- **PostgreSQL** (v14.0 trở lên)
+- *Tùy chọn:* **Redis Server** (để chạy trọn vẹn bộ nhớ đệm Cache local)
+
+### 2. Thiết lập Môi trường Backend
+1. Tạo CSDL PostgreSQL tên là `tutor_management`.
+2. Di chuyển vào thư mục backend và cài đặt thư viện:
    ```bash
    cd backend
-   ```
-2. Cài đặt các thư viện:
-   ```bash
    npm install
    ```
-3. Tạo file `.env` từ file `.env.example` và điền thông tin:
+3. Tạo file `.env` theo biến sau:
    ```env
-   POSTGRES_USER=your_postgres_username
-   POSTGRES_PASSWORD=your_postgres_password
-   POSTGRES_DB=tutor_management
    PORT=3001
+   DB_HOST=localhost
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=tutor_management
    JWT_SECRET=your_super_secret_jwt_key
    EMAIL_USER=your_email@gmail.com
    EMAIL_PASS=your_gmail_app_password
    GEMINI_API_KEY=your_google_gemini_api_key
    FRONTEND_URL=http://localhost:5173
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
    ```
-4. Chạy Backend Server:
+4. Khởi động server (Tự động khởi tạo Table DB):
    ```bash
    npm run dev
    ```
 
-### Bước 3: Thiết lập môi trường Frontend
-1. Chuyển vào thư mục frontend:
+### 3. Thiết lập Môi trường Frontend
+1. Di chuyển sang thư mục frontend và cài đặt thư viện:
    ```bash
-   cd frontend
-   ```
-2. Cài đặt thư viện:
-   ```bash
+   cd ../frontend
    npm install
    ```
-3. Tạo file `.env`:
+2. Tạo file `.env`:
    ```env
    VITE_API_URL=http://localhost:3001/api
    ```
-4. Chạy Frontend Server:
+3. Khởi động ứng dụng React Vite:
    ```bash
    npm run dev
    ```
-
-### Bước 4: Trải nghiệm
-Mở trình duyệt truy cập vào đường link Frontend (thường là `http://localhost:5173`).
+4. Mở trình duyệt và trải nghiệm toàn bộ hệ thống tại URL: `http://localhost:5173`.
 
 ---
 
-Dự án thuộc khuôn khổ đồ án môn học. Vui lòng liên hệ tác giả nếu muốn sử dụng vào mục đích thương mại.
+### 📝 Lưu Ý Tác Giả & Bản Quyền
+Dự án được xây dựng và cọ xát theo các quy chuẩn kỹ thuật chuyên nghiệp phục vụ việc bảo vệ Đồ án Tốt nghiệp. Vui lòng ghi rõ nguồn và liên hệ tác giả nếu có nhu cầu phát triển thương mại hóa.
