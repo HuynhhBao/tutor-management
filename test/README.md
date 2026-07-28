@@ -37,6 +37,7 @@ test/
     ├── conftest.py                              # • Fixtures dùng chung cho PyTest (DB mock, auth tokens, config)
     ├── auth_account/                            # • test_jwt_bcrypt.py, test_rbac_middleware.py (Rẽ nhánh Bảo mật)
     ├── finance_transactions/                    # • test_wallet_race_condition.py (Test đa luồng chống Double-spending)
+    ├── state_transitions/                       # • 4 Máy Trạng Thái Lõi: Booking, Duyệt Gia sư, Rút Lương (100% Coverage)
     └── expansion_modules/                       # • test_scraping_sanitization.py, test_ai_semantic_parser.py
 ```
 
