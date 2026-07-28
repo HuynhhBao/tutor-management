@@ -59,6 +59,46 @@ class AdminFinanceController {
       next(err);
     }
   }
+
+  async getTutorsFinanceOverview(req, res, next) {
+    try {
+      const { search, page, limit } = req.query;
+      const result = await adminFinanceService.getTutorsFinanceOverview({ search, page, limit });
+      res.json({ status: 'ok', data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getPayoutRequests(req, res, next) {
+    try {
+      const { status, page, limit } = req.query;
+      const result = await adminFinanceService.getPayoutRequests({ status, page, limit });
+      res.json({ status: 'ok', data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async processPayoutRequest(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { action, adminNote } = req.body;
+      const result = await adminFinanceService.processPayoutRequest(id, action, adminNote);
+      res.json({ status: 'ok', message: action === 'approve' ? 'Đã phê duyệt và thanh toán thành công!' : 'Đã từ chối yêu cầu.', data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getSystemOverviewStats(req, res, next) {
+    try {
+      const result = await adminFinanceService.getSystemOverviewStats();
+      res.json({ status: 'ok', data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export default new AdminFinanceController();

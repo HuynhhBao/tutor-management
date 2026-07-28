@@ -53,7 +53,7 @@ class BookingService {
       await pool.query('UPDATE users SET balance = balance - $1 WHERE id = $2', [totalFee, userId]);
       await pool.query(`
         INSERT INTO transactions (user_id, user_type, amount, type, description)
-        VALUES ($1, 'user', $2, 'payment', $3)
+        VALUES ($1, 'user', $2, 'booking_payment', $3)
       `, [userId, totalFee, `Thanh toán phí đặt lịch gia sư (${parsedDuration} giờ)`]);
 
       // Tạo booking
@@ -291,13 +291,51 @@ class BookingService {
     if (check.rows.length === 0) {
       throw new ApiError(404, 'Không tìm thấy lớp học');
     }
-    if (check.rows[0].status !== 'confirmed') {
+    const booking = check.rows[0];
+    if (booking.status !== 'confirmed') {
       throw new ApiError(400, 'Chỉ có thể hoàn thành lớp đang ở trạng thái "Đã xác nhận"');
     }
 
-    await pool.query(`UPDATE bookings SET status = 'completed' WHERE id = $1`, [bookingId]);
+    // Kiểm tra Khóa Thời Gian (Time-gate Validation)
+    if (booking.schedule_time) {
+      const startTime = new Date(booking.schedule_time).getTime();
+      if (!isNaN(startTime)) {
+        const durationHours = parseFloat(booking.duration || 1);
+        const endTime = startTime + durationHours * 3600000;
+        if (Date.now() < endTime) {
+          const formattedEnd = new Date(endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date(endTime).toLocaleDateString('vi-VN');
+          throw new ApiError(400, `Ca học chưa kết thúc thời gian giảng dạy. Vui lòng đợi đến ${formattedEnd} để đánh dấu hoàn thành!`);
+        }
+      }
+    }
 
-    const autoMsg = `Lớp học môn ${check.rows[0].subject} đã được đánh dấu hoàn thành. Cảm ơn bạn đã học cùng mình! 🎉`;
+    try {
+      await pool.query('BEGIN');
+
+      await pool.query(`UPDATE bookings SET status = 'completed' WHERE id = $1`, [bookingId]);
+
+      // Truy vấn tỷ lệ hoa hồng từ system_settings
+      const settingsResult = await pool.query(`SELECT value FROM system_settings WHERE key = 'commission_rate'`);
+      const commissionRate = parseFloat(settingsResult.rows[0]?.value || 15);
+      const totalFee = parseFloat(booking.total_fee || 100000);
+      const netEarning = Math.round(totalFee * (1 - (commissionRate / 100)));
+
+      // Cộng tiền vào ví gia sư (Tutor Wallet)
+      await pool.query(`UPDATE tutors SET balance = COALESCE(balance, 0) + $1 WHERE id = $2`, [netEarning, tutorId]);
+
+      // Ghi log giao dịch thu nhập cho gia sư
+      await pool.query(`
+        INSERT INTO transactions (user_id, user_type, amount, type, description)
+        VALUES ($1, 'tutor', $2, 'tutor_earning', $3)
+      `, [tutorId, netEarning, `Thu nhập dạy ca học "${booking.subject || 'Gia sư'}" (Mã #${bookingId} - Đã chiết khấu ${commissionRate}% phí hệ thống)`]);
+
+      await pool.query('COMMIT');
+    } catch (err) {
+      await pool.query('ROLLBACK');
+      throw err;
+    }
+
+    const autoMsg = `Lớp học môn ${booking.subject} đã được đánh dấu hoàn thành. Cảm ơn bạn đã học cùng mình! 🎉`;
     await pool.query(
       `INSERT INTO messages (sender_id, sender_type, receiver_id, receiver_type, content)
        VALUES ($1, 'tutor', $2, 'user', $3)`,

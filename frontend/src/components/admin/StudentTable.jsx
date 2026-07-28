@@ -26,24 +26,24 @@ const StudentTable = ({ students, loading, onToggleStatus }) => {
   return (
     <>
       <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-50 sticky top-0 z-10">
+        <thead className="bg-slate-50 sticky top-0 z-10 text-sm font-medium text-gray-500 border-b border-gray-200">
           <tr>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-left font-medium">
               Học viên
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-left font-medium">
               Liên hệ
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-left font-medium">
               Số dư ví
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-left font-medium">
               Tham gia
             </th>
-            <th className="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-center font-medium">
               Trạng thái
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-right font-medium">
               Hành động
             </th>
           </tr>

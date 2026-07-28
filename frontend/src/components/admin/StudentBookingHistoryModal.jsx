@@ -78,13 +78,13 @@ const StudentBookingHistoryModal = ({ studentId, isOpen, onClose }) => {
             ) : (
               <div className="overflow-auto max-h-[60vh]">
                 <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
+                  <thead className="bg-slate-50 text-sm font-medium text-gray-500 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Môn học</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Gia sư</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Lịch học</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ngày tạo</th>
+                      <th className="px-4 py-3 text-left font-medium">Môn học</th>
+                      <th className="px-4 py-3 text-left font-medium">Gia sư</th>
+                      <th className="px-4 py-3 text-left font-medium">Lịch học</th>
+                      <th className="px-4 py-3 text-left font-medium">Trạng thái</th>
+                      <th className="px-4 py-3 text-left font-medium">Ngày tạo</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-200">

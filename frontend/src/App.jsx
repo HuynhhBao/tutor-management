@@ -28,6 +28,7 @@ import MyClassesPage from './pages/Tutor/MyClassesPage';
 import ClassManagement from './pages/Admin/ClassManagement';
 import FinanceManagement from './pages/Admin/FinanceManagement';
 import VirtualClassroom from './pages/Classroom/VirtualClassroom';
+import TutorFinancePage from './pages/Tutor/TutorFinancePage';
 
 
 // Component to handle root path redirection based on auth state
@@ -130,6 +131,7 @@ function App() {
             <Route path="chat" element={<ChatPage />} />
             <Route path="chat/:partnerId" element={<ChatPage />} />
             <Route path="my-classes" element={<MyClassesPage />} />
+            <Route path="finance" element={<TutorFinancePage />} />
             <Route path="*" element={<Navigate to="/tutor-dashboard" replace />} />
           </Route>
 

@@ -46,24 +46,24 @@ const ClassTable = ({ classes, loading, onSelectClass }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
       <table className="min-w-full divide-y divide-slate-200 text-left">
-        <thead className="bg-slate-50">
+        <thead className="bg-slate-50 text-gray-500 text-sm font-medium">
           <tr>
-            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 font-medium">
               Lớp & Môn học
             </th>
-            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 font-medium">
               Học viên
             </th>
-            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 font-medium">
               Gia sư
             </th>
-            <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 font-medium">
               Thời gian học
             </th>
-            <th className="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-center font-medium">
               Trạng thái
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <th className="px-6 py-3.5 text-right font-medium">
               Thao tác
             </th>
           </tr>

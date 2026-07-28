@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 export const createTutorSchema = Joi.object({
   fullName: Joi.string().required().messages({ 'any.required': 'Họ tên là bắt buộc' }),
-  email: Joi.string().email().required().messages({ 'any.required': 'Email là bắt buộc', 'string.email': 'Email không hợp lệ' }),
+  email: Joi.string().email().allow('', null).optional().messages({ 'string.email': 'Email không hợp lệ' }),
   gender: Joi.string().valid('Nam', 'Nữ', 'Khác').required().messages({ 'any.required': 'Giới tính là bắt buộc' }),
   age: Joi.number().integer().min(18).required().messages({ 'any.required': 'Tuổi là bắt buộc', 'number.min': 'Tuổi phải từ 18 trở lên' }),
   subject: Joi.string().required().messages({ 'any.required': 'Môn học là bắt buộc' }),
