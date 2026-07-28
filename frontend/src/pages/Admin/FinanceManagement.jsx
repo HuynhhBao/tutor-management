@@ -4,10 +4,13 @@ import FinanceStatsCards from '../../components/admin/FinanceStatsCards';
 import FinanceCharts from '../../components/admin/FinanceCharts';
 import TransactionTable from '../../components/admin/TransactionTable';
 import CommissionSettingsModal from '../../components/admin/CommissionSettingsModal';
-import { DollarSign, Settings, RefreshCw } from 'lucide-react';
+import TutorPayoutManagement from '../../components/admin/TutorPayoutManagement';
+import TutorEarningsTable from '../../components/admin/TutorEarningsTable';
+import { DollarSign, Settings, RefreshCw, BarChart3, QrCode, Wallet, ArrowUpRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function FinanceManagement() {
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'payouts' | 'tutors'
   const [period, setPeriod] = useState('30d');
   const [statsData, setStatsData] = useState({
     metrics: { grossRevenue: 0, platformCommission: 0, totalTransactions: 0, totalUserBalance: 0 },
@@ -23,6 +26,26 @@ export default function FinanceManagement() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingTx, setLoadingTx] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [pendingPayoutCount, setPendingPayoutCount] = useState(0);
+
+  // Poll pending payout requests count for badge
+  const fetchPendingCount = useCallback(async () => {
+    try {
+      const res = await apiClient('/admin/finance/payout-requests?status=pending&page=1&limit=1');
+      const json = await res.json();
+      if (res.ok && json.status === 'ok') {
+        setPendingPayoutCount(json.data.pagination.totalItems || 0);
+      }
+    } catch (e) {
+      console.error('Error fetching pending payout count:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPendingCount();
+    const interval = setInterval(fetchPendingCount, 15000);
+    return () => clearInterval(interval);
+  }, [fetchPendingCount]);
 
   // 1. Fetch Finance Stats & Charts Data
   const fetchStats = useCallback(async (selectedPeriod) => {
@@ -118,10 +141,10 @@ export default function FinanceManagement() {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Quản Lý Tài Chính
+                Quản Lý Tài Chính & Quyết Toán
               </h1>
               <p className="text-xs sm:text-sm text-slate-500">
-                Theo dõi dòng tiền, doanh thu hoa hồng và lịch sử giao dịch toàn hệ thống EduMatch
+                Theo dõi dòng tiền, doanh thu hoa hồng và xử lý giải ngân cho gia sư qua VietQR
               </p>
             </div>
           </div>
@@ -134,6 +157,7 @@ export default function FinanceManagement() {
             onClick={() => {
               fetchStats(period);
               fetchTransactions(filters);
+              fetchPendingCount();
               toast.success('Đã làm mới dữ liệu tài chính');
             }}
             className="p-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl shadow-xs transition-all"
@@ -153,33 +177,89 @@ export default function FinanceManagement() {
         </div>
       </div>
 
-      {/* 1. Stat Cards Row */}
-      <FinanceStatsCards
-        metrics={statsData.metrics}
-        commissionRate={commissionRate}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-      />
+      {/* Main Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-px">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all ${
+            activeTab === 'overview'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/40 rounded-t-2xl'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50 rounded-t-2xl'
+          }`}
+        >
+          <BarChart3 className="w-4.5 h-4.5" />
+          Thống Kê & Giao Dịch
+        </button>
 
-      {/* 2. Charts Section (Area & Donut Charts) */}
-      <FinanceCharts
-        chartData={statsData.chartData}
-        breakdown={statsData.breakdown}
-        period={period}
-        onPeriodChange={handlePeriodChange}
-      />
+        <button
+          onClick={() => setActiveTab('payouts')}
+          className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all relative ${
+            activeTab === 'payouts'
+              ? 'border-emerald-600 text-emerald-600 bg-emerald-50/40 rounded-t-2xl'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50 rounded-t-2xl'
+          }`}
+        >
+          <QrCode className="w-4.5 h-4.5" />
+          <span>Duyệt Rút Tiền (VietQR)</span>
+          {pendingPayoutCount > 0 && (
+            <span className="px-2 py-0.5 bg-rose-500 text-white font-extrabold text-xs rounded-full shadow-xs animate-bounce">
+              {pendingPayoutCount}
+            </span>
+          )}
+        </button>
 
-      {/* 3. Transaction History Data Table */}
-      <TransactionTable
-        transactions={transactionsData.transactions}
-        pagination={transactionsData.pagination}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onPageChange={handlePageChange}
-        onRefresh={() => fetchTransactions(filters)}
-        loading={loadingTx}
-      />
+        <button
+          onClick={() => setActiveTab('tutors')}
+          className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all ${
+            activeTab === 'tutors'
+              ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-2xl'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50/50 rounded-t-2xl'
+          }`}
+        >
+          <Wallet className="w-4.5 h-4.5" />
+          Ví Gia Sư & Ngân Hàng
+        </button>
+      </div>
 
-      {/* 4. Commission Settings Modal */}
+      {/* Tab 1: Overview */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          <FinanceStatsCards
+            metrics={statsData.metrics}
+            commissionRate={commissionRate}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+          />
+
+          <FinanceCharts
+            chartData={statsData.chartData}
+            breakdown={statsData.breakdown}
+            period={period}
+            onPeriodChange={handlePeriodChange}
+          />
+
+          <TransactionTable
+            transactions={transactionsData.transactions}
+            pagination={transactionsData.pagination}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onPageChange={handlePageChange}
+            onRefresh={() => fetchTransactions(filters)}
+            loading={loadingTx}
+          />
+        </div>
+      )}
+
+      {/* Tab 2: Payout Requests with VietQR */}
+      {activeTab === 'payouts' && (
+        <TutorPayoutManagement onUpdate={() => { fetchStats(period); fetchPendingCount(); }} />
+      )}
+
+      {/* Tab 3: Tutors Wallet Balance Table */}
+      {activeTab === 'tutors' && (
+        <TutorEarningsTable />
+      )}
+
+      {/* Commission Settings Modal */}
       <CommissionSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}

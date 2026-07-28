@@ -152,7 +152,19 @@ export default function MyClassesPage() {
       ) : (
         /* Class Cards Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredClasses.map((b, index) => (
+          {filteredClasses.map((b, index) => {
+            const startTime = b.schedule_time ? new Date(b.schedule_time).getTime() : 0;
+            const durationHours = parseFloat(b.duration || 1);
+            const endTime = startTime + durationHours * 3600000;
+            const isTimeGated = Date.now() < endTime && startTime > 0;
+            const unlockTimeStr = startTime > 0
+              ? new Date(endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+              : '';
+            const fullUnlockDateStr = startTime > 0
+              ? new Date(endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ngày ' + new Date(endTime).toLocaleDateString('vi-VN')
+              : '';
+
+            return (
             <div
               key={b.id}
               className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-blue-100 hover:-translate-y-1"
@@ -190,7 +202,7 @@ export default function MyClassesPage() {
                     </div>
                     <div>
                       <p className="text-xs text-slate-400 font-medium">Môn học</p>
-                      <p className="font-semibold text-slate-900">{b.subject}</p>
+                      <p className="font-semibold text-slate-900">{b.subject} ({b.duration || 1} giờ)</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
@@ -198,10 +210,10 @@ export default function MyClassesPage() {
                       <Clock className="w-4 h-4 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400 font-medium">Lịch học</p>
+                      <p className="text-xs text-slate-400 font-medium">Lịch học & Kết thúc ca</p>
                       <p className="font-semibold text-slate-900">
                         {b.schedule_time
-                          ? new Date(b.schedule_time).toLocaleString('vi-VN', { dateStyle: 'long', timeStyle: 'short' })
+                          ? `${new Date(b.schedule_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })} - ${unlockTimeStr} (${new Date(b.schedule_time).toLocaleDateString('vi-VN')})`
                           : 'Chưa xác định'}
                       </p>
                     </div>
@@ -227,18 +239,28 @@ export default function MyClassesPage() {
                     </button>
                     <button
                       onClick={() => openCompleteModal(b)}
-                      disabled={completingId === b.id}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition-all active:scale-95 shadow-lg shadow-emerald-200"
+                      disabled={completingId === b.id || isTimeGated}
+                      title={isTimeGated ? `Nút sẽ mở khóa vào lúc ${fullUnlockDateStr}` : 'Xác nhận hoàn thành để nhận học phí'}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-white text-xs font-bold rounded-xl transition-all active:scale-95 ${
+                        isTimeGated 
+                          ? 'bg-slate-400 cursor-not-allowed opacity-90 hover:bg-slate-400' 
+                          : 'bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 shadow-lg shadow-emerald-200'
+                      }`}
                     >
                       {completingId === b.id ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Đang xử lý...
                         </>
+                      ) : isTimeGated ? (
+                        <>
+                          <Clock className="w-3.5 h-3.5 animate-pulse" />
+                          Mở lúc {unlockTimeStr}
+                        </>
                       ) : (
                         <>
                           <CheckCircle className="w-4 h-4" />
-                          Hoàn thành lớp
+                          Hoàn thành
                         </>
                       )}
                     </button>
@@ -246,7 +268,8 @@ export default function MyClassesPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

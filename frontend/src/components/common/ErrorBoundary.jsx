@@ -27,9 +27,16 @@ class ErrorBoundary extends React.Component {
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Oops! Đã xảy ra lỗi</h1>
-            <p className="text-slate-500 mb-6">
+            <p className="text-slate-500 mb-4">
               Rất xin lỗi vì sự bất tiện này. Một thành phần giao diện vừa gặp sự cố ngoài ý muốn.
             </p>
+            {this.state.error && (
+              <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-left overflow-auto max-h-40">
+                <p className="text-xs font-mono text-red-600 font-semibold">
+                  {this.state.error.toString()}
+                </p>
+              </div>
+            )}
             <button
               onClick={() => window.location.reload()}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"

@@ -116,12 +116,14 @@ export default function TutorManagement() {
     const method = editingId ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+      const data = await response.json().catch(() => ({}));
       if (response.ok) { 
         closeFormModal(); 
         fetchTutors(); 
         showSuccess(editingId ? 'Cập nhật thông tin gia sư thành công!' : 'Thêm gia sư mới thành công!');
+      } else {
+        showAlert(data.message || `Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
       }
-      else showAlert(`Có lỗi xảy ra khi ${editingId ? 'cập nhật' : 'lưu'} gia sư`);
     } catch { showAlert('Không thể kết nối đến server'); }
   };
 

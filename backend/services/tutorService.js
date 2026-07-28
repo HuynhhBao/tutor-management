@@ -24,23 +24,39 @@ class TutorService {
   }
 
   async createTutor({ fullName, email, gender, age, subject, qualification, gradeLevels }) {
-    const result = await pool.query(
-      'INSERT INTO tutors (full_name, email, gender, age, subjects, qualification, grade_levels) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [fullName, email, gender, age, subject, qualification, gradeLevels || '']
-    );
-    return result.rows[0];
+    try {
+      const cleanEmail = (email && email.trim() !== '') ? email.trim() : null;
+      const result = await pool.query(
+        'INSERT INTO tutors (full_name, email, gender, age, subjects, qualification, grade_levels) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [fullName, cleanEmail, gender, age, subject, qualification, gradeLevels || '']
+      );
+      return result.rows[0];
+    } catch (err) {
+      if (err.code === '23505') {
+        throw new ApiError(400, 'Email này đã tồn tại trong hệ thống!');
+      }
+      throw err;
+    }
   }
 
   async updateTutor(id, { fullName, email, gender, age, subject, qualification, gradeLevels }) {
-    const result = await pool.query(
-      'UPDATE tutors SET full_name = $1, email = $2, gender = $3, age = $4, subjects = $5, qualification = $6, grade_levels = $7 WHERE id = $8 RETURNING *',
-      [fullName, email, gender, age, subject, qualification, gradeLevels || '', id]
-    );
-    
-    if (result.rows.length === 0) {
-      throw new ApiError(404, 'Không tìm thấy gia sư');
+    try {
+      const cleanEmail = (email && email.trim() !== '') ? email.trim() : null;
+      const result = await pool.query(
+        'UPDATE tutors SET full_name = $1, email = $2, gender = $3, age = $4, subjects = $5, qualification = $6, grade_levels = $7 WHERE id = $8 RETURNING *',
+        [fullName, cleanEmail, gender, age, subject, qualification, gradeLevels || '', id]
+      );
+      
+      if (result.rows.length === 0) {
+        throw new ApiError(404, 'Không tìm thấy gia sư');
+      }
+      return result.rows[0];
+    } catch (err) {
+      if (err.code === '23505') {
+        throw new ApiError(400, 'Email này đã tồn tại trong hệ thống!');
+      }
+      throw err;
     }
-    return result.rows[0];
   }
 
   async deleteTutor(id) {

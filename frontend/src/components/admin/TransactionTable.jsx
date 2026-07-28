@@ -171,13 +171,13 @@ export default function TransactionTable({
       <div className="overflow-x-auto rounded-xl border border-slate-200">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider border-b border-slate-200">
-              <th className="py-3.5 px-4 font-bold">Mã GD</th>
-              <th className="py-3.5 px-4 font-bold">Người thực hiện</th>
-              <th className="py-3.5 px-4 font-bold">Loại giao dịch</th>
-              <th className="py-3.5 px-4 font-bold text-right">Số tiền</th>
-              <th className="py-3.5 px-4 font-bold">Nội dung / Mô tả</th>
-              <th className="py-3.5 px-4 font-bold">Thời gian</th>
+            <tr className="bg-slate-50 text-gray-500 text-sm font-medium border-b border-gray-200">
+              <th className="py-3.5 px-4 font-medium">Mã GD</th>
+              <th className="py-3.5 px-4 font-medium">Người thực hiện</th>
+              <th className="py-3.5 px-4 font-medium">Loại giao dịch</th>
+              <th className="py-3.5 px-4 font-medium text-right">Số tiền</th>
+              <th className="py-3.5 px-4 font-medium">Nội dung / Mô tả</th>
+              <th className="py-3.5 px-4 font-medium">Thời gian</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">

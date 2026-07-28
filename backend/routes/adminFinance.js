@@ -7,8 +7,12 @@ const router = express.Router();
 router.use(verifyAdmin);
 
 router.get('/stats', (req, res, next) => adminFinanceController.getDashboardStats(req, res, next));
+router.get('/system-overview', (req, res, next) => adminFinanceController.getSystemOverviewStats(req, res, next));
 router.get('/transactions', (req, res, next) => adminFinanceController.getTransactions(req, res, next));
 router.get('/settings', (req, res, next) => adminFinanceController.getSettings(req, res, next));
 router.put('/settings', (req, res, next) => adminFinanceController.updateSettings(req, res, next));
+router.get('/tutor-earnings', (req, res, next) => adminFinanceController.getTutorsFinanceOverview(req, res, next));
+router.get('/payout-requests', (req, res, next) => adminFinanceController.getPayoutRequests(req, res, next));
+router.put('/payout-requests/:id', (req, res, next) => adminFinanceController.processPayoutRequest(req, res, next));
 
 export default router;

@@ -109,7 +109,7 @@ export const initDb = async () => {
       )
     `);
 
-    // Ensure email column exists if table was already created
+    // Ensure email and finance columns exist if table was already created
     await pool.query(`
       DO $$
       BEGIN
@@ -118,6 +118,18 @@ export const initDb = async () => {
         END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='grade_levels') THEN
           ALTER TABLE tutors ADD COLUMN grade_levels VARCHAR(255) DEFAULT '';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='balance') THEN
+          ALTER TABLE tutors ADD COLUMN balance DECIMAL(12,2) DEFAULT 0.0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='bank_name') THEN
+          ALTER TABLE tutors ADD COLUMN bank_name VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='bank_account_number') THEN
+          ALTER TABLE tutors ADD COLUMN bank_account_number VARCHAR(50);
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='bank_account_holder') THEN
+          ALTER TABLE tutors ADD COLUMN bank_account_holder VARCHAR(255);
         END IF;
       END
       $$;
@@ -319,11 +331,25 @@ export const initDb = async () => {
       ON CONFLICT (key) DO NOTHING
     `);
 
+    // Tạo bảng payout_requests nếu chưa có
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payout_requests (
+        id SERIAL PRIMARY KEY,
+        tutor_id INTEGER REFERENCES tutors(id) ON DELETE CASCADE,
+        amount DECIMAL(12,2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        bank_snapshot JSONB,
+        admin_note TEXT,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        processed_at TIMESTAMPTZ
+      )
+    `);
+
     // Migration: Chuyển đổi tất cả các cột TIMESTAMP sang TIMESTAMPTZ để đồng bộ múi giờ
     const tablesWithTimestamp = [
       'users', 'admins', 'tutors', 'tutor_applications', 
       'tutor_accounts', 'transactions', 'bookings', 
-      'notifications', 'messages', 'ai_chat_messages', 'classroom_messages'
+      'notifications', 'messages', 'ai_chat_messages', 'classroom_messages', 'payout_requests'
     ];
     
     for (const table of tablesWithTimestamp) {

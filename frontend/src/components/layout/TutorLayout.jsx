@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, BookOpen, User, Menu, X, MessageSquare } from 'lucide-react';
+import { GraduationCap, LogOut, BookOpen, User, Menu, X, MessageSquare, Wallet } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { getAvatarUrl } from '../../utils/avatar';
 
@@ -83,6 +83,7 @@ const TutorLayout = () => {
     { path: '/tutor-dashboard', label: 'Tổng quan', icon: GraduationCap },
     { path: '/tutor-dashboard/chat', label: 'Trò chuyện', icon: MessageSquare },
     { path: '/tutor-dashboard/my-classes', label: 'Lớp của tôi', icon: BookOpen },
+    { path: '/tutor-dashboard/finance', label: 'Ví & Thu nhập', icon: Wallet },
     { path: '/tutor-dashboard/profile', label: 'Hồ sơ', icon: User },
   ];
 
