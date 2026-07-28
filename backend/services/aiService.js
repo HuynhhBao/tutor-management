@@ -188,7 +188,8 @@ ${JSON.stringify(tutors.map(t => ({
   subjects: t.subjects,
   qualification: t.qualification,
   rating: t.rating,
-  grade_levels: t.grade_levels
+  grade_levels: t.grade_levels,
+  hourly_rate: t.hourly_rate ? `${t.hourly_rate.toLocaleString('vi-VN')} VND/h` : undefined
 })))}
 
 Nhiệm vụ: Phân tích nhu cầu của học viên (bao gồm các tiêu chí: tuổi, giới tính, môn học, trình độ lớp học / khối lớp mong muốn, kinh nghiệm...). Hãy chọn ra top tối đa 4 gia sư phù hợp nhất.

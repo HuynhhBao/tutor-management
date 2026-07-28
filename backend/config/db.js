@@ -131,6 +131,9 @@ export const initDb = async () => {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='bank_account_holder') THEN
           ALTER TABLE tutors ADD COLUMN bank_account_holder VARCHAR(255);
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='tutors' AND column_name='hourly_rate') THEN
+          ALTER TABLE tutors ADD COLUMN hourly_rate INTEGER DEFAULT 200000;
+        END IF;
       END
       $$;
     `);

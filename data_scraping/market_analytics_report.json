@@ -1,0 +1,25 @@
+{
+  "total_records_processed": 105,
+  "global_average_fee_vnd": 263882,
+  "average_fee_by_subject": {
+    "Hóa học": 300000,
+    "IELTS": 320000,
+    "Kế toán": 250000,
+    "Lập trình": 228333,
+    "Lịch Sử": 282000,
+    "Ngữ Văn": 264000,
+    "Sinh học": 170000,
+    "Tin học": 263882,
+    "Tiếng Anh": 246666,
+    "Tiếng Hàn": 250000,
+    "Tiếng Nhật": 310000,
+    "Tiếng Pháp": 266666,
+    "Tiếng Trung": 262500,
+    "Toán": 255000,
+    "Toán cao cấp": 290000,
+    "Vật Lý": 280000,
+    "Vẽ & Mỹ thuật": 273333,
+    "Đàn Piano": 300000
+  },
+  "imputation_method_used": "Pandas GroupBy Mean Imputation & Regex Currency Standardization"
+}

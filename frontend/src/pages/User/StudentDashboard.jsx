@@ -283,8 +283,8 @@ const StudentDashboard = () => {
                   ? tutor.subjects.split(',').map(s => s.trim()).filter(Boolean)
                   : [];
                 const displayRating = tutor.rating && Number(tutor.rating) > 0 
-                  ? Number(tutor.rating).toFixed(2) 
-                  : '0.00';
+                  ? Number(tutor.rating) 
+                  : '0';
 
                 return (
                   <div
