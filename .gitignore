@@ -39,9 +39,12 @@ backend/build/
 ehthumbs.db
 Thumbs.db
 
-# Test Coverage
+# Test Coverage & Pytest cache
 coverage/
 *.lcov
+.coverage
+.coverage.*
+.pytest_cache/
 
 # SonarCloud scanner cache
 .scannerwork/
