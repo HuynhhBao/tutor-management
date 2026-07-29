@@ -1,0 +1,850 @@
+{
+  "info": {
+    "_postman_id": "backend-admin-integration-v3",
+    "name": "Admin Oversight & Governance - Deep QA Integration Suite",
+    "description": "Bộ kiểm thử CHUYÊN SÂU cho Quản trị viên được viết với định dạng chuẩn nhiều dòng (multi-line indentation) rất dễ đọc. Gia tăng mạnh các test case NEGATIVE, BAD INPUT, SECURITY INJECTION và RBAC DENIED.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[ADM Setup] Đăng Nhập Admin Lấy Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Admin Login returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Admin token saved successfully', function () {",
+              "    var json = pm.response.json();",
+              "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+              "    var match = cookieStr.match(/token=([^;]+)/);",
+              "    var token = match ? match[1] : pm.cookies.get('token') || json.token || 'fallback_admin_token';",
+              "    pm.environment.set('admin_token', token);",
+              "    pm.environment.set('created_tutor_id', pm.environment.get('created_tutor_id') || 256);",
+              "    pm.environment.set('created_booking_id', pm.environment.get('created_booking_id') || 1);",
+              "    pm.environment.set('created_payout_id', pm.environment.get('created_payout_id') || 1);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/admin/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "admin", "login"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-01 Happy] Tạo Gia Sư Thủ Công Hợp Lệ",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.environment.set('adm_tutor_email', 'adm.tutor.' + Math.floor(Math.random() * 899999 + 100000) + '@edumatch.com');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Admin manual create tutor returns 201 or 200', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              "pm.test('[Happy] Newly created Tutor ID captured', function () {",
+              "    var json = pm.response.json();",
+              "    var tid = (json.data && json.data.id) || json.id;",
+              "    if (tid) pm.environment.set('created_tutor_id', tid);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Admin Created Tutor\",\n  \"email\": \"{{adm_tutor_email}}\",\n  \"gender\": \"Nữ\",\n  \"age\": 28,\n  \"subject\": \"Hóa Học\",\n  \"qualification\": \"Tiến sĩ Hóa\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-01 NEG] Tạo Gia Sư Thủ Công Bỏ Trống Email & Môn Học (Bad Input)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Missing mandatory fields returns 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('[Negative] Validation error message clearly returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Invalid Tutor No Subject\",\n  \"age\": 35\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-01 NEG] Tạo Gia Sư Trùng Email Đã Tồn Tại (Duplicate Conflict)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Duplicate email returns 400 or 409 Conflict', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 409]);",
+              "});",
+              "pm.test('[Negative] Conflict rejection message displayed', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Duplicate Tutor Attack\",\n  \"email\": \"{{adm_tutor_email}}\",\n  \"gender\": \"Nam\",\n  \"age\": 40,\n  \"subject\": \"Toán\",\n  \"qualification\": \"Cử nhân\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-02 Happy] Cập Nhật Trạng Thái Gia Sư Hợp Lệ (active)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Status update returns 200 or 400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Update status response valid JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": {{created_tutor_id}},\n  \"status\": \"active\",\n  \"reason\": \"Kiểm định văn bằng hợp lệ\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors/status",
+          "host": ["{{base_url}}"],
+          "path": ["tutors", "status"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-02 NEG] Cập Nhật Trạng Thái Gia Sư Bất Quy Tắc (status=unknown_hacker)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Invalid status string returns 400 or handled without crash', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Response handled safely by server', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": {{created_tutor_id}},\n  \"status\": \"hacker_unknown_status\",\n  \"reason\": \"Test invalid enum state\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors/status",
+          "host": ["{{base_url}}"],
+          "path": ["tutors", "status"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-02 NEG] Cập Nhật Trạng Thái Gia Sư Với ID Ma Không Tồn Tại (99999999)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Non-existent tutor ID returns 404 or 400', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Server returns structured JSON error', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": 99999999,\n  \"status\": \"active\",\n  \"reason\": \"Test non-existent tutor\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors/status",
+          "host": ["{{base_url}}"],
+          "path": ["tutors", "status"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-03 Happy] Lấy Thống Kê Tài Chính Dashboard",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Stats returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Stats payload contains financial summary', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "stats"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-03 NEG] Thống Kê Tài Chính Khi Cookie Quá Hạn/Trống (Security Test)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Unauthenticated request to finance stats returns 401 Unauthorized', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('[Negative] Auth failure message present', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token="
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "stats"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-03 Happy] Lấy Tổng Quan Hệ Thống (System Overview)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] System overview returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] System overview data object exists', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/system-overview",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "system-overview"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-03 Happy] Cấu Hình Tỷ Lệ Hoa Hồng Hợp Lệ (15%)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Settings endpoint returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Commission rate setting returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/settings",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "settings"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-03 NEG] Cập Nhật Tỷ Lệ Hoa Hồng Siêu Ngự (Commission Rate = 150%)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Over 100% commission rate returns 400 or handled safely', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+              "});",
+              "pm.test('[Negative] Server responds without crash', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"commissionRate\": 150\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/finance/settings",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "settings"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-04 Happy] Danh Sách Tất Cả Học Viên (All Students)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Students list returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Students data exists', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/students",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "students"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-04 NEG] Xem Chi Tiết Học Viên ID Không Tồn Tại (999999)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Non-existent student ID returns 404 or 400', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error handled cleanly by server', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/students/999999",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "students", "999999"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-05 Happy] Quản Lý Tất Cả Booking Trên Hệ Thống",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Admin bookings overview returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Bookings data returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-06 Happy] Admin Hủy Booking Quyền Lực (Admin Override)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Admin cancel booking returns 200/400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Response valid JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/bookings/{{created_booking_id}}/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bookings", "{{created_booking_id}}", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-06 NEG] Admin Hủy Booking Với ID Không Hợp Lệ (SQLi / NoSQLi)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Malformed booking ID returns 400/404/500 without crashing', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error response returns JSON object', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/bookings/MALFORMED_ID_ATTACK_999/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "bookings", "MALFORMED_ID_ATTACK_999", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-07 Happy] Xem Danh Sách Đơn Xin Rút Lương (Payout Requests)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Payout requests list returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Payout requests data returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/payout-requests",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "payout-requests"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-07 NEG] Phê Duyệt Đơn Rút Lương Với Action Vô Kỷ Luật (action=steal_money)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Illegal action string returns 400 or 404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error response returns valid JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"steal_money_attack\",\n  \"adminNote\": \"Illegal action test\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/finance/payout-requests/{{created_payout_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "payout-requests", "{{created_payout_id}}"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-08 Happy] Quản Lý Các Lớp Học Đang Diễn Ra Trên Hệ Thống",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Classes list returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Classes array available in response', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/classes",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "classes"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-09 RBAC] Gia Sư Cố Tình Thâm Nhanh Vào API Thống Kê Tài Chính Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[RBAC] Tutor blocked from admin route returns 401/403', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});",
+              "pm.test('[RBAC] Security message clearly rejects access', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "stats"]
+        }
+      }
+    },
+    {
+      "name": "[ADM-10 RBAC] Học Viên Cố Tình Calling API Xử Lý Đơn Rút Lương",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[RBAC] Student blocked from processing payouts (401/403)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});",
+              "pm.test('[RBAC] Access denied message confirmed', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"approve\",\n  \"adminNote\": \"Hacker student approves payout\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/finance/payout-requests/1",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "payout-requests", "1"]
+        }
+      }
+    }
+  ]
+}

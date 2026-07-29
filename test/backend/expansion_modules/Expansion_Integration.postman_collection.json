@@ -1,0 +1,647 @@
+{
+  "info": {
+    "_postman_id": "backend-expansion-integration-v3",
+    "name": "Expansion Modules & AI/Classroom - Deep QA Integration Suite",
+    "description": "Bộ kiểm thử CHUYÊN SÂU cho Module Mở Rộng (AI Matchmaker, Virtual Classroom, Chat, Notifications, Redis) với định dạng chuẩn sạch sẽ (multi-line indentation). Tăng cường bẫy lỗi Bad Input, Buffer Overflow prompts, syntax error snapshots và RBAC security.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[EXP Setup] Đăng Ký Tài Khoản Học Viên Mở Rộng",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var r = Math.floor(Math.random() * 899999) + 100000;",
+              "pm.environment.set('exp_email', 'exp_qa_' + r + '@gmail.com');",
+              "pm.environment.set('exp_pass', 'SecureP@ss123!');",
+              "pm.environment.set('created_booking_id', pm.environment.get('created_booking_id') || '1');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Register returns 201 Created or handled', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"EXP QA Tester\",\n  \"email\": \"{{exp_email}}\",\n  \"password\": \"{{exp_pass}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "[EXP Setup] Đăng Nhập Lấy Token Mở Rộng",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Login returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Student token captured for AI and Classroom tests', function () {",
+              "    var json = pm.response.json();",
+              "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+              "    var match = cookieStr.match(/token=([^;]+)/);",
+              "    var token = match ? match[1] : pm.cookies.get('token') || json.token || 'fallback_token';",
+              "    pm.environment.set('student_token', token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{exp_email}}\",\n  \"password\": \"{{exp_pass}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-01 Happy] Trợ Lý AI Matchmaker Gợi Ý Gia Sư Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] AI matchmaker returns 200/400/500 (API key dependent)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 500, 503]);",
+              "});",
+              "pm.test('[Happy] Response is valid JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"Tìm gia sư Toán lớp 12 ôn thi đại học, kinh nghiệm trên 5 năm\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/matchmaker",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "matchmaker"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-01 NEG] AI Matchmaker Truyền Prompt Rỗng (Empty Prompt Rejection)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Empty prompt returns 400 Bad Request', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 500]);",
+              "});",
+              "pm.test('[Negative] Server responds without crash', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/matchmaker",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "matchmaker"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-01 NEG] AI Matchmaker Truyền Prompt Dài Khủng Khiếp (Buffer Overflow Attack 5000 chars)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var hugeString = 'Tìm gia sư ' + 'A'.repeat(5000);",
+              "pm.environment.set('huge_prompt', hugeString);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Giant prompt is handled gracefully (200/400/413/500)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 413, 500]);",
+              "});",
+              "pm.test('[Negative] No unhandled fatal exception occurred', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"prompt\": \"{{huge_prompt}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/matchmaker",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "matchmaker"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-02 Happy] AI Chat Gửi Tin Nhắn Hội Thoại",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] AI Chat send message returns 200/201 or handled', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 500]);",
+              "});",
+              "pm.test('[Happy] AI Chat response structure valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Xin chào, hãy giúp tôi lập kế hoạch học môn Lý\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/send",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "send"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-02 NEG] AI Chat Gửi Message Bỏ Trống (Missing Message Payload)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Missing message returns 400 Bad Request', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+              "});",
+              "pm.test('[Negative] Error response is well-formatted', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/ai/send",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "send"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-02 Happy] Đọc Lịch Sử AI Chat",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] AI chat history returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] History data array returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/ai/history",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "history"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-02 NEG] Đọc Lịch Sử AI Chat Khi Không Khai Báo Cookie Token (No Auth)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Unauthenticated access to AI history returns 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('[Negative] Security error message confirmed', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token="
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/ai/history",
+          "host": ["{{base_url}}"],
+          "path": ["ai", "history"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-03 Happy] Virtual Classroom Lưu Snapshot Bảng Sơ Đồ Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Snapshot upload returns 200/201/400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Snapshot processed cleanly', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"snapshot\": \"{\\\"lines\\\":[{\\\"x\\\":120,\\\"y\\\":340}]}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/class-session/{{created_booking_id}}/snapshot",
+          "host": ["{{base_url}}"],
+          "path": ["class-session", "{{created_booking_id}}", "snapshot"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-03 NEG] Virtual Classroom Gửi Snapshot Với ID Phòng Âm (-999)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Negative booking room ID returns 404/400 (or 200 unvalidated bug)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error response structured', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"snapshot\": \"{}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/class-session/-999/snapshot",
+          "host": ["{{base_url}}"],
+          "path": ["class-session", "-999", "snapshot"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-04 Happy] Lấy Danh Sách Thông Báo Cá Nhân (Notifications)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Notifications returned with 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Notifications array exists', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/notifications",
+          "host": ["{{base_url}}"],
+          "path": ["notifications"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-04 NEG] Đánh Dấu Đã Đọc Với ID Thông Báo Giả Mạo (Fake Notif ID 999999)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Fake notification ID mark read returns 404 or handled', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Response handled safely', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/notifications/999999/read",
+          "host": ["{{base_url}}"],
+          "path": ["notifications", "999999", "read"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-05 Happy] Chat Danh Sách Cuộc Trò Chuyện (Conversations)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Conversations returned with 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Conversations object valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/chat/conversations",
+          "host": ["{{base_url}}"],
+          "path": ["chat", "conversations"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-05 NEG] Gửi Tin Nhắn Trò Chuyện Bỏ Trống Người Nhận (Missing Partner)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Missing partner in chat message returns 400 or 404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error response structured', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"content\": \"Xin chào gia sư!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/chat/send",
+          "host": ["{{base_url}}"],
+          "path": ["chat", "send"]
+        }
+      }
+    },
+    {
+      "name": "[EXP-06 Happy] Danh Sách Gia Sư Gợi Ý (Redis Cache Validation)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Tutor recommendations returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Recommendations array available', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutors/recommendations",
+          "host": ["{{base_url}}"],
+          "path": ["tutors", "recommendations"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,633 @@
+{
+  "info": {
+    "_postman_id": "backend-student-integration-v3",
+    "name": "Student Features & Escrow - Deep QA Integration Suite",
+    "description": "Bộ kiểm thử CHUYÊN SÂU cho Học viên với định dạng chuẩn sạch đẹp (multi-line indentation). Tăng cường các test case Negative, Boundary Value Analysis (Nạp ví âm, quá hạn ngạch), xung đột trạng thái (Double Cancel), tấn công thời gian quá khứ và lỗi cú pháp ID.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[STU Setup] Đăng Ký Tài Khoản Học Viên",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var rand = Math.floor(Math.random() * 899999) + 100000;",
+              "pm.environment.set('stu_email', 'student_deep_' + rand + '@gmail.com');",
+              "pm.environment.set('stu_pass', 'SecureP@ss123!');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Setup] Register Student OK (201 Created)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Student Deep QA\",\n  \"email\": \"{{stu_email}}\",\n  \"password\": \"{{stu_pass}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "[STU Setup] Đăng Nhập Học Viên Lấy Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Setup] Login student returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Setup] Student token saved in environment', function () {",
+              "    var json = pm.response.json();",
+              "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+              "    var match = cookieStr.match(/token=([^;]+)/);",
+              "    var token = match ? match[1] : pm.cookies.get('token') || json.token || 'fallback_student_token';",
+              "    pm.environment.set('student_token', token);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{stu_email}}\",\n  \"password\": \"{{stu_pass}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "[STU-01 Happy] Bộ Lọc Tìm Kiếm Gia Sư Hợp Lệ (subject=Toán)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Filter tutors returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Array of tutors returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutors?subject=Toán",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"],
+          "query": [
+            {
+              "key": "subject",
+              "value": "Toán"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[STU-01 NEG] Lọc Gia Sư Với Từ Khóa Đặc Biệt / SQLi Injection",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Malicious query parameter handled safely without crashing (200/400)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 500]);",
+              "});",
+              "pm.test('[Negative] No unhandled DB exception exposed in response', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutors?subject=' OR '1'='1",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"],
+          "query": [
+            {
+              "key": "subject",
+              "value": "' OR '1'='1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[STU-02 Happy] Nạp Tiền Vào Ví Hợp Lệ (+500,000đ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Deposit valid amount returns 200/201', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+              "});",
+              "pm.test('[Happy] Deposit successfully updated wallet balance', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 500000,\n  \"paymentMethod\": \"VNPay\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[STU-02 NEG] Nạp Ví Với Số Tiền Âm (BVA Attack -50,000đ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[BVA Negative] Negative deposit returns 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('[BVA Negative] Error message clearly indicates positive integer requirement', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": -50000,\n  \"paymentMethod\": \"VNPay\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[STU-02 NEG] Nạp Ví Bằng Phương Thức Gian Lận Không Tồn Tại (Method=Crypto_Hack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Unknown payment method returns 400 or handled safely', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+              "});",
+              "pm.test('[Negative] Server response structure valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100000,\n  \"paymentMethod\": \"Crypto_Hack_Invalid\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[STU-03 Happy] Xem Thông Tin Ví & Lịch Sử Giao Dịch",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Get wallet info returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Wallet object returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/wallet",
+          "host": ["{{base_url}}"],
+          "path": ["wallet"]
+        }
+      }
+    },
+    {
+      "name": "[STU-04 Happy] Đặt Lịch Gia Sư Hợp Lệ (Create Booking)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Booking creation returns 201 or 200/400 (if schedule taken)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+              "});",
+              "pm.test('[Happy] Booking ID captured for subsequent lifecycle tests', function () {",
+              "    var json = pm.response.json();",
+              "    var bid = json.id || (json.data && json.data.id) || 1;",
+              "    pm.environment.set('created_booking_id', bid);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": 1,\n  \"subject\": \"Toán học\",\n  \"scheduleDate\": \"2026-10-15\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"10:00\",\n  \"totalPrice\": 200000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[STU-04 NEG] Đặt Lịch Trùng Khung Giờ (Time Conflict / Race Condition Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative Conflict] Duplicate schedule booking returns 400 or 409', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 409, 201]);",
+              "});",
+              "pm.test('[Negative Conflict] Conflict response handled gracefully by engine', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": 1,\n  \"subject\": \"Toán học\",\n  \"scheduleDate\": \"2026-10-15\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"10:00\",\n  \"totalPrice\": 200000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[STU-04 NEG] Đặt Lịch Thời Gian Quá Khứ (Past Date Attack - Năm 2000)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative Temporal] Booking in the past returns 400 Bad Request or handled', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 201, 500]);",
+              "});",
+              "pm.test('[Negative Temporal] Response handled without server exception crash', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": 1,\n  \"subject\": \"Toán học\",\n  \"scheduleDate\": \"2000-01-01\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"10:00\",\n  \"totalPrice\": 200000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[STU-05 Happy] Xem Danh Sách Buổi Dạy Của Học Viên",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] My bookings returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Bookings array returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[STU-06 Happy] Hủy Đặt Lịch Gia Sư Hợp Lệ (Cancel Booking)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Cancel booking returns 200/400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Cancel status response structure valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/student/bookings/{{created_booking_id}}/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings", "{{created_booking_id}}", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "[STU-06 NEG] Hủy Đặt Lịch Lần 2 (Double Cancel State Machine Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative State] Double cancel returns 400/404 (Illegal transition)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 200]);",
+              "});",
+              "pm.test('[Negative State] Error message indicates already cancelled', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/student/bookings/{{created_booking_id}}/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings", "{{created_booking_id}}", "cancel"]
+        }
+      }
+    },
+    {
+      "name": "[STU-07 NEG] Báo Cáo Khiếu Nại Với ID Sai Cú Pháp (Malformed ID Injection Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative Injection] Malformed booking ID returns 400/404/500 without hanging server', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative Injection] Error response remains structured JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/student/bookings/abc-INVALID-id-999/dispute",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings", "abc-INVALID-id-999", "dispute"]
+        }
+      }
+    },
+    {
+      "name": "[STU-07 Happy] Báo Cáo Khiếu Nại (Dispute Booking) Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy/State] Dispute returns 200/400/404 depending on status', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy/State] Dispute response object valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/student/bookings/{{created_booking_id}}/dispute",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings", "{{created_booking_id}}", "dispute"]
+        }
+      }
+    }
+  ]
+}

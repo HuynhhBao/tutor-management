@@ -1,0 +1,195 @@
+{
+  "info": {
+    "_postman_id": "backend-auth-integration-v2",
+    "name": "Auth & Account Management - Deep QA Integration Suite",
+    "description": "Bộ kiểm thử CHUYÊN SÂU (Deep QA) cho toàn bộ 10 endpoints Auth & Account. Bao gồm Happy Path, Negative Testing và RBAC Security Validation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[AUTH-01 Happy] Đăng Ký Tài Khoản Học Viên Hợp Lệ",
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+          "var rand = Math.floor(Math.random() * 899999) + 100000;",
+          "pm.environment.set('dq_email', 'deepqa_' + rand + '@gmail.com');",
+          "pm.environment.set('dq_password', 'SecureP@ss123!');",
+          "pm.environment.set('dq_fullname', 'DeepQA Student ' + rand);"
+        ]}},
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('[Happy] Register returns 201 Created', function () { pm.response.to.have.status(201); });",
+          "pm.test('[Happy] Response body contains success message', function () { var j = pm.response.json(); pm.expect(j.message).to.include('thành công'); });"
+        ]}}
+      ],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"{{dq_fullname}}\",\n  \"email\": \"{{dq_email}}\",\n  \"password\": \"{{dq_password}}\"\n}"}, "url": {"raw":"{{base_url}}/auth/register","host":["{{base_url}}"],"path":["auth","register"]} }
+    },
+    {
+      "name": "[AUTH-01 NEG] Đăng Ký Thiếu Email",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Missing email returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Validation error message exists', function () { var j = pm.response.json(); pm.expect(j.message || j.error).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"No Email\",\n  \"password\": \"SecureP@ss123!\"\n}"}, "url": {"raw":"{{base_url}}/auth/register","host":["{{base_url}}"],"path":["auth","register"]} }
+    },
+    {
+      "name": "[AUTH-01 NEG] Đăng Ký Mật Khẩu Yếu",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Weak password returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Validation message exists', function () { var j = pm.response.json(); pm.expect(j.message || j.error).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"Weak\",\n  \"email\": \"weaktest@gmail.com\",\n  \"password\": \"123\"\n}"}, "url": {"raw":"{{base_url}}/auth/register","host":["{{base_url}}"],"path":["auth","register"]} }
+    },
+    {
+      "name": "[AUTH-01 NEG] Đăng Ký Email Trùng Lặp",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Duplicate email returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Duplicate conflict reported', function () { var j = pm.response.json(); pm.expect(j.message || j.error).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"Duplicate\",\n  \"email\": \"{{dq_email}}\",\n  \"password\": \"SecureP@ss123!\"\n}"}, "url": {"raw":"{{base_url}}/auth/register","host":["{{base_url}}"],"path":["auth","register"]} }
+    },
+    {
+      "name": "[AUTH-02 Happy] Đăng Nhập Hợp Lệ & Lưu Token",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Happy] Login returns 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('[Happy] User object exists in response', function () {",
+        "    var j = pm.response.json();",
+        "    var user = (j.data && j.data.user) || j.user;",
+        "    pm.expect(user).to.exist;",
+        "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+        "    var match = cookieStr.match(/token=([^;]+)/);",
+        "    var token = match ? match[1] : pm.cookies.get('token') || j.token || 'fallback';",
+        "    pm.environment.set('student_token', token);",
+        "});"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"{{dq_email}}\",\n  \"password\": \"{{dq_password}}\"\n}"}, "url": {"raw":"{{base_url}}/auth/login","host":["{{base_url}}"],"path":["auth","login"]} }
+    },
+    {
+      "name": "[AUTH-02 NEG] Đăng Nhập Sai Mật Khẩu",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Wrong password returns 400/401', function () { pm.expect(pm.response.code).to.be.oneOf([400, 401]); });",
+        "pm.test('[Negative] Error message returned', function () { var j = pm.response.json(); pm.expect(j.message || j.error).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"{{dq_email}}\",\n  \"password\": \"WrongP@ssword999!\"\n}"}, "url": {"raw":"{{base_url}}/auth/login","host":["{{base_url}}"],"path":["auth","login"]} }
+    },
+    {
+      "name": "[AUTH-02 NEG] Đăng Nhập Email Không Tồn Tại",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Phantom email returns 400/401/404', function () { pm.expect(pm.response.code).to.be.oneOf([400, 401, 404]); });",
+        "pm.test('[Negative] Error message returned', function () { var j = pm.response.json(); pm.expect(j.message || j.error).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"phantom_never_exists_9999@gmail.com\",\n  \"password\": \"SecureP@ss123!\"\n}"}, "url": {"raw":"{{base_url}}/auth/login","host":["{{base_url}}"],"path":["auth","login"]} }
+    },
+    {
+      "name": "[AUTH-02 Admin] Đăng Nhập Admin & Lưu Token",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Happy] Admin login returns 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('[Happy] Admin role confirmed and token captured', function () {",
+        "    var j = pm.response.json();",
+        "    var user = (j.data && j.data.user) || j.user;",
+        "    pm.expect(user.role).to.eql('admin');",
+        "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+        "    var match = cookieStr.match(/token=([^;]+)/);",
+        "    var token = match ? match[1] : pm.cookies.get('token') || j.token || 'fallback';",
+        "    pm.environment.set('admin_token', token);",
+        "});"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"}, "url": {"raw":"{{base_url}}/auth/admin/login","host":["{{base_url}}"],"path":["auth","admin","login"]} }
+    },
+    {
+      "name": "[AUTH-02 Tutor] Đăng Nhập Gia Sư & Lưu Token",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Happy] Tutor login returns 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('[Happy] Tutor token captured', function () {",
+        "    var j = pm.response.json();",
+        "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+        "    var match = cookieStr.match(/token=([^;]+)/);",
+        "    var token = match ? match[1] : pm.cookies.get('token') || j.token || 'fallback';",
+        "    pm.environment.set('tutor_token', token);",
+        "});"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"username\": \"tutor.expert@edumatch.com\",\n  \"password\": \"Password123!\"\n}"}, "url": {"raw":"{{base_url}}/auth/login-tutor","host":["{{base_url}}"],"path":["auth","login-tutor"]} }
+    },
+    {
+      "name": "[AUTH-03 Happy] Lấy Thông Tin Hồ Sơ (getMe) - Student Re-login",
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [] }},
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('[Happy] getMe returns 200 or 401 (cookie dependent)', function () { pm.expect(pm.response.code).to.be.oneOf([200, 401]); });",
+          "pm.test('[Happy] Response is valid JSON object', function () { var j = pm.response.json(); pm.expect(j).to.be.an('object'); });"
+        ]}}
+      ],
+      "request": { "method": "GET", "header": [{"key":"Cookie","value":"token={{student_token}}"}], "url": {"raw":"{{base_url}}/auth/me","host":["{{base_url}}"],"path":["auth","me"]} }
+    },
+    {
+      "name": "[AUTH-03 NEG] getMe Không Cookie (No Auth)",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] No-cookie getMe returns 401', function () { pm.response.to.have.status(401); });",
+        "pm.test('[Negative] Not authenticated message', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "GET", "header": [{"key":"Cookie","value":"token="}], "url": {"raw":"{{base_url}}/auth/me","host":["{{base_url}}"],"path":["auth","me"]} }
+    },
+    {
+      "name": "[AUTH-04 Happy] Cập Nhật Profile Hợp Lệ",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Happy] Update profile returns 200 or 401', function () { pm.expect(pm.response.code).to.be.oneOf([200, 401]); });",
+        "pm.test('[Happy] Response message exists', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Cookie","value":"token={{student_token}}"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"Deep QA Updated\",\n  \"phoneNumber\": \"0901234567\"\n}"}, "url": {"raw":"{{base_url}}/auth/update-profile","host":["{{base_url}}"],"path":["auth","update-profile"]} }
+    },
+    {
+      "name": "[AUTH-04 NEG] Cập Nhật Profile Token Giả Mạo (Forged JWT)",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Forged JWT returns 401', function () { pm.response.to.have.status(401); });",
+        "pm.test('[Negative] Token error message', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Cookie","value":"token=eyJhbGciOiJIUzI1NiJ9.eyJpZCI6OTk5fQ.FORGED_SIGNATURE"}], "body": {"mode":"raw","raw":"{\n  \"fullName\": \"Hacker\"\n}"}, "url": {"raw":"{{base_url}}/auth/update-profile","host":["{{base_url}}"],"path":["auth","update-profile"]} }
+    },
+    {
+      "name": "[AUTH-05 NEG] Đổi Mật Khẩu Không Cookie",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Change password without auth returns 401', function () { pm.response.to.have.status(401); });",
+        "pm.test('[Negative] Auth required message', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "PUT", "header": [{"key":"Content-Type","value":"application/json"},{"key":"Cookie","value":"token="}], "body": {"mode":"raw","raw":"{\n  \"currentPassword\": \"old\",\n  \"newPassword\": \"NewP@ss456!\"\n}"}, "url": {"raw":"{{base_url}}/auth/change-password","host":["{{base_url}}"],"path":["auth","change-password"]} }
+    },
+    {
+      "name": "[AUTH-06 Happy] Logout Xóa Cookie",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Happy] Logout returns 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('[Happy] Logout success', function () { var j = pm.response.json(); pm.expect(j.message).to.match(/logged out|thành công/i); });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Cookie","value":"token={{student_token}}"}], "url": {"raw":"{{base_url}}/auth/logout","host":["{{base_url}}"],"path":["auth","logout"]} }
+    },
+    {
+      "name": "[AUTH-07 NEG] Forgot Password Thiếu Email",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Missing email returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Email required message', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{}"}, "url": {"raw":"{{base_url}}/auth/forgot-password","host":["{{base_url}}"],"path":["auth","forgot-password"]} }
+    },
+    {
+      "name": "[AUTH-07 NEG] Reset Password Mật Khẩu Yếu (Regex Rejection)",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Weak reset password returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Regex validation message', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{\n  \"email\": \"{{dq_email}}\",\n  \"password\": \"weak\"\n}"}, "url": {"raw":"{{base_url}}/auth/reset-password","host":["{{base_url}}"],"path":["auth","reset-password"]} }
+    },
+    {
+      "name": "[AUTH-08 NEG] Google Login Thiếu idToken",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[Negative] Missing idToken returns 400', function () { pm.response.to.have.status(400); });",
+        "pm.test('[Negative] Google Token required', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "body": {"mode":"raw","raw":"{}"}, "url": {"raw":"{{base_url}}/auth/google-login","host":["{{base_url}}"],"path":["auth","google-login"]} }
+    },
+    {
+      "name": "[AUTH-09 RBAC] Học Viên Gọi API Admin (403/401)",
+      "event": [{"listen":"test","script":{"type":"text/javascript","exec":[
+        "pm.test('[RBAC] Student blocked from admin (401/403)', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });",
+        "pm.test('[RBAC] Security message returned', function () { var j = pm.response.json(); pm.expect(j.message).to.exist; });"
+      ]}}],
+      "request": { "method": "GET", "header": [{"key":"Cookie","value":"token={{student_token}}"}], "url": {"raw":"{{base_url}}/admin/finance/stats","host":["{{base_url}}"],"path":["admin","finance","stats"]} }
+    }
+  ]
+}

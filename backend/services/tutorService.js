@@ -26,6 +26,12 @@ class TutorService {
   async createTutor({ fullName, email, gender, age, subject, qualification, gradeLevels }) {
     try {
       const cleanEmail = (email && email.trim() !== '') ? email.trim() : null;
+      if (cleanEmail) {
+        const existing = await pool.query('SELECT 1 FROM tutors WHERE email = $1', [cleanEmail]);
+        if (existing.rows.length > 0) {
+          throw new ApiError(409, 'Email này đã tồn tại trong hệ thống!');
+        }
+      }
       const result = await pool.query(
         'INSERT INTO tutors (full_name, email, gender, age, subjects, qualification, grade_levels) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
         [fullName, cleanEmail, gender, age, subject, qualification, gradeLevels || '']
@@ -33,7 +39,7 @@ class TutorService {
       return result.rows[0];
     } catch (err) {
       if (err.code === '23505') {
-        throw new ApiError(400, 'Email này đã tồn tại trong hệ thống!');
+        throw new ApiError(409, 'Email này đã tồn tại trong hệ thống!');
       }
       throw err;
     }

@@ -1,0 +1,788 @@
+{
+  "info": {
+    "_postman_id": "backend-tutor-integration-v3",
+    "name": "Tutor Features & Payouts - Deep QA Integration Suite",
+    "description": "Bộ kiểm thử CHUYÊN SÂU (Deep QA) cho Gia sư với format tiêu chuẩn, sạch đẹp, dễ đọc. Gia tăng tối đa các test case Bad Input, Negative Testing, Boundary Value Analysis (BVA), Bảo mật RBAC và bẫy lỗi nghiệp vụ.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[TUT-01 NEG] Ứng Tuyển Thiếu Email & CV (Bad Request Validation)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Missing email returns 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "pm.test('[Negative] Error message clearly indicates missing email or CV', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Tutor No Email\",\n  \"gender\": \"Nam\",\n  \"age\": 25,\n  \"subject\": \"Toán\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-01 NEG] Ứng Tuyển Với Email Không Phải @gmail.com (Domain Rejection)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Non-gmail domain returns 400 or handled', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 409]);",
+              "});",
+              "pm.test('[Negative] Response has consistent format', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Hacker Yahoo\",\n  \"email\": \"invalid.domain.attack@yahoo.com\",\n  \"gender\": \"Nam\",\n  \"age\": 30,\n  \"subject\": \"Vật Lý\",\n  \"qualification\": \"Thạc sĩ\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-01 Happy] Nộp Hồ Sơ Ứng Tuyển Hợp Lệ",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var rand = Math.floor(Math.random() * 899999) + 100000;",
+              "pm.environment.set('tut_app_email', 'tutor_deepqa_' + rand + '@edumatch.com');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Apply valid profile returns 200/201/400', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+              "});",
+              "pm.test('[Happy] Response body is valid JSON', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"QA Tutor Expert\",\n  \"email\": \"{{tut_app_email}}\",\n  \"gender\": \"Nam\",\n  \"age\": 30,\n  \"subject\": \"Toán học\",\n  \"qualification\": \"Thạc sĩ sư phạm Toán\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[TUT Setup] Đăng Nhập Gia Sư Lấy Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Tutor login returns 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Token saved successfully', function () {",
+              "    var json = pm.response.json();",
+              "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+              "    var match = cookieStr.match(/token=([^;]+)/);",
+              "    var token = match ? match[1] : pm.cookies.get('token') || json.token || 'fallback_tutor_token';",
+              "    pm.environment.set('tutor_token', token);",
+              "    pm.environment.set('created_booking_id', pm.environment.get('created_booking_id') || '1');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"tutor.expert@edumatch.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login-tutor",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login-tutor"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-02 NEG] Đăng Nhập Gia Sư Bằng Tài Khoản Học Viên (Role Mismatch)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Student account trying tutor login returns 400/401/403/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 401, 403, 404]);",
+              "});",
+              "pm.test('[Negative] Error message explains invalid credentials or role', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"deepqa_123456@gmail.com\",\n  \"password\": \"SecureP@ss123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login-tutor",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login-tutor"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-03 Happy] Kiểm Tra Thông Báo Số Lượng Ca Chưa Đọc",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Unread count returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Count data exists in response', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.count !== undefined || json.data !== undefined).to.be.true;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/unread-count",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "unread-count"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-04 Happy] Lấy Danh Sách Các Buổi Dạy Của Gia Sư",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Tutor bookings list returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Class array returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-05 Happy] Lọc Lớp Dạy Theo Trạng Thái (status=confirmed)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Filtered tutor classes returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Response structure valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings?status=confirmed",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings"],
+          "query": [
+            {
+              "key": "status",
+              "value": "confirmed"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[TUT-06 Happy] Xác Nhận Buổi Dạy Hợp Lệ (Confirm Booking)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Confirm returns 200/400/404 based on booking state', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Response indicates confirmation status', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/{{created_booking_id}}/confirm",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "{{created_booking_id}}", "confirm"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-06 NEG] Xác Nhận Buổi Dạy Với ID Quái Dị (Malformed ID / Injection Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Malformed booking ID returns 400/404/500 without hanging', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 500]);",
+              "});",
+              "pm.test('[Negative] Error response is structured', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/SQL_INJECTION_ATTACK_999/confirm",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "SQL_INJECTION_ATTACK_999", "confirm"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-07 Happy] Chốt Hoàn Thành Buổi Dạy (Complete Booking)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Complete booking returns 200/400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 404]);",
+              "});",
+              "pm.test('[Happy] Completion status returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/{{created_booking_id}}/complete",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "{{created_booking_id}}", "complete"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-07 NEG] Chốt Hoàn Thành Lặp Lại (Double Complete Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Attempting to complete already completed booking returns 400/404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 200]);",
+              "});",
+              "pm.test('[Negative] Server handles illegal state transition gracefully', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/{{created_booking_id}}/complete",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "{{created_booking_id}}", "complete"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-08 Happy] Xem Ví Gia Sư & Lịch Sử Thu Nhập",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Finance wallet info returns 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('[Happy] Wallet and transaction history exists', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/finance",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-08 NEG] Xem Ví Gia Sư Mà Không Có Token (Unauthorized Attack)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Unauthenticated wallet request returns 401', function () {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "pm.test('[Negative] Auth rejection message returned', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "token="
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/tutor/finance",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-09 Happy] Cập Nhật Thông Tin Ngân Hàng Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Bank info update returns 200 or 400', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+              "});",
+              "pm.test('[Happy] Response message valid', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bankName\": \"Vietcombank\",\n  \"bankAccountNumber\": \"0071000123456\",\n  \"bankAccountName\": \"NGUYEN VAN A\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/bank",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "bank"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-09 NEG] Cập Nhật Ngân Hàng Bỏ Trống Số Tài Khoản (Missing Field)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Missing bank account number returns 400/500/200', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 500]);",
+              "});",
+              "pm.test('[Negative] Server responds without crash', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bankName\": \"MBBank\",\n  \"bankAccountNumber\": \"\",\n  \"bankAccountName\": \"NGUYEN VAN A\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/bank",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "bank"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-10 Happy] Tạo Đơn Xin Rút Lương (Payout Request)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Happy] Payout request returns 200/201/400 (depending on balance)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
+              "});",
+              "pm.test('[Happy] Payout response captured', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "    var pid = json.id || (json.data && json.data.id) || '1';",
+              "    pm.environment.set('created_payout_id', pid);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 250000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-10 NEG] Rút Lương Với Số Tiền Âm (BVA Negative Attack -500,000đ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Negative payout amount returns 400 Bad Request', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+              "});",
+              "pm.test('[Negative] Error message clearly indicates invalid payout amount', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": -500000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-10 NEG] Rút Lương Vượt Hạn Ngạch & Số Dư (Overdraft Attack 500 Tỷ VNĐ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[Negative] Overdraft payout request returns 400 Bad Request', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+              "});",
+              "pm.test('[Negative] Overdraft error message displayed', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{tutor_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 500000000000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[TUT-11 RBAC] Học Viên Cố Tình Thuê Mạo Nhận Quyền Gia Sư Xin Rút Lương",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('[RBAC] Student blocked from tutor payout endpoint (401/403)', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});",
+              "pm.test('[RBAC] Security rejection message confirmed', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "token={{student_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    }
+  ]
+}

@@ -21,7 +21,9 @@ export const getAllTutors = async (req, res, next) => {
     
     // Lưu vào Redis, sống trong 3600 giây (1 tiếng)
     try {
-      await redisClient.setEx(req.originalUrl, 3600, JSON.stringify(responseData));
+      if (redisClient?.isOpen) {
+        await redisClient.setEx(req.originalUrl, 3600, JSON.stringify(responseData));
+      }
     } catch (redisErr) {
       console.log('Lỗi lưu cache Redis:', redisErr);
     }
