@@ -10,8 +10,8 @@ const axiosInstance = axios.create({
 
 // Axios Interceptor để bắt lỗi toàn cục
 axiosInstance.interceptors.response.use((response) => {
-  // Nếu server trả về 401 Unauthorized (và không phải đang ở trang login)
-  if (response.status === 401 && !response.config.url.includes('/auth/login')) {
+  // Nếu server trả về 401 Unauthorized (ngoại trừ khi check auth /auth/me hoặc đang ở trang login)
+  if (response.status === 401 && !response.config.url.includes('/auth/login') && !response.config.url.includes('/auth/me')) {
     // Phát một event tùy chỉnh để App.jsx bắt và điều hướng về trang đăng nhập
     window.dispatchEvent(new Event('auth:unauthorized'));
   }
