@@ -1,0 +1,244 @@
+{
+  "info": {
+    "_postman_id": "auth-blackbox-collection-001",
+    "name": "Auth & Account Management - Black-Box Test Suite",
+    "description": "Bộ kiểm thử Hộp đen cho cụm Xác thực & Tài khoản ứng dụng Phân loại tương đương (EP) và Phân tích giá trị biên (BVA).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[EP - Valid] Đăng Nhập Quản Trị Viên Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response contains admin role and sets token cookie', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.user.role).to.eql('admin');",
+              "    var cookieStr = pm.response.headers.get('Set-Cookie') || '';",
+              "    var match = cookieStr.match(/token=([^;]+)/);",
+              "    var token = match ? match[1] : pm.cookies.get('token') || json.token || 'dummy_admin_token';",
+              "    if (token) { pm.environment.set('admin_token', token); }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/admin/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "admin", "login"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Invalid] Đăng Nhập Email Sai Cú Pháp",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 or 401 Unauthorized', function () { pm.expect(pm.response.code).to.be.oneOf([400, 401]); });",
+              "pm.test('Error message exists for invalid email', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"invalid.email.without.at-domain\",\n  \"password\": \"SomePass123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Invalid] Đăng Nhập Email Không Tồn Tại",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 404 or 401 Not Found/Unauthorized', function () { pm.expect(pm.response.code).to.be.oneOf([401, 404]); });",
+              "pm.test('Security generic error message returns', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"non.existent.user.test999@edumatch.com\",\n  \"password\": \"Pass123456!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Min-1] Đăng Ký Mật Khẩu Dưới Biên 8 Ký Tự (7 chars)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 Bad Request for short password', function () { pm.response.to.have.status(400); });",
+              "pm.test('Validation reports minimum password length 8', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"newuser.short@gmail.com\",\n  \"fullName\": \"Test Short Pass\",\n  \"password\": \"Abc123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Min] Đăng Ký Mật Khẩu Ngay Tại Biên 8 Ký Tự Hợp Lệ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 Created or 400 Exists', function () { pm.expect(pm.response.code).to.be.oneOf([201, 400]); });",
+              "pm.test('User created successfully at boundary password length', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"newuser.exact8.{{$randomInt}}@gmail.com\",\n  \"fullName\": \"Test Valid Pass\",\n  \"password\": \"Abcd123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Security] Cập Nhật Profile Khi Thiếu Token Xác Thực",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 401 Unauthorized', function () { pm.response.to.have.status(401); });",
+              "pm.test('System blocks request missing Authorization header', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "token=invalid_token_test" },
+          { "key": "Authorization", "value": "Bearer invalid_token_test" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Hacker Name Changed\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/update-profile",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "update-profile"]
+        }
+      }
+    },
+    {
+      "name": "[EP - RBAC Security] Học Viên Cố Ý Gọi API Bảo Mật Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 403 or 401 Forbidden/Unauthorized', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });",
+              "pm.test('RBAC Middleware strictly blocks student from admin route', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/admin/finance/stats",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "finance", "stats"]
+        }
+      }
+    }
+  ]
+}

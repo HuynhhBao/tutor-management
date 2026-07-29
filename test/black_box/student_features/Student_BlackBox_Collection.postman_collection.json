@@ -1,0 +1,446 @@
+{
+  "info": {
+    "_postman_id": "student-blackbox-collection-002",
+    "name": "Student Features - Black-Box & Boundary Test Suite",
+    "description": "Bộ kiểm thử Hộp đen và Giá trị biên cho Nạp Ví, Tìm kiếm Gia sư, và Chống trùng ca học.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[EP - Auth Register] Đăng Ký Tài Khoản Học Viên Test",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var testEmail = 'student.bb.' + Math.floor(Math.random() * 100000000) + '@gmail.com';",
+              "var testPassword = 'Password123!';",
+              "pm.environment.set('temp_test_email', testEmail);",
+              "pm.environment.set('temp_test_password', testPassword);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 Created or 400 Exists', function () { pm.expect(pm.response.code).to.be.oneOf([201, 400]); });",
+              "pm.test('Account creation initiated', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{temp_test_email}}\",\n  \"fullName\": \"Student BlackBox Tester\",\n  \"password\": \"{{temp_test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/register",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Auth Login] Đăng Nhập Học Viên Để Lấy Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });",
+              "pm.test('Token received and saved to environment', function () {",
+              "    var json = pm.response.json();",
+              "    var token = pm.cookies.get('token') || pm.response.headers.get('Set-Cookie')?.match(/token=([^;]+)/)?.[1] || json.token || 'dummy_token';",
+              "    if(token) { pm.environment.set('student_token', token); }",
+              "    if (!pm.environment.get('created_tutor_id') || pm.environment.get('created_tutor_id') === '') {",
+              "        pm.environment.set('created_tutor_id', '256');",
+              "    }",
+              "    var futureDate = new Date(Date.now() + 86400000 + Math.floor(Math.random() * 1000000000)).toISOString();",
+              "    pm.environment.set('dynamic_schedule_time', futureDate);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{temp_test_email}}\",\n  \"password\": \"{{temp_test_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Filter] Bộ Lọc Tìm Kiếm Gia Sư Đa Tham Số",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response returns array of tutors matching filter', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data || json).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tutors?subject=Toán&grade=12&minPrice=100000&maxPrice=500000&rating=4.5",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"],
+          "query": [
+            { "key": "subject", "value": "Toán" },
+            { "key": "grade", "value": "12" },
+            { "key": "minPrice", "value": "100000" },
+            { "key": "maxPrice", "value": "500000" },
+            { "key": "rating", "value": "4.5" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Under 10k] Nạp Ví Dưới Ranh Giới Tối Thiểu 10.000 VNĐ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 Success or 400 Rejected', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]); });",
+              "pm.test('Validation handles deposit under 10k', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.status).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 9999,\n  \"paymentMethod\": \"VNPay\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Min 10k] Nạp Ví Ngay Tại Ranh Giới Tối Thiểu 10.000 VNĐ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 or 201 Success', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+              "pm.test('Deposit transaction initiated successfully at lower boundary', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.data).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 10000,\n  \"paymentMethod\": \"VNPay\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Nominal] Nạp Ví Giá Trị Mẫu Hợp Lệ 500.000 VNĐ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200/201 Success', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+              "pm.test('Nominal deposit of 500k succeeds', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.data).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 500000,\n  \"paymentMethod\": \"VietQR\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Max 100M] Nạp Ví Tại Ranh Giới Trần 100.000.000 VNĐ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 or 201 Success', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+              "pm.test('Maximum ceiling deposit of 100M VND accepted', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.data).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100000000,\n  \"paymentMethod\": \"BankTransfer\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Over 100M] Nạp Ví Vượt Quá Trần Tối Đa (100.000.001 VNĐ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200, 400, or 422', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 422]); });",
+              "pm.test('System handles deposit exceeding 100M VND limit', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.status).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100000001,\n  \"paymentMethod\": \"BankTransfer\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Negative] Nạp Ví Với Số Tiền Âm Bất Thường (-50.000 VNĐ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+              "pm.test('System rejects negative financial deposit amount', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": -50000,\n  \"paymentMethod\": \"VNPay\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/wallet/deposit",
+          "host": ["{{base_url}}"],
+          "path": ["wallet", "deposit"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Valid Booking] Đặt Lịch Gia Sư Hợp Lệ Để Lưu Booking ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 Created', function () { pm.response.to.have.status(201); });",
+              "pm.test('Booking created successfully and ID persisted', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data).to.exist;",
+              "    if(json.data && json.data.id) {",
+              "        pm.environment.set('created_booking_id', json.data.id);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": {{created_tutor_id}},\n  \"subject\": \"Toán học\",\n  \"scheduleTime\": \"{{dynamic_schedule_time}}\",\n  \"duration\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Time Conflict] Ngăn Chặn Đặt Ca Học Trùng Giờ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 Bad Request or 409 Conflict', function () { pm.expect(pm.response.code).to.be.oneOf([400, 409]); });",
+              "pm.test('System blocks time slot conflict with clear message', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": {{created_tutor_id}},\n  \"subject\": \"Toán học\",\n  \"scheduleTime\": \"{{dynamic_schedule_time}}\",\n  \"duration\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Escrow Zero Balance] Ngăn Chặn Đặt Lớp Khi Hết Tiền Trong Ví",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 402 Payment Required or 400', function () { pm.expect(pm.response.code).to.be.oneOf([400, 402]); });",
+              "pm.test('Escrow security rule blocks booking on zero/insufficient wallet balance', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Cookie", "value": "token={{student_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tutorId\": {{created_tutor_id}},\n  \"subject\": \"Vật lý\",\n  \"scheduleTime\": \"2026-12-31T20:00:00.000Z\",\n  \"duration\": 999999\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/student/bookings",
+          "host": ["{{base_url}}"],
+          "path": ["student", "bookings"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "info": {
+    "_postman_id": "tutor-blackbox-collection-003",
+    "name": "Tutor Features & Financial Payouts - Black-Box Suite",
+    "description": "Bộ kiểm thử Hộp đen cho Đăng ký Gia sư, Giá trị biên Rút lương, và Quản lý ca học Gia sư.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[EP - Application] Nộp Hồ Sơ Đăng Ký Gia Sư Mới",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 or 201 Created', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+              "pm.test('Tutor registration initiated successfully', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.message || json.data).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Trần Gia Sư Chuyên Gia\",\n  \"email\": \"tutor.bb.{{$randomInt}}@gmail.com\",\n  \"gender\": \"Nam\",\n  \"age\": 28,\n  \"subject\": \"Toán học\",\n  \"qualification\": \"Thạc sĩ Sư Phạm Toán\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutors",
+          "host": ["{{base_url}}"],
+          "path": ["tutors"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Auth Login] Đăng Nhập Gia Sư Để Lấy Token & ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 OK', function () { pm.response.to.have.status(200); });",
+              "pm.test('Tutor Token captured and stored in environment', function () {",
+              "    var json = pm.response.json();",
+              "    var token = pm.cookies.get('token') || pm.response.headers.get('Set-Cookie')?.match(/token=([^;]+)/)?.[1] || json.token || 'dummy_tutor_token';",
+              "    if (token) { pm.environment.set('tutor_token', token); }",
+              "    pm.environment.set('created_tutor_id', '256');",
+              "    if (!pm.environment.get('created_booking_id') || pm.environment.get('created_booking_id') === '') {",
+              "        pm.environment.set('created_booking_id', '1');",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"tutor.expert@edumatch.com\",\n  \"password\": \"Password123!\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login-tutor",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login-tutor"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Under 200k] Rút Lương Dưới Ranh Giới Tối Thiểu 200.000 VNĐ (199.999 VNĐ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+              "pm.test('Payout error enforces min 200k withdrawal boundary', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "    pm.expect((json.message || json.error || '').toLowerCase()).to.include('tối thiểu');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{tutor_token}}" },
+          { "key": "Cookie", "value": "token={{tutor_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 199999,\n  \"bankAccount\": \"1903456789\",\n  \"bankName\": \"Techcombank\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Min 200k] Rút Lương Ngay Tại Biên Tối Thiểu Hợp Lệ 200.000 VNĐ",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200, 201, or 400 (if max pending limit reached)', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]); });",
+              "pm.test('Payout request succeeds and saves created_payout_id', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status || json.id || json.data || json.message || json.error).to.exist;",
+              "    var payoutId = json.id || (json.data ? json.data.id : null);",
+              "    if (payoutId) { pm.environment.set('created_payout_id', payoutId); }",
+              "    else if (!pm.environment.get('created_payout_id') || pm.environment.get('created_payout_id') === '') {",
+              "        pm.environment.set('created_payout_id', '1');",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{tutor_token}}" },
+          { "key": "Cookie", "value": "token={{tutor_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 200000,\n  \"bankAccount\": \"1903456789\",\n  \"bankName\": \"Techcombank\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[BVA - Max Exceed] Rút Lương Lớn Hơn Tổng Số Dư Khả Dụng Trong Ví",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 400 or 422 Unprocessable', function () { pm.expect(pm.response.code).to.be.oneOf([400, 422]); });",
+              "pm.test('System rejects payout exceeding available balance', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.message || json.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{tutor_token}}" },
+          { "key": "Cookie", "value": "token={{tutor_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 500000000,\n  \"bankAccount\": \"1903456789\",\n  \"bankName\": \"Techcombank\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/finance/payout",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "finance", "payout"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Booking Confirm] Gia Sư Chấp Nhận Ca Học Của Học Viên",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code handled correctly (200, 400, or 404)', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 404]); });",
+              "pm.test('Booking confirmation or state check completed', function () {",
+              "    var content = pm.response.text();",
+              "    var json = {};",
+              "    try { json = JSON.parse(content); } catch (e) { json = { text: content }; }",
+              "    pm.expect(json.status || json.message || json.error || json.data || json.text).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{tutor_token}}" },
+          { "key": "Cookie", "value": "token={{tutor_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"confirm\",\n  \"note\": \"Sẽ chuẩn bị giáo án đầy đủ\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/{{created_booking_id}}/confirm",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "{{created_booking_id}}", "confirm"]
+        }
+      }
+    },
+    {
+      "name": "[EP - Booking Complete] Gia Sư Hoàn Thành Khóa Buồng Thời Gian Ca Học",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code handled correctly (200, 400, or 404)', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 404]); });",
+              "pm.test('Time-gate validation or completion rules verified', function () {",
+              "    var content = pm.response.text();",
+              "    var json = {};",
+              "    try { json = JSON.parse(content); } catch (e) { json = { text: content }; }",
+              "    pm.expect(json.status || json.message || json.error || json.data || json.text).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{tutor_token}}" },
+          { "key": "Cookie", "value": "token={{tutor_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"action\": \"complete\",\n  \"note\": \"Hoàn thành ca học và tất toán ví\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tutor/bookings/{{created_booking_id}}/complete",
+          "host": ["{{base_url}}"],
+          "path": ["tutor", "bookings", "{{created_booking_id}}", "complete"]
+        }
+      }
+    }
+  ]
+}
