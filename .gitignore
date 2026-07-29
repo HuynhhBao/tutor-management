@@ -41,6 +41,8 @@ Thumbs.db
 
 # Test Coverage & Pytest cache
 coverage/
+coverage_report/
+.nyc_output/
 *.lcov
 .coverage
 .coverage.*

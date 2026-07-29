@@ -93,6 +93,19 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+if (process.env.NODE_ENV === 'test') {
+  app.post('/api/test/shutdown', (req, res) => {
+    console.log('Received /api/test/shutdown request. Shutting down gracefully for coverage harvesting...');
+    res.json({ status: 'shutting_down' });
+    setTimeout(() => {
+      server.close(() => {
+        process.exit(0);
+      });
+      setTimeout(() => process.exit(0), 1000);
+    }, 200);
+  });
+}
+
 // Global Error Handler
 app.use(errorHandler);
 
