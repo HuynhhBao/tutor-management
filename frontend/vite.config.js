@@ -20,5 +20,15 @@ export default defineConfig({
     watch: {
       usePolling: true, // needed for docker volumes on windows
     }
-  }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'json'],
+      reportsDirectory: './coverage_report',
+    },
+  },
 })

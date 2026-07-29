@@ -21,7 +21,7 @@ export const getAvatarUrl = (avatarUrl, name = 'User', role = 'user') => {
   }
 
   // Fallback to UI-Avatars generator with clean, professional colors
-  const cleanName = (name || 'User').toString().trim();
+  const cleanName = (name && typeof name === 'string' && name.trim() !== '') ? name.trim() : 'User';
   const encodedName = encodeURIComponent(cleanName);
 
   // Default color themes based on role or universally elegant blue
