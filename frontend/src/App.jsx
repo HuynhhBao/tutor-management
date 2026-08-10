@@ -13,6 +13,7 @@ import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
 import ProfilePage from './pages/User/ProfilePage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
+import { AlertProvider } from './context/AlertContext';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import TutorLayout from './components/layout/TutorLayout';
@@ -51,8 +52,8 @@ function App() {
   // Handle Global 401 Unauthorized Interceptor event
   useEffect(() => {
     const handleUnauthorized = () => {
-      // Clear token/user info if needed, AuthContext checkAuth will also fail
-      if (!window.location.pathname.includes('/login')) {
+      const publicPaths = ['/', '/login', '/admin/login', '/register', '/forgot-password'];
+      if (!publicPaths.includes(window.location.pathname)) {
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/admin/login';
         } else {
@@ -66,6 +67,7 @@ function App() {
   }, []);
 
   return (
+    <AlertProvider>
     <AuthProvider>
       <SocketProvider>
         <Toaster position="top-right" />
@@ -173,6 +175,7 @@ function App() {
       </BrowserRouter>
       </SocketProvider>
     </AuthProvider>
+    </AlertProvider>
   );
 }
 
