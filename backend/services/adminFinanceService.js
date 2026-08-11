@@ -514,7 +514,7 @@ class AdminFinanceService {
       FROM bookings 
       WHERE status = 'completed' AND created_at >= NOW() - INTERVAL '30 days'
     `);
-    const monthlyRevenue = parseFloat(revenueRes.rows[0]?.total_rev || 0) + parseFloat(bookingRevRes.rows[0]?.completed_fee || 0);
+    const monthlyRevenue = parseFloat(revenueRes.rows[0]?.total_rev || 0);
 
     // 5. 10 Lớp học mới kết nối nhất
     const recentClassesRes = await pool.query(`

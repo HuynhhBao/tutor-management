@@ -18,7 +18,7 @@ import adminFinanceRoutes from './routes/adminFinance.js';
 import studentBookingsRoutes from './routes/studentBookings.js';
 import tutorBookingsRoutes from './routes/tutorBookings.js';
 import tutorFinanceRoutes from './routes/tutorFinance.js';
-import walletRoutes from './routes/wallet.js';
+import walletRoutes from './modules/wallet/routes/wallet.routes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';

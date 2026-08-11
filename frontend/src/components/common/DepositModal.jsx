@@ -27,7 +27,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
     }
     setError('');
 
-    if (paymentMethod === 'Bank') {
+    if (paymentMethod === 'BANK') {
       setStep(2); // Chuyển sang bước thanh toán ngân hàng
     } else {
       onDeposit(cleanAmount, paymentMethod);
@@ -124,9 +124,9 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
                 <span className="block text-sm font-bold text-slate-700 mb-3">Phương thức thanh toán</span>
                 <div className="space-y-3">
                   {[
-                    { id: 'Bank', label: 'Chuyển khoản Ngân hàng', icon: CreditCard },
-                    { id: 'VNPay', label: 'Cổng thanh toán VNPay', icon: Smartphone },
-                    { id: 'MoMo', label: 'Ví điện tử MoMo', icon: Smartphone },
+                    { id: 'BANK', label: 'Chuyển khoản Ngân hàng', icon: CreditCard },
+                    { id: 'VNPAY', label: 'Cổng thanh toán VNPay', icon: Smartphone },
+                    { id: 'MOMO', label: 'Ví điện tử MoMo', icon: Smartphone },
                   ].map((method) => {
                     const Icon = method.icon;
                     return (
