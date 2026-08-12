@@ -10,15 +10,15 @@ export const getWalletInfo = async (req, res, next) => {
     const wallet = await walletService.getWalletBalance(ownerId, ownerType);
     
     // Phân trang đơn giản cho lịch sử giao dịch
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const page = Number.parseInt(req.query.page) || 1;
+    const limit = Number.parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
     
     const transactions = await walletService.getTransactions(wallet.id, limit, offset);
 
     return sendSuccess(res, 200, 'Lấy thông tin ví thành công', { 
       data: {
-        balance: parseFloat(wallet.balance),
+        balance: Number.parseFloat(wallet.balance),
         currency: wallet.currency,
         status: wallet.status,
         transactions 

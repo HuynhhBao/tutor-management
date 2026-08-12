@@ -1,6 +1,4 @@
 import walletService from './services/wallet.service.js';
-import paymentService from './services/payment.service.js';
-
 // Expose public API of the wallet module for other modules to use
 export default {
   /**

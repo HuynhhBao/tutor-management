@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 import { ApiError } from '../utils/ApiError.js';
 import transporter from '../utils/mailer.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import redisClient from '../utils/redisClient.js';
 
 // In-memory OTP store: email -> { otp, expiresAt, verified? }
@@ -162,7 +162,7 @@ class AuthService {
     let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     let user = userResult.rows[0];
 
-    if (user && user.is_active === false) {
+    if (user?.is_active === false) {
       throw new ApiError(403, 'Tài khoản của bạn đã bị khóa');
     }
 
@@ -228,19 +228,14 @@ class AuthService {
   async updateProfile(decoded, { fullName, phoneNumber, currentGrade, gradeLevels }) {
     if (['admin', 'staff'].includes(decoded.role)) {
       await pool.query('UPDATE admins SET full_name = $1 WHERE id = $2', [fullName, decoded.id]);
-      return true;
-    } 
-    
-    if (decoded.role === 'tutor') {
+    } else if (decoded.role === 'tutor') {
       const gradesVal = gradeLevels ?? currentGrade ?? '';
       await pool.query('UPDATE tutors SET full_name = $1, grade_levels = $2 WHERE id = $3', [fullName, gradesVal, decoded.id]);
       await this._clearTutorCache();
-      return true;
+    } else {
+      const gradeVal = currentGrade ?? '';
+      await pool.query('UPDATE users SET full_name = $1, phone_number = $2, current_grade = $3 WHERE id = $4', [fullName, phoneNumber, gradeVal, decoded.id]);
     }
-    
-    const gradeVal = currentGrade ?? '';
-    await pool.query('UPDATE users SET full_name = $1, phone_number = $2, current_grade = $3 WHERE id = $4', [fullName, phoneNumber, gradeVal, decoded.id]);
-    return true;
   }
 
   async updateAvatar(decoded, file) {

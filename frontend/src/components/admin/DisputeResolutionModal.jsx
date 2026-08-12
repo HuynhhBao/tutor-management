@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, CheckCircle, Clock, ShieldAlert } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle, ShieldAlert } from 'lucide-react';
 
 const STATUS_OPTIONS = [
   { value: 'confirmed', label: 'Đã xác nhận / Đang học', color: 'text-blue-600 bg-blue-50 border-blue-200' },
@@ -62,6 +62,7 @@ const DisputeResolutionModal = ({ isOpen, onClose, selectedClass, onUpdateStatus
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -105,10 +106,10 @@ const DisputeResolutionModal = ({ isOpen, onClose, selectedClass, onUpdateStatus
 
           {/* Select Status */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-2">
+            <label id="status-label" className="block text-xs font-semibold text-slate-700 mb-2">
               Chọn Trạng thái mới <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="group" aria-labelledby="status-label">
               {STATUS_OPTIONS.map((opt) => (
                 <button
                   type="button"
@@ -134,10 +135,11 @@ const DisputeResolutionModal = ({ isOpen, onClose, selectedClass, onUpdateStatus
 
           {/* Admin Note */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label htmlFor="adminNote" className="block text-xs font-semibold text-slate-700 mb-1">
               Ghi chú xử lý của Admin (Admin Note)
             </label>
             <textarea
+              id="adminNote"
               rows={3}
               value={adminNote}
               onChange={(e) => setAdminNote(e.target.value)}

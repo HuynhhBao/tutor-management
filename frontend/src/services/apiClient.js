@@ -60,6 +60,7 @@ const apiClient = async (input, init = {}) => {
       json: async () => typeof response.data === 'string' ? JSON.parse(response.data) : response.data
     };
   } catch (error) {
+    console.error('API Client Error:', error.message || error);
     throw error;
   }
 };

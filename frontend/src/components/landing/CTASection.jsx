@@ -11,7 +11,7 @@ const CTASection = ({ onRequireLogin }) => (
       <p className="text-blue-100 text-lg md:text-xl mb-10">
         Bắt đầu hành trình học tập của bạn ngay hôm nay
       </p>
-      <button
+      <button type="button"
         onClick={onRequireLogin}
         className="bg-white text-blue-600 hover:bg-slate-100 px-8 py-4 rounded-lg font-bold text-lg shadow-lg transition-colors"
       >

@@ -73,7 +73,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <button
+        <button type="button"
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-slate-500 hover:text-blue-600 mb-8 transition-colors absolute top-8 left-8"
         >
@@ -98,7 +98,7 @@ const LoginPage = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         {!isAdmin && (
           <div className="flex p-1 bg-slate-200/50 rounded-xl mb-6">
-            <button
+            <button type="button"
               onClick={() => setActiveTab('user')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === 'user'
                   ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'
@@ -107,7 +107,7 @@ const LoginPage = () => {
             >
               Học viên / Phụ huynh
             </button>
-            <button
+            <button type="button"
               onClick={() => setActiveTab('tutor')}
               className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${activeTab === 'tutor'
                   ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-900/5'

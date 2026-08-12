@@ -46,15 +46,15 @@ class TutorFinanceService {
     `, [tutorId]);
 
     return {
-      balance: parseFloat(tutor.balance || 0),
+      balance: Number.parseFloat(tutor.balance || 0),
       bankInfo: {
         bankName: tutor.bank_name || '',
         bankAccountNumber: tutor.bank_account_number || '',
         bankAccountHolder: tutor.bank_account_holder || ''
       },
       stats: {
-        totalEarned: parseFloat(statsRes.rows[0]?.total_earned || 0),
-        totalWithdrawn: parseFloat(statsRes.rows[0]?.total_withdrawn || 0)
+        totalEarned: Number.parseFloat(statsRes.rows[0]?.total_earned || 0),
+        totalWithdrawn: Number.parseFloat(statsRes.rows[0]?.total_withdrawn || 0)
       },
       transactions: txRes.rows,
       payoutRequests: payoutRes.rows
@@ -91,8 +91,8 @@ class TutorFinanceService {
    * Tạo yêu cầu xin chi trả / rút tiền về tài khoản ngân hàng
    */
   async requestPayout(tutorId, amount) {
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount < 200000) {
+    const parsedAmount = Number.parseFloat(amount);
+    if (Number.isNaN(parsedAmount) || parsedAmount < 200000) {
       throw new ApiError(400, 'Số tiền rút tối thiểu cho mỗi lệnh là 200.000 VNĐ!');
     }
 
@@ -107,7 +107,7 @@ class TutorFinanceService {
     }
 
     const tutor = tutorRes.rows[0];
-    const currentBalance = parseFloat(tutor.balance || 0);
+    const currentBalance = Number.parseFloat(tutor.balance || 0);
 
     if (currentBalance < parsedAmount) {
       throw new ApiError(400, `Số dư ví khả dụng (${currentBalance.toLocaleString('vi-VN')} VNĐ) không đủ để rút ${parsedAmount.toLocaleString('vi-VN')} VNĐ!`);
@@ -124,7 +124,7 @@ class TutorFinanceService {
       WHERE tutor_id = $1 AND status = 'pending'
     `, [tutorId]);
 
-    if (parseInt(pendingRes.rows[0]?.pending_count || 0, 10) >= 2) {
+    if (Number.parseInt(pendingRes.rows[0]?.pending_count || 0, 10) >= 2) {
       throw new ApiError(400, 'Bạn đang có 2 yêu cầu rút tiền chờ Quản trị viên phê duyệt. Vui lòng đợi các yêu cầu trước được giải quyết!');
     }
 

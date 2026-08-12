@@ -19,7 +19,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // PostgreSQL Invalid Input Syntax / CastError (e.g., malformed ID injection)
-  if (err.code === '22P02' || err.name === 'CastError' || err.name === 'ValidationError' || (err.message && err.message.includes('invalid input syntax'))) {
+  if (err.code === '22P02' || err.name === 'CastError' || err.name === 'ValidationError' || (err.message?.includes('invalid input syntax'))) {
     return sendError(res, 400, 'Dữ liệu đầu vào hoặc định dạng ID không hợp lệ');
   }
 

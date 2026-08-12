@@ -53,7 +53,7 @@ export default function TransactionTable({
       `"${tx.user_email || ''}"`,
       `"${tx.type}"`,
       tx.amount,
-      `"${(tx.description || '').replace(/"/g, '""')}"`,
+      `"${(tx.description || '').replaceAll('"', '""')}"`,
       `"${formatDate(tx.created_at)}"`
     ]);
 
@@ -64,7 +64,7 @@ export default function TransactionTable({
     link.setAttribute('download', `Bao_Cao_Tai_Chinh_EduMatch_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   const getTypeBadge = (type) => {

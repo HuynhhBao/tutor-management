@@ -24,7 +24,7 @@ const formatVND = (value) => {
 };
 
 const CustomAreaTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     return (
       <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-xl text-xs space-y-2">
         <p className="text-slate-500 font-semibold border-b border-slate-100 pb-1">
@@ -33,7 +33,7 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between space-x-4">
             <span className="flex items-center text-slate-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 mr-2" />
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 mr-2" />{' '}
               Tổng doanh thu:
             </span>
             <span className="font-bold text-indigo-700">
@@ -42,7 +42,7 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
           </div>
           <div className="flex items-center justify-between space-x-4">
             <span className="flex items-center text-slate-600">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" />{' '}
               Hoa hồng hệ thống:
             </span>
             <span className="font-bold text-emerald-700">
@@ -63,7 +63,7 @@ const CustomAreaTooltip = ({ active, payload, label }) => {
 };
 
 const CustomPieTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     const data = payload[0];
     return (
       <div className="bg-white border border-slate-200 p-3 rounded-xl shadow-xl text-xs space-y-1">
@@ -238,8 +238,8 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
                   paddingAngle={4}
                   dataKey="count"
                 >
-                  {breakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
+                  {breakdown.map((entry) => (
+                    <Cell key={`cell-${entry.name}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomPieTooltip />} />
@@ -258,10 +258,10 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
 
         {/* Custom Legend items list */}
         <div className="space-y-2 pt-3 border-t border-slate-100 text-xs">
-          {breakdown.map((item, idx) => {
+          {breakdown.map((item) => {
             const percent = totalBreakdownCount > 0 ? Math.round((item.count / totalBreakdownCount) * 100) : 0;
             return (
-              <div key={idx} className="flex items-center justify-between text-slate-700">
+              <div key={item.name} className="flex items-center justify-between text-slate-700">
                 <div className="flex items-center space-x-2 truncate">
                   <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                   <span className="truncate font-medium">{item.name}</span>

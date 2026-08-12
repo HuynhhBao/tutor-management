@@ -3,13 +3,10 @@ import {
   Calendar, 
   Search, 
   RefreshCw, 
-  Filter, 
   BookOpen, 
   CheckCircle, 
   AlertTriangle, 
-  XCircle, 
-  ShieldAlert,
-  Clock
+  XCircle
 } from 'lucide-react';
 import apiClient from '../../services/apiClient';
 import ClassTable from '../../components/admin/ClassTable';
@@ -107,7 +104,7 @@ const ClassManagement = () => {
           </p>
         </div>
 
-        <button
+        <button type="button"
           onClick={fetchClasses}
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors self-start md:self-auto"
         >
@@ -144,7 +141,7 @@ const ClassManagement = () => {
           {/* Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
             {TABS.map((tab) => (
-              <button
+              <button type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${

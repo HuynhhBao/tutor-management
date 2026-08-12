@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, GraduationCap, Star, BookOpen, X, Calendar, CheckCircle, ChevronDown, Wallet } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Search, GraduationCap, Star, X, CheckCircle, ChevronDown, Wallet } from 'lucide-react';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -41,7 +40,7 @@ function BookingModal({ tutor, onClose, onSuccess }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
       <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-slate-100 relative">
-        <button
+        <button type="button"
           onClick={onClose}
           className="absolute top-5 right-5 p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
         >
@@ -79,10 +78,11 @@ function BookingModal({ tutor, onClose, onSuccess }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="subject" className="block text-sm font-semibold text-slate-700 mb-1.5">
               Môn học <span className="text-red-500">*</span>
             </label>
             <input
+              id="subject"
               type="text"
               value={form.subject}
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
@@ -92,10 +92,11 @@ function BookingModal({ tutor, onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="scheduleTime" className="block text-sm font-semibold text-slate-700 mb-1.5">
               Thời gian học mong muốn <span className="text-red-500">*</span>
             </label>
             <input
+              id="scheduleTime"
               type="datetime-local"
               value={form.scheduleTime}
               onChange={(e) => setForm({ ...form, scheduleTime: e.target.value })}
@@ -105,10 +106,11 @@ function BookingModal({ tutor, onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="message" className="block text-sm font-semibold text-slate-700 mb-1.5">
               Lời nhắn <span className="text-slate-400 font-normal">(tùy chọn)</span>
             </label>
             <textarea
+              id="message"
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               placeholder="Mô tả thêm về nhu cầu học của bạn..."
@@ -159,8 +161,8 @@ function TutorCard({ tutor, onBook }) {
 
         {tutor.subjects && (
           <div className="mt-4 flex flex-wrap gap-1.5">
-            {tutor.subjects.split(',').slice(0, 3).map((s, i) => (
-              <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+            {tutor.subjects.split(',').slice(0, 3).map((s) => (
+              <span key={s.trim()} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
                 {s.trim()}
               </span>
             ))}
@@ -175,7 +177,7 @@ function TutorCard({ tutor, onBook }) {
           <span className={`w-1.5 h-1.5 rounded-full ${isAvailable ? 'bg-green-500 animate-pulse' : 'bg-slate-400'}`} />
           {isAvailable ? 'Sẵn sàng' : 'Bận'}
         </span>
-        <button
+        <button type="button"
           id={`book-tutor-${tutor.id}`}
           onClick={() => onBook(tutor)}
           disabled={!isAvailable}
@@ -232,6 +234,41 @@ export default function BookingPage() {
     setSelectedTutor(null);
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 5000);
+  };
+
+  const renderTutors = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    
+    if (tutors.length === 0) {
+      return (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center text-center">
+          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <Search className="w-10 h-10 text-slate-300" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-900">Không tìm thấy gia sư</h3>
+          <p className="text-slate-500 mt-2 text-sm">Thử thay đổi từ khóa hoặc bộ lọc</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <p className="text-sm text-slate-500">
+          Tìm thấy <strong className="text-slate-800">{tutors.length}</strong> gia sư
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {tutors.map(tutor => (
+            <TutorCard key={tutor.id} tutor={tutor} onBook={setSelectedTutor} />
+          ))}
+        </div>
+      </>
+    );
   };
 
   return (
@@ -291,30 +328,7 @@ export default function BookingPage() {
       </div>
 
       {/* Tutor list */}
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : tutors.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 flex flex-col items-center text-center">
-          <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-            <Search className="w-10 h-10 text-slate-300" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">Không tìm thấy gia sư</h3>
-          <p className="text-slate-500 mt-2 text-sm">Thử thay đổi từ khóa hoặc bộ lọc</p>
-        </div>
-      ) : (
-        <>
-          <p className="text-sm text-slate-500">
-            Tìm thấy <strong className="text-slate-800">{tutors.length}</strong> gia sư
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {tutors.map(tutor => (
-              <TutorCard key={tutor.id} tutor={tutor} onBook={setSelectedTutor} />
-            ))}
-          </div>
-        </>
-      )}
+      {renderTutors()}
 
       {selectedTutor && (
         <BookingModal

@@ -202,7 +202,7 @@ const ForgotPasswordPage = () => {
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #dbeafe 0%, #f8fafc 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px', fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
       {/* Nút quay lại */}
-      <button
+      <button type="button"
         onClick={() => navigate('/login')}
         style={{ position: 'fixed', top: '24px', left: '24px', display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', transition: 'color 0.2s' }}
         onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}

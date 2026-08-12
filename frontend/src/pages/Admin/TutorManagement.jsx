@@ -203,7 +203,7 @@ export default function TutorManagement() {
           <p className="text-sm text-gray-500 mt-1">Quản lý gia sư đang hợp tác và duyệt hồ sơ ứng tuyển mới</p>
         </div>
         {activeTab === 'tutors' && (
-          <button onClick={() => setIsModalOpen(true)} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
+          <button type="button" onClick={() => setIsModalOpen(true)} className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
             + Thêm gia sư mới
           </button>
         )}
@@ -212,7 +212,7 @@ export default function TutorManagement() {
       {/* Tabs */}
       <div className="flex border-b border-gray-200">
         {['tutors', 'applications'].map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
+          <button type="button" key={tab} onClick={() => setActiveTab(tab)}
             className={`relative py-3 px-6 font-medium text-sm border-b-2 transition-colors ${activeTab === tab ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             <div className="flex items-center gap-2">
               <span>{tab === 'tutors' ? 'Danh sách Gia sư' : 'Hồ sơ Ứng tuyển'}</span>
@@ -242,7 +242,7 @@ export default function TutorManagement() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-slate-100 transition-colors w-full sm:w-auto justify-center">
+          <button type="button" className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-slate-100 transition-colors w-full sm:w-auto justify-center">
             <Filter className="w-4 h-4 mr-2" /> Lọc kết quả
           </button>
         </div>

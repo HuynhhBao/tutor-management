@@ -44,6 +44,70 @@ const StudentBookingHistoryModal = ({ studentId, isOpen, onClose }) => {
     }
   };
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      );
+    }
+    if (bookings.length === 0) {
+      return (
+        <div className="text-center py-10 text-slate-500">
+          Học viên này chưa có lượt đặt lịch nào.
+        </div>
+      );
+    }
+    return (
+      <div className="overflow-auto max-h-[60vh]">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50 text-sm font-medium text-gray-500 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium">Môn học</th>
+              <th className="px-4 py-3 text-left font-medium">Gia sư</th>
+              <th className="px-4 py-3 text-left font-medium">Lịch học</th>
+              <th className="px-4 py-3 text-left font-medium">Trạng thái</th>
+              <th className="px-4 py-3 text-left font-medium">Ngày tạo</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {bookings.map((booking) => (
+              <tr key={booking.id} className="hover:bg-slate-50">
+                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
+                  {booking.subject || 'Không có'}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <img 
+                      className="h-8 w-8 rounded-full object-cover mr-2 border border-slate-200" 
+                      src={booking.tutor_avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(booking.tutor_name) + '&background=random'} 
+                      alt="" 
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(booking.tutor_name) + '&background=random';
+                      }}
+                    />
+                    <span className="text-sm text-slate-700">{booking.tutor_name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm text-slate-500">
+                  {booking.schedule_time || 'Thỏa thuận'}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  {getStatusBadge(booking.status)}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
+                  {formatDate(booking.created_at)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -60,68 +124,14 @@ const StudentBookingHistoryModal = ({ studentId, isOpen, onClose }) => {
                 Lịch sử thuê gia sư (Học viên #{studentId})
               </h3>
               <button 
+                type="button"
                 onClick={onClose}
                 className="text-slate-400 hover:text-slate-500 transition-colors bg-slate-100 hover:bg-slate-200 rounded-full p-2"
               >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
-
-            {loading ? (
-              <div className="flex justify-center items-center py-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              </div>
-            ) : bookings.length === 0 ? (
-              <div className="text-center py-10 text-slate-500">
-                Học viên này chưa có lượt đặt lịch nào.
-              </div>
-            ) : (
-              <div className="overflow-auto max-h-[60vh]">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50 text-sm font-medium text-gray-500 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium">Môn học</th>
-                      <th className="px-4 py-3 text-left font-medium">Gia sư</th>
-                      <th className="px-4 py-3 text-left font-medium">Lịch học</th>
-                      <th className="px-4 py-3 text-left font-medium">Trạng thái</th>
-                      <th className="px-4 py-3 text-left font-medium">Ngày tạo</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {bookings.map((booking) => (
-                      <tr key={booking.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
-                          {booking.subject || 'Không có'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <img 
-                              className="h-8 w-8 rounded-full object-cover mr-2 border border-slate-200" 
-                              src={booking.tutor_avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(booking.tutor_name) + '&background=random'} 
-                              alt="" 
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(booking.tutor_name) + '&background=random';
-                              }}
-                            />
-                            <span className="text-sm text-slate-700">{booking.tutor_name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-500">
-                          {booking.schedule_time || 'Thỏa thuận'}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {getStatusBadge(booking.status)}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-500">
-                          {formatDate(booking.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {renderContent()}
           </div>
           <div className="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200">
             <button

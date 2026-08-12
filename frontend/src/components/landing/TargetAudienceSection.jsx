@@ -24,7 +24,7 @@ const TargetAudienceSection = ({ onRequireLogin, onApplyTutor }) => (
               </li>
             ))}
           </ul>
-          <button onClick={onRequireLogin} className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5">
+          <button type="button" onClick={onRequireLogin} className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5">
             Tìm gia sư ngay
           </button>
         </div>
@@ -43,7 +43,7 @@ const TargetAudienceSection = ({ onRequireLogin, onApplyTutor }) => (
               </li>
             ))}
           </ul>
-          <button onClick={onApplyTutor} className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5">
+          <button type="button" onClick={onApplyTutor} className="mt-auto w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-sm transition-all hover:-translate-y-0.5">
             Đăng ký làm gia sư
           </button>
         </div>

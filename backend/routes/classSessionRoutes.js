@@ -18,7 +18,7 @@ router.post('/upload', uploadClassroomFile.single('file'), (req, res, next) => {
     if (!fileUrl.startsWith('http') && !fileUrl.startsWith('https')) {
       const serverUrl = `${req.protocol}://${req.get('host')}`;
       // Thay thế ký tự gạch chéo ngược Windows thành gạch chéo xuôi cho URL
-      const cleanPath = req.file.path.replace(/\\/g, '/');
+      const cleanPath = req.file.path.replaceAll('\\', '/');
       fileUrl = `${serverUrl}/${cleanPath}`;
     }
 

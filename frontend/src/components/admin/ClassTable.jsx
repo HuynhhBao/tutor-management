@@ -2,14 +2,9 @@ import React from 'react';
 import { 
   Calendar, 
   Clock, 
-  User, 
-  GraduationCap, 
   AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
   Edit3, 
   MessageSquare,
-  ShieldCheck,
   RefreshCw
 } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
@@ -153,6 +148,7 @@ const ClassTable = ({ classes, loading, onSelectClass }) => {
                 {/* Actions */}
                 <td className="px-6 py-4 text-right">
                   <button
+                    type="button"
                     onClick={() => onSelectClass(item)}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors border border-primary-200"
                     title="Xử lý / Cập nhật trạng thái"

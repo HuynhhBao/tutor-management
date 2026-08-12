@@ -3,13 +3,11 @@ import { useParams } from 'react-router-dom';
 import { 
   Send, 
   Search, 
-  User, 
   MoreVertical, 
   Phone, 
   Video, 
   Info,
   MessageSquare,
-  Clock,
   CheckCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -88,7 +86,6 @@ const ChatPage = () => {
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(false);
   const [fetchingMessages, setFetchingMessages] = useState(false);
   const messagesEndRef = useRef(null);
   const initialScrollDoneRef = useRef(false);
@@ -193,6 +190,12 @@ const ChatPage = () => {
     }
   };
 
+  const getMessageColorClass = (convId, unreadCount) => {
+    if (selectedPartner?.id === convId) return 'text-blue-100';
+    if (unreadCount > 0) return 'text-slate-900 font-extrabold';
+    return 'text-slate-500';
+  };
+
   return (
     <div className="flex h-[calc(100vh-140px)] bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden animate-in fade-in duration-500">
       {/* Sidebar - Danh sách hội thoại */}
@@ -219,7 +222,7 @@ const ChatPage = () => {
           ) : (
             <div className="space-y-1">
               {conversations.map((conv) => (
-                <button
+                <button type="button"
                   key={`${conv.id}-${conv.partner_type}`}
                   onClick={() => {
                     setSelectedPartner(conv);
@@ -256,13 +259,7 @@ const ChatPage = () => {
                         </span>
                       </div>
                     </div>
-                    <p className={`text-xs truncate ${
-                      selectedPartner?.id === conv.id 
-                        ? 'text-blue-100' 
-                        : conv.unread_count > 0 
-                        ? 'text-slate-900 font-extrabold' 
-                        : 'text-slate-500'
-                    }`}>
+                    <p className={`text-xs truncate ${getMessageColorClass(conv.id, conv.unread_count)}`}>
                       {conv.last_message}
                     </p>
                   </div>
@@ -297,16 +294,16 @@ const ChatPage = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                <button type="button" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                   <Phone className="h-5 w-5" />
                 </button>
-                <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                <button type="button" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                   <Video className="h-5 w-5" />
                 </button>
-                <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                <button type="button" className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                   <Info className="h-5 w-5" />
                 </button>
-                <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all md:hidden">
+                <button type="button" className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all md:hidden">
                   <MoreVertical className="h-5 w-5" />
                 </button>
               </div>

@@ -2,8 +2,6 @@ import express from 'express';
 import { sendMessage, getMessages, getConversations, getTotalUnreadMessages } from '../controllers/chatController.js';
 import validate from '../middlewares/validate.js';
 import { sendMessageSchema } from '../validations/chatValidation.js';
-import { verifyUser, verifyTutor } from '../middlewares/authMiddleware.js';
-
 const router = express.Router();
 
 // Route cho cả User và Tutor nên dùng middleware kết hợp hoặc một custom middleware
@@ -31,6 +29,7 @@ const verifyAuthAny = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
+    console.error('JWT validation error:', err);
     return next(new ApiError(401, 'Token không hợp lệ'));
   }
 };

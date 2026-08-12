@@ -19,8 +19,8 @@ export const initSocket = (server) => {
     if (!data) return null;
     let idStr = typeof data === 'object' ? data.classId : data;
     if (!idStr) return null;
-    const idNum = parseInt(idStr, 10);
-    return isNaN(idNum) ? null : idNum;
+    const idNum = Number.parseInt(idStr, 10);
+    return Number.isNaN(idNum) ? null : idNum;
   };
 
   // Helper tính toán và phát danh sách thành viên online trong phòng
@@ -31,7 +31,7 @@ export const initSocket = (server) => {
     if (roomSockets) {
       for (const socketId of roomSockets) {
         const clientSocket = io.sockets.sockets.get(socketId);
-        if (clientSocket && clientSocket.userData) {
+        if (clientSocket?.userData) {
           members.push(clientSocket.userData);
         }
       }

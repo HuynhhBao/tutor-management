@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +11,23 @@ import bookingService from '../services/bookingService.js';
 import tutorFinanceService from '../services/tutorFinanceService.js';
 import adminFinanceService from '../services/adminFinanceService.js';
 
-async function runTests() {
+// Tách logic tạo user và tutor ra hàm riêng để giảm Complexity
+async function createTestAccounts() {
+  const userRes = await pool.query(`
+    INSERT INTO users (email, full_name, password, balance)
+    VALUES ('user_payout_test_edu@test.com', 'Học viên Test Payout', 'hashed_pass_test', 2000000)
+    RETURNING id
+  `);
+  const tutorRes = await pool.query(`
+    INSERT INTO tutors (full_name, email, status, balance)
+    VALUES ('Gia sư Test Payout', 'tutor_payout_test_edu@test.com', 'Đã duyệt', 0)
+    RETURNING id
+  `);
+  return { userId: userRes.rows[0].id, tutorId: tutorRes.rows[0].id };
+}
+
+// Bỏ async function runTests() và dùng top-level await (IIFE tự thực thi)
+try {
   console.log('🚀 BẮT ĐẦU KIỂM THỬ TRỌN VẸN LUỒNG VÍ GIA SƯ, KHÓA THỜI GIAN & CHI TRẢ VIETQR...');
   let userId = null;
   let tutorId = null;
@@ -20,21 +36,9 @@ async function runTests() {
     await initDb();
     console.log('✅ [Bước 1] Cấu hình & Database schema initialized thành công!');
 
-    // Tạo user và tutor giả định cho test
-    const userRes = await pool.query(`
-      INSERT INTO users (email, full_name, password, balance)
-      VALUES ('user_payout_test_edu@test.com', 'Học viên Test Payout', 'hashed_pass_test', 2000000)
-      RETURNING id
-    `);
-    userId = userRes.rows[0].id;
-
-    const tutorRes = await pool.query(`
-      INSERT INTO tutors (full_name, email, status, balance)
-      VALUES ('Gia sư Test Payout', 'tutor_payout_test_edu@test.com', 'Đã duyệt', 0)
-      RETURNING id
-    `);
-    tutorId = tutorRes.rows[0].id;
-
+    const accounts = await createTestAccounts();
+    userId = accounts.userId;
+    tutorId = accounts.tutorId;
     console.log(`✅ [Bước 2] Đã tạo Học viên (#${userId}) và Gia sư (#${tutorId}) với số dư ban đầu = 0 đ.`);
 
     // Test 1: Khóa thời gian (Time-gate Validation)
@@ -130,10 +134,9 @@ async function runTests() {
       if (userId) await pool.query('DELETE FROM users WHERE id = $1', [userId]);
       if (tutorId) await pool.query('DELETE FROM tutors WHERE id = $1', [tutorId]);
     } catch (cleanupErr) {
-      // ignore
+      console.error('Cleanup error:', cleanupErr);
     }
     process.exit(1);
   }
 }
 
-runTests();

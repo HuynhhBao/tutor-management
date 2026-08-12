@@ -90,11 +90,11 @@ export default function DashboardOverview() {
 
       {/* Stats Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
+        {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div 
-              key={index} 
+              key={stat.title} 
               className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow flex flex-col justify-between"
             >
               <div>

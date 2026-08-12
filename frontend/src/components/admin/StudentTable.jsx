@@ -94,6 +94,7 @@ const StudentTable = ({ students, loading, onToggleStatus }) => {
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div className="flex justify-end gap-2">
                   <button 
+                    type="button"
                     onClick={() => setSelectedStudentId(student.id)}
                     className="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors"
                     title="Lịch sử thuê gia sư"
@@ -101,6 +102,7 @@ const StudentTable = ({ students, loading, onToggleStatus }) => {
                     <FiCalendar className="w-5 h-5" />
                   </button>
                   <button 
+                    type="button"
                     onClick={() => onToggleStatus(student.id)}
                     className={`p-1.5 rounded transition-colors ${
                       student.is_active 

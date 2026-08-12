@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, History, LayoutDashboard, CalendarCheck } from 'lucide-react';
+import { GraduationCap, LogOut, Search, User, Menu, X, Wallet, MessageSquare, LayoutDashboard, CalendarCheck } from 'lucide-react';
 import AIAssistantWidget from '../common/AIAssistantWidget';
 import NotificationBell from './NotificationBell';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -104,6 +104,7 @@ const StudentLayout = () => {
             {/* Left side: Logo & Desktop Menu */}
             <div className="flex items-center flex-1 overflow-x-auto">
               <button 
+                type="button"
                 className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg pr-2 mr-2 py-1" 
                 onClick={() => navigate('/student-dashboard')}
                 aria-label="EduMatch Dashboard"
@@ -125,6 +126,7 @@ const StudentLayout = () => {
                   const iconClass = `mr-1.5 h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
                   return (
                     <button
+                      type="button"
                       key={item.path}
                       onClick={() => navigate(item.path)}
                       className={btnClass}

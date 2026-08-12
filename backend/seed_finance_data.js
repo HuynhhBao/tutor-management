@@ -1,5 +1,5 @@
 import pool from './config/db.js';
-import { randomInt } from 'crypto';
+import { randomInt } from 'node:crypto';
 
 
 async function seedFinanceData() {
@@ -20,7 +20,7 @@ async function seedFinanceData() {
 
     // Kiểm tra số lượng giao dịch hiện tại
     const countRes = await pool.query("SELECT COUNT(*) FROM transactions");
-    const currentCount = parseInt(countRes.rows[0].count, 10);
+    const currentCount = Number.parseInt(countRes.rows[0].count, 10);
     console.log(`Current transactions count in DB: ${currentCount}`);
 
     // Seed khoảng 30 - 50 giao dịch đa dạng qua các ngày gần nhất
@@ -74,11 +74,13 @@ async function seedFinanceData() {
           userType = 'user';
         }
 
-        let amount = 0;
-        if (type === 'deposit') amount = [200000, 500000, 1000000, 2000000, 5000000][randomInt(0, 5)];
-        else if (type === 'booking_payment') amount = [300000, 600000, 1200000, 2500000, 4000000][randomInt(0, 5)];
-        else if (type === 'tutor_payout') amount = [500000, 1000000, 1800000, 3200000][randomInt(0, 4)];
-        else amount = [200000, 500000, 800000][randomInt(0, 3)];
+        const getAmount = (txType) => {
+          if (txType === 'deposit') return [200000, 500000, 1000000, 2000000, 5000000][randomInt(0, 5)];
+          if (txType === 'booking_payment') return [300000, 600000, 1200000, 2500000, 4000000][randomInt(0, 5)];
+          if (txType === 'tutor_payout') return [500000, 1000000, 1800000, 3200000][randomInt(0, 4)];
+          return [200000, 500000, 800000][randomInt(0, 3)];
+        };
+        const amount = getAmount(type);
 
         const descs = sampleDescriptions[type];
         const description = descs[randomInt(0, descs.length)];
@@ -101,4 +103,4 @@ async function seedFinanceData() {
   }
 }
 
-seedFinanceData();
+await seedFinanceData();

@@ -68,32 +68,37 @@ export default function VideoCallArea({
     if (!videoEl) return;
 
     const playVideo = (el) => {
-      if (isActive && el && el.srcObject) {
+      if (isActive && el?.srcObject) {
         el.play().catch(() => {});
       }
     };
 
-    if (isScreenSharing && screenStreamRef.current) {
-      if (videoEl.srcObject !== screenStreamRef.current) {
-        videoEl.srcObject = screenStreamRef.current;
-      }
-      playVideo(videoEl);
-      
-      if (cameraActive && localStreamRef.current && cameraEl) {
-        if (cameraEl.srcObject !== localStreamRef.current) {
-          cameraEl.srcObject = localStreamRef.current;
+    const setupStreams = () => {
+      if (isScreenSharing && screenStreamRef.current) {
+        if (videoEl.srcObject !== screenStreamRef.current) {
+          videoEl.srcObject = screenStreamRef.current;
         }
-        playVideo(cameraEl);
+        playVideo(videoEl);
+        
+        if (cameraActive && localStreamRef.current && cameraEl) {
+          if (cameraEl.srcObject !== localStreamRef.current) {
+            cameraEl.srcObject = localStreamRef.current;
+          }
+          playVideo(cameraEl);
+        }
+      } else if (cameraActive && localStreamRef.current) {
+        if (videoEl.srcObject !== localStreamRef.current) {
+          videoEl.srcObject = localStreamRef.current;
+        }
+        playVideo(videoEl);
+        if (cameraEl) cameraEl.srcObject = null;
+      } else {
+        videoEl.srcObject = null;
+        if (cameraEl) cameraEl.srcObject = null;
       }
-    } else if (cameraActive && localStreamRef.current) {
-      if (videoEl.srcObject !== localStreamRef.current) {
-        videoEl.srcObject = localStreamRef.current;
-      }
-      playVideo(videoEl);
-    } else {
-      videoEl.srcObject = null;
-      if (cameraEl) cameraEl.srcObject = null;
-    }
+    };
+
+    setupStreams();
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
@@ -171,45 +176,43 @@ export default function VideoCallArea({
   // 4. Quản lý luồng Camera & Micro local
   useEffect(() => {
     async function handleMediaStream() {
-      if (cameraActive || micActive) {
-        try {
-          if (!localStreamRef.current) {
-            const constraints = {
-              video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
-              audio: micActive
-            };
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            localStreamRef.current = stream;
-          } else {
-
-            const videoTracks = localStreamRef.current.getVideoTracks();
-            if (cameraActive && videoTracks.length === 0) {
-              const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
-              const newVideoTrack = videoStream.getVideoTracks()[0];
-              localStreamRef.current.addTrack(newVideoTrack);
-            } else if (!cameraActive && videoTracks.length > 0) {
-              videoTracks.forEach(t => {
-                t.stop();
-                localStreamRef.current.removeTrack(t);
-              });
-            }
-
-            const audioTracks = localStreamRef.current.getAudioTracks();
-            if (micActive && audioTracks.length === 0) {
-              const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-              const newAudioTrack = audioStream.getAudioTracks()[0];
-              localStreamRef.current.addTrack(newAudioTrack);
-            } else if (audioTracks.length > 0) {
-              audioTracks.forEach(t => {
-                t.enabled = micActive;
-              });
-            }
-          }
-        } catch (err) {
-          // Xử lý lỗi khi không thể mở thiết bị media
-        }
-      } else {
+      if (!cameraActive && !micActive) {
         stopAllLocalTracks();
+        return;
+      }
+
+      try {
+        if (!localStreamRef.current) {
+          const constraints = {
+            video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
+            audio: micActive
+          };
+          localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
+          return;
+        }
+
+        const videoTracks = localStreamRef.current.getVideoTracks();
+        if (cameraActive && videoTracks.length === 0) {
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
+          localStreamRef.current.addTrack(videoStream.getVideoTracks()[0]);
+        } else if (!cameraActive && videoTracks.length > 0) {
+          videoTracks.forEach(t => {
+            t.stop();
+            localStreamRef.current.removeTrack(t);
+          });
+        }
+
+        const audioTracks = localStreamRef.current.getAudioTracks();
+        if (micActive && audioTracks.length === 0) {
+          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          localStreamRef.current.addTrack(audioStream.getAudioTracks()[0]);
+        } else if (audioTracks.length > 0) {
+          audioTracks.forEach(t => {
+            t.enabled = micActive;
+          });
+        }
+      } catch (err) {
+        console.error('Lỗi khi truy cập camera/micro:', err);
       }
     }
 
@@ -236,7 +239,7 @@ export default function VideoCallArea({
           };
         }
       } catch (err) {
-        // Người dùng đã hủy chia sẻ màn hình
+        console.error('Screen sharing error:', err);
       }
     }
   };
@@ -400,6 +403,7 @@ export default function VideoCallArea({
         <div className="flex items-center gap-4">
           {/* Button 1: Mở / Tắt Mic */}
           <button
+            type="button"
             onClick={onMicToggle}
             title={micActive ? 'Tắt Micro' : 'Mở Micro'}
             className={`p-3.5 rounded-full transition-all border shadow-lg ${
@@ -413,6 +417,7 @@ export default function VideoCallArea({
 
           {/* Button 2: Camera */}
           <button
+            type="button"
             onClick={onCameraToggle}
             title={cameraActive ? 'Tắt Camera' : 'Mở Camera'}
             className={`p-3.5 rounded-full transition-all border shadow-lg ${
@@ -426,6 +431,7 @@ export default function VideoCallArea({
 
           {/* Button 3: Chia sẻ màn hình */}
           <button
+            type="button"
             onClick={toggleScreenShare}
             title={isScreenSharing ? 'Dừng chia sẻ màn hình' : 'Chia sẻ màn hình'}
             className={`p-3.5 rounded-full transition-all border shadow-lg ${
@@ -441,6 +447,7 @@ export default function VideoCallArea({
         {/* Button 4: Rời phòng */}
         <div className="flex items-center">
           <button 
+            type="button"
             onClick={handleLeave}
             className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-lg shadow-rose-900/20 active:scale-95"
           >

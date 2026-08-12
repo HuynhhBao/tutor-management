@@ -98,7 +98,7 @@ const TutorLayout = () => {
           <div className="flex justify-between items-center gap-4 py-2 min-h-[4rem]">
             {/* Left side: Logo & Desktop Menu */}
             <div className="flex items-center flex-1 overflow-x-auto">
-              <button 
+              <button type="button" 
                 className="flex-shrink-0 flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg py-1 mr-6" 
                 onClick={() => navigate('/tutor-dashboard')}
                 aria-label="EduMatch Tutor Dashboard"
@@ -113,7 +113,7 @@ const TutorLayout = () => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
                   return (
-                    <button
+                    <button type="button"
                       key={item.path}
                       onClick={() => navigate(item.path)}
                       className={`inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
@@ -153,7 +153,7 @@ const TutorLayout = () => {
                   />
                 </div>
               </div>
-              <button
+              <button type="button"
                 onClick={handleLogout}
                 className="inline-flex items-center px-3 py-2 border border-slate-200 rounded-lg text-sm font-medium text-red-600 bg-white hover:bg-red-50 hover:border-red-200 transition-colors whitespace-nowrap"
               >
@@ -164,7 +164,7 @@ const TutorLayout = () => {
 
             {/* Mobile menu button */}
             <div className="flex items-center md:hidden flex-shrink-0">
-              <button
+              <button type="button"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
               >
@@ -186,7 +186,7 @@ const TutorLayout = () => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (
-                  <button
+                  <button type="button"
                     key={item.path}
                     onClick={() => {
                       navigate(item.path);
@@ -228,7 +228,7 @@ const TutorLayout = () => {
                 </div>
               </div>
               <div className="mt-3 space-y-1">
-                <button
+                <button type="button"
                   onClick={handleLogout}
                   className="flex items-center w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-800"
                 >
@@ -258,13 +258,13 @@ const TutorLayout = () => {
               Bạn có chắc chắn muốn đăng xuất khỏi hệ thống và quay về trang chủ không?
             </p>
             <div className="flex flex-col gap-3">
-              <button 
+              <button type="button" 
                 onClick={handleLogout}
                 className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
               >
                 Đăng xuất ngay
               </button>
-              <button 
+              <button type="button" 
                 onClick={() => setShowLogoutModal(false)}
                 className="w-full py-4 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
               >

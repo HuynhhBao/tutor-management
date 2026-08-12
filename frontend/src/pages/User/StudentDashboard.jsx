@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Search, 
-  History, 
   Wallet, 
   MessageSquare, 
   User, 
@@ -84,7 +83,7 @@ const StudentDashboard = () => {
   }, []);
 
   const stats = [
-    { label: 'Số dư hiện tại', value: `${parseFloat(balance).toLocaleString('vi-VN')} đ`, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Số dư hiện tại', value: `${Number.parseFloat(balance).toLocaleString('vi-VN')} đ`, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Gia sư đang thuê', value: `${activeTutors}`, icon: Star, color: 'text-blue-600', bg: 'bg-blue-100' },
     { label: 'Giờ học đã thực hiện', value: `${totalHours}h`, icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
   ];
@@ -287,17 +286,10 @@ const StudentDashboard = () => {
                   : '0';
 
                 return (
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     key={tutor.id || tutor.user_id || tutor.email || idx} 
                     onClick={() => navigate('/student-dashboard/search')}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        navigate('/student-dashboard/search');
-                      }
-                    }}
                     className="w-full text-left flex flex-col gap-4 p-5 border border-slate-200/80 rounded-2xl bg-white hover:border-blue-300 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {/* Avatar + Tên + Rating + Nút Xem hồ sơ */}
@@ -368,7 +360,7 @@ const StudentDashboard = () => {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

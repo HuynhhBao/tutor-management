@@ -162,9 +162,11 @@ export default function NotificationBell() {
                 </div>
             );
         }
-        return notifications.map((notif) => (
-            <button
-                type="button"
+        return (
+            <>
+                {notifications.map((notif) => (
+                    <button
+                        type="button"
                 key={notif.id}
                 onClick={() => handleNotificationClick(notif)}
                 className={`w-full text-left p-4 transition-all cursor-pointer hover:bg-slate-100/80 flex items-start space-x-3.5 ${
@@ -195,7 +197,9 @@ export default function NotificationBell() {
                     )}
                 </div>
             </button>
-        ));
+                ))}
+            </>
+        );
     };
 
     return (

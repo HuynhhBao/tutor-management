@@ -1,9 +1,9 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import crypto from 'crypto';
+import path from 'node:path';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
 
 // Cấu hình Cloudinary
 const isCloudinaryConfigured = 
