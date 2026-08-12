@@ -83,7 +83,12 @@ export default function VideoCallArea({
       const hasScreen = Boolean(isScreenSharing && screenStreamRef.current);
       const hasCamera = Boolean(cameraActive && localStreamRef.current);
 
-      const mainStream = hasScreen ? screenStreamRef.current : (hasCamera ? localStreamRef.current : null);
+      let mainStream = null;
+      if (hasScreen) {
+        mainStream = screenStreamRef.current;
+      } else if (hasCamera) {
+        mainStream = localStreamRef.current;
+      }
       setVideoSource(videoEl, mainStream);
       if (mainStream) playVideo(videoEl);
 
@@ -119,41 +124,41 @@ export default function VideoCallArea({
 
     const intervalId = setInterval(() => {
       const videoEl = localVideoRef.current;
-      if (videoEl && (videoEl.videoWidth > 0 || videoEl.readyState >= 1)) {
-        const w = videoEl.videoWidth || 800;
-        const h = videoEl.videoHeight || 450;
-        captureCanvas.width = Math.min(w, 960);
-        captureCanvas.height = Math.min(h, 540);
+      if (!videoEl || (videoEl.videoWidth === 0 && videoEl.readyState < 1)) return;
+      
+      const w = videoEl.videoWidth || 800;
+      const h = videoEl.videoHeight || 450;
+      captureCanvas.width = Math.min(w, 960);
+      captureCanvas.height = Math.min(h, 540);
+      
+      // Vẽ màn hình được share
+      captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+      
+      // Vẽ thêm camera (PiP) nếu camera đang bật
+      const camEl = localCameraRef.current;
+      if (cameraActive && camEl && camEl.readyState >= 1) {
+        const pipW = Math.max(120, captureCanvas.width * 0.2); // 20% chiều rộng
+        const pipH = (camEl.videoHeight / (camEl.videoWidth || 1)) * pipW || (pipW * 0.75);
+        const pipX = captureCanvas.width - pipW - 16;
+        const pipY = captureCanvas.height - pipH - 16;
         
-        // Vẽ màn hình được share
-        captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+        // Vẽ viền cho PiP
+        captureCtx.fillStyle = '#1e293b';
+        captureCtx.fillRect(pipX - 2, pipY - 2, pipW + 4, pipH + 4);
         
-        // Vẽ thêm camera (PiP) nếu camera đang bật
-        const camEl = localCameraRef.current;
-        if (cameraActive && camEl && camEl.readyState >= 1) {
-          const pipW = Math.max(120, captureCanvas.width * 0.2); // 20% chiều rộng
-          const pipH = (camEl.videoHeight / (camEl.videoWidth || 1)) * pipW || (pipW * 0.75);
-          const pipX = captureCanvas.width - pipW - 16;
-          const pipY = captureCanvas.height - pipH - 16;
-          
-          // Vẽ viền cho PiP
-          captureCtx.fillStyle = '#1e293b';
-          captureCtx.fillRect(pipX - 2, pipY - 2, pipW + 4, pipH + 4);
-          
-          // Vẽ camera (lật ngang)
-          captureCtx.save();
-          captureCtx.translate(pipX + pipW, pipY);
-          captureCtx.scale(-1, 1);
-          captureCtx.drawImage(camEl, 0, 0, pipW, pipH);
-          captureCtx.restore();
-        }
-
-        const frameData = captureCanvas.toDataURL('image/jpeg', 0.5);
-        socket.emit('screen-share-frame', {
-          classId: String(classId),
-          frame: frameData
-        });
+        // Vẽ camera (lật ngang)
+        captureCtx.save();
+        captureCtx.translate(pipX + pipW, pipY);
+        captureCtx.scale(-1, 1);
+        captureCtx.drawImage(camEl, 0, 0, pipW, pipH);
+        captureCtx.restore();
       }
+
+      const frameData = captureCanvas.toDataURL('image/jpeg', 0.5);
+      socket.emit('screen-share-frame', {
+        classId: String(classId),
+        frame: frameData
+      });
     }, 150);
 
     return () => {
