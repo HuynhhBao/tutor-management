@@ -122,7 +122,7 @@ export default function VideoCallArea({
     const captureCanvas = document.createElement('canvas');
     const captureCtx = captureCanvas.getContext('2d');
 
-    const intervalId = setInterval(() => {
+    const captureFrame = () => {
       const videoEl = localVideoRef.current;
       if (!videoEl || (videoEl.videoWidth === 0 && videoEl.readyState < 1)) return;
       
@@ -159,7 +159,9 @@ export default function VideoCallArea({
         classId: String(classId),
         frame: frameData
       });
-    }, 150);
+    };
+
+    const intervalId = setInterval(captureFrame, 150);
 
     return () => {
       clearInterval(intervalId);
@@ -192,26 +194,28 @@ export default function VideoCallArea({
           return;
         }
 
-        const videoTracks = localStreamRef.current.getVideoTracks();
-        if (cameraActive && videoTracks.length === 0) {
-          const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
-          localStreamRef.current.addTrack(videoStream.getVideoTracks()[0]);
-        } else if (!cameraActive && videoTracks.length > 0) {
-          videoTracks.forEach(t => {
-            t.stop();
-            localStreamRef.current.removeTrack(t);
-          });
-        }
+        const updateVideoTracks = async (stream) => {
+          const videoTracks = stream.getVideoTracks();
+          if (cameraActive && videoTracks.length === 0) {
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
+            stream.addTrack(videoStream.getVideoTracks()[0]);
+          } else if (!cameraActive && videoTracks.length > 0) {
+            videoTracks.forEach(t => { t.stop(); stream.removeTrack(t); });
+          }
+        };
 
-        const audioTracks = localStreamRef.current.getAudioTracks();
-        if (micActive && audioTracks.length === 0) {
-          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          localStreamRef.current.addTrack(audioStream.getAudioTracks()[0]);
-        } else if (audioTracks.length > 0) {
-          audioTracks.forEach(t => {
-            t.enabled = micActive;
-          });
-        }
+        const updateAudioTracks = async (stream) => {
+          const audioTracks = stream.getAudioTracks();
+          if (micActive && audioTracks.length === 0) {
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.addTrack(audioStream.getAudioTracks()[0]);
+          } else if (audioTracks.length > 0) {
+            audioTracks.forEach(t => { t.enabled = micActive; });
+          }
+        };
+
+        await updateVideoTracks(localStreamRef.current);
+        await updateAudioTracks(localStreamRef.current);
       } catch (err) {
         console.error('Lỗi khi truy cập camera/micro:', err);
       }
