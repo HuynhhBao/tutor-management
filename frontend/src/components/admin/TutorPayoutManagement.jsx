@@ -362,6 +362,7 @@ export default function TutorPayoutManagement({ onUpdate }) {
                     {processing ? 'Đang cập nhật hệ thống...' : 'Tôi Đã Chuyển Khoản -> Xác Nhận Hoàn Tất Lệnh'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => setSelectedRequest(null)}
                     className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all"
                   >

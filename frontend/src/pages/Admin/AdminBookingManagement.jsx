@@ -54,8 +54,8 @@ function ConfirmCancelModal({ booking, onConfirm, onClose }) {
         </p>
         <p className="text-slate-500 text-center text-sm mb-6">
           Học viên{' '}
-          <strong className="text-slate-700">{booking.student_name}</strong> sẽ được
-          <strong className="text-green-600"> hoàn 100.000đ</strong> vào ví.
+          <strong className="text-slate-700">{booking.student_name}</strong> sẽ được{' '}
+          <strong className="text-green-600">hoàn 100.000đ</strong> vào ví.
         </p>
         <div className="flex flex-col gap-3">
           <button type="button"

@@ -22,7 +22,7 @@ const ForgotStep2Otp = ({
     <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }} onPaste={onOtpPaste}>
       {otp.map((digit, idx) => (
         <input
-          key={idx}
+          key={`otp-${idx}`}
           id={`otp-${idx}`}
           ref={el => otpRefs.current[idx] = el}
           type="text"

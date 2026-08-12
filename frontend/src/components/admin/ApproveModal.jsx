@@ -13,9 +13,10 @@ const ApproveModal = ({ isOpen, interviewData, setInterviewData, approveStatus, 
 
       {/* Thời gian phỏng vấn */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Thời gian phỏng vấn</label>
+        <label htmlFor="interview-time" className="block text-sm font-medium text-slate-700 mb-1">Thời gian phỏng vấn</label>
         <div className="relative">
           <input
+            id="interview-time"
             type="datetime-local"
             required
             value={interviewData.time}
@@ -30,9 +31,10 @@ const ApproveModal = ({ isOpen, interviewData, setInterviewData, approveStatus, 
 
       {/* Địa điểm phỏng vấn */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Địa điểm phỏng vấn</label>
+        <label htmlFor="interview-address" className="block text-sm font-medium text-slate-700 mb-1">Địa điểm phỏng vấn</label>
         <div className="relative">
           <input
+            id="interview-address"
             type="text"
             required
             value={interviewData.address}

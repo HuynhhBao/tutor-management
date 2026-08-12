@@ -75,16 +75,16 @@ const ApplicationTable = ({ applications, loadingApps, searchTerm, onApprove, on
             <td className="px-6 py-4 text-right">
               {app.status === 'pending' ? (
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => onApprove(app.id)} className="bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                  <button type="button" onClick={() => onApprove(app.id)} className="bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
                     Duyệt & Hẹn PV
                   </button>
-                  <button onClick={() => onReject(app.id, app.status)} className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                  <button type="button" onClick={() => onReject(app.id, app.status)} className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
                     Từ chối
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center justify-end gap-2">
-                  <button onClick={() => onReject(app.id, app.status)} className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                  <button type="button" onClick={() => onReject(app.id, app.status)} className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
                     Đánh rớt PV
                   </button>
                 </div>

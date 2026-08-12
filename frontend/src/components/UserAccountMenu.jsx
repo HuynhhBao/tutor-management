@@ -64,6 +64,7 @@ export default function UserAccountMenu({ user, onLogout, onClose, position = 'b
       <div className="h-px bg-gray-100 my-1"></div>
       
       <button 
+        type="button"
         onClick={() => {
           onLogout();
           onClose();

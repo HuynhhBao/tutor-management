@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
@@ -89,6 +89,7 @@ app.get('/api/health', async (req, res) => {
     const result = await pool.query('SELECT NOW()');
     res.json({ status: 'ok', db_time: result.rows[0].now });
   } catch (err) {
+    console.error('Health check error:', err);
     res.status(500).json({ status: 'error', message: 'Could not connect to database' });
   }
 });

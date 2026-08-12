@@ -10,23 +10,23 @@ const LandingHeader = ({ user, showMenu, setShowMenu, onLogout, onRequireLogin }
     <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+        <button type="button" className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
           <GraduationCap className="h-8 w-8 text-blue-600" />
           <span className="text-xl font-bold text-slate-900">EduMatch</span>
-        </div>
+        </button>
 
         {/* Nav actions */}
         <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-4 relative">
-              <div
+              <button type="button"
                 className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg text-blue-700 font-medium text-sm cursor-pointer hover:bg-blue-100 transition-colors group"
                 onClick={() => setShowMenu(!showMenu)}
               >
                 <User className="h-4 w-4" />
                 <span>Chào, {user.fullName}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showMenu ? 'rotate-180' : ''}`} />
-              </div>
+              </button>
               {showMenu && (
                 <UserAccountMenu user={user} onLogout={onLogout} onClose={() => setShowMenu(false)} position="top" />
               )}

@@ -27,7 +27,6 @@ const apiClient = async (input, init = {}) => {
     url = url.replace('http://localhost:3001/api', '');
   } else if (url.startsWith('http://localhost:3001')) {
     // Xử lý riêng cho các link ảnh tĩnh /uploads
-    url = url.replace('http://localhost:3001', '');
     return window.originalFetch ? window.originalFetch(input, init) : fetch(input, init);
   }
 

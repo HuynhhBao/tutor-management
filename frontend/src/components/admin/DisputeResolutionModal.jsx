@@ -105,11 +105,11 @@ const DisputeResolutionModal = ({ isOpen, onClose, selectedClass, onUpdateStatus
           </div>
 
           {/* Select Status */}
-          <div>
-            <label id="status-label" className="block text-xs font-semibold text-slate-700 mb-2">
+          <fieldset>
+            <legend className="block text-xs font-semibold text-slate-700 mb-2">
               Chọn Trạng thái mới <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2" role="group" aria-labelledby="status-label">
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {STATUS_OPTIONS.map((opt) => (
                 <button
                   type="button"
@@ -131,7 +131,7 @@ const DisputeResolutionModal = ({ isOpen, onClose, selectedClass, onUpdateStatus
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Admin Note */}
           <div>

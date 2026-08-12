@@ -89,13 +89,13 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
         </td>
         <td className="px-6 py-4 text-right">
           <div className="flex items-center justify-end space-x-2">
-            <button onClick={() => onGrant(tutor)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Cấp tài khoản">
+            <button type="button" onClick={() => onGrant(tutor)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Cấp tài khoản">
               <KeyRound className="w-4 h-4" />
             </button>
-            <button onClick={() => onEdit(tutor)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Chỉnh sửa">
+            <button type="button" onClick={() => onEdit(tutor)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Chỉnh sửa">
               <Edit2 className="w-4 h-4" />
             </button>
-            <button onClick={() => onDelete(tutor.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
+            <button type="button" onClick={() => onDelete(tutor.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>

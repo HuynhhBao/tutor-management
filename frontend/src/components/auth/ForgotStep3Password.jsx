@@ -20,7 +20,7 @@ const ForgotStep3Password = ({
 
     {/* Mật khẩu mới */}
     <div style={{ marginBottom: '16px' }}>
-      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Mật khẩu mới</label>
+      <label htmlFor="new-password" style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Mật khẩu mới</label>
       <div style={{ position: 'relative' }}>
         <input
           id="new-password"
@@ -47,7 +47,7 @@ const ForgotStep3Password = ({
 
     {/* Xác nhận mật khẩu */}
     <div style={{ marginBottom: '20px' }}>
-      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Xác nhận mật khẩu</label>
+      <label htmlFor="confirm-password" style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Xác nhận mật khẩu</label>
       <div style={{ position: 'relative' }}>
         <input
           id="confirm-password"
