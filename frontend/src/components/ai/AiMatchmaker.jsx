@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Search, GraduationCap, Calendar, User, BookOpen, ChevronRight, RefreshCw, CheckCircle2, Star } from 'lucide-react';
+import { Sparkles, Calendar, User, BookOpen, ChevronRight, RefreshCw, CheckCircle2, Star } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 import BookingModal from '../common/BookingModal';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -45,7 +45,7 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
           tutorList = json;
         } else if (json['0']) {
           tutorList = Object.keys(json)
-            .filter(k => !isNaN(k))
+            .filter(k => !Number.isNaN(Number(k)))
             .map(k => json[k]);
         }
         setRecommendations(tutorList);
@@ -88,6 +88,7 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
             className="w-full pl-4 pr-36 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm sm:text-base transition-all resize-none shadow-sm"
           />
           <button
+            type="button"
             onClick={() => handleSearch(prompt)}
             disabled={!prompt.trim() || loading}
             className="absolute right-3 bottom-3.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm shadow-md shadow-blue-200 flex items-center gap-2 transition-all active:scale-95"
@@ -111,7 +112,8 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
           <span className="text-xs font-semibold text-slate-500 mr-1">Gợi ý tìm nhanh:</span>
           {quickPrompts.map((item, idx) => (
             <button
-              key={idx}
+              type="button"
+              key={item.label}
               onClick={() => {
                 setPrompt(item.text);
                 handleSearch(item.text);
@@ -240,7 +242,7 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
                           <BookOpen className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                           {subjects.map((sub, sIdx) => (
                             <span
-                              key={sIdx}
+                              key={sub}
                               className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-100"
                             >
                               {sub}
@@ -276,6 +278,7 @@ const AiMatchmaker = ({ tutorBookingMap = {}, onBookingSuccess }) => {
                       }
                       return (
                         <button
+                          type="button"
                           onClick={() => setBookingTutor(tutor)}
                           className="w-full py-2.5 bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white font-bold text-xs rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
                         >

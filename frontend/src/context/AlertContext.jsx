@@ -45,15 +45,17 @@ export const AlertProvider = ({ children }) => {
     hidePrompt();
   }, [promptState, hidePrompt]);
 
+  const contextValue = React.useMemo(() => ({ showAlert, showConfirm, showPrompt }), [showAlert, showConfirm, showPrompt]);
+
   return (
-    <AlertContext.Provider value={{ showAlert, showConfirm, showPrompt }}>
+    <AlertContext.Provider value={contextValue}>
       {children}
       
       {/* Global Alert Modal */}
       {alertState.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 relative">
-            <button 
+            <button type="button" 
               onClick={hideAlert}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
             >
@@ -64,7 +66,7 @@ export const AlertProvider = ({ children }) => {
             </div>
             <h3 className="text-xl font-bold text-slate-900 text-center mb-3">Thông báo</h3>
             <p className="text-slate-600 text-center mb-6 leading-relaxed whitespace-pre-wrap">{alertState.message}</p>
-            <button
+            <button type="button"
               onClick={hideAlert}
               className="w-full py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200"
             >
@@ -78,7 +80,7 @@ export const AlertProvider = ({ children }) => {
       {confirmState.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 relative">
-            <button 
+            <button type="button" 
               onClick={hideConfirm}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
             >
@@ -90,13 +92,13 @@ export const AlertProvider = ({ children }) => {
             <h3 className="text-xl font-bold text-slate-900 text-center mb-3">Xác nhận</h3>
             <p className="text-slate-600 text-center mb-6 leading-relaxed whitespace-pre-wrap">{confirmState.message}</p>
             <div className="flex gap-3">
-              <button
+              <button type="button"
                 onClick={hideConfirm}
                 className="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
               >
                 Hủy bỏ
               </button>
-              <button
+              <button type="button"
                 onClick={handleConfirm}
                 className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200"
               >
@@ -111,7 +113,7 @@ export const AlertProvider = ({ children }) => {
       {promptState.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 relative">
-            <button 
+            <button type="button" 
               onClick={hidePrompt}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
             >
@@ -130,13 +132,13 @@ export const AlertProvider = ({ children }) => {
               className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl mb-6 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
             />
             <div className="flex gap-3">
-              <button
+              <button type="button"
                 onClick={hidePrompt}
                 className="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
               >
                 Hủy bỏ
               </button>
-              <button
+              <button type="button"
                 onClick={handlePromptSubmit}
                 disabled={!promptState.value.trim()}
                 className="flex-1 py-3.5 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-200 disabled:opacity-50"

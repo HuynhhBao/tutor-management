@@ -33,10 +33,10 @@ const LandingHeader = ({ user, showMenu, setShowMenu, onLogout, onRequireLogin }
             </div>
           ) : (
             <>
-              <button onClick={onRequireLogin} className="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">
+              <button type="button" onClick={onRequireLogin} className="text-slate-600 hover:text-blue-600 font-medium transition-colors text-sm">
                 Đăng nhập
               </button>
-              <button onClick={() => navigate('/register')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+              <button type="button" onClick={() => navigate('/register')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
                 Đăng ký
               </button>
             </>

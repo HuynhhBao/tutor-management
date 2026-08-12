@@ -13,6 +13,7 @@ const ForgotStep4Success = ({ onNavigateLogin }) => (
       Mật khẩu của bạn đã được đặt lại.<br />Hãy đăng nhập với mật khẩu mới.
     </p>
     <button
+      type="button"
       onClick={onNavigateLogin}
       style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #2563eb, #a855f7)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit' }}
     >

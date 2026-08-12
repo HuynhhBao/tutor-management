@@ -15,7 +15,7 @@ const HeroSection = ({ onRequireLogin }) => (
       <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-3xl mx-auto">
         Kết nối với hơn 10,000+ gia sư uy tín, học mọi lúc mọi nơi. Cam kết đảm bảo chất lượng 100% với quy trình tuyển chọn kỹ càng.
       </p>
-      <button
+      <button type="button"
         onClick={onRequireLogin}
         className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-blue-200 transition-all hover:-translate-y-0.5"
       >

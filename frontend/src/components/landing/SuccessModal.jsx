@@ -18,7 +18,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
             Hồ sơ ứng tuyển của bạn đã được gửi đi. Đội ngũ EduMatch sẽ xem xét và phản hồi qua email trong thời gian sớm nhất.
           </p>
 
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
           >

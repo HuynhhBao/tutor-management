@@ -59,7 +59,7 @@ export default function FinanceStatsCards({ metrics, commissionRate, onOpenSetti
         const Icon = card.icon;
         return (
           <div 
-            key={idx} 
+            key={card.title} 
             className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 relative overflow-hidden group"
           >
             <div className="flex items-center justify-between mb-3">

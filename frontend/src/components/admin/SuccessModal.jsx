@@ -9,6 +9,7 @@ const SuccessModal = ({ isOpen, onClose, title, message }) => {
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200 relative">
         <button 
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
         >
@@ -28,6 +29,7 @@ const SuccessModal = ({ isOpen, onClose, title, message }) => {
         </p>
         
         <button 
+          type="button"
           onClick={onClose}
           className="w-full py-4 bg-green-600 text-white font-bold rounded-2xl hover:bg-green-700 transition-all shadow-lg shadow-green-200 active:scale-95"
         >

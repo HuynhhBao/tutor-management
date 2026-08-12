@@ -469,7 +469,7 @@ export default function ProfilePage() {
 
       <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 overflow-hidden">
         <div className="flex border-b border-gray-100">
-          <button
+          <button type="button"
             onClick={() => setActiveTab('info')}
             className={`flex-1 py-5 px-6 text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'info'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
@@ -479,7 +479,7 @@ export default function ProfilePage() {
             <User className="w-5 h-5 mr-2" />
             Thông tin cá nhân
           </button>
-          <button
+          <button type="button"
             onClick={() => setActiveTab('password')}
             className={`flex-1 py-5 px-6 text-sm font-bold transition-all flex items-center justify-center ${activeTab === 'password'
                 ? 'text-primary-600 border-b-2 border-primary-600 bg-primary-50/30'
@@ -532,7 +532,7 @@ export default function ProfilePage() {
           <div className="bg-white rounded-3xl overflow-hidden max-w-xl w-full shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">Chỉnh sửa ảnh đại diện</h3>
-              <button onClick={() => setImageToCrop(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <button type="button" onClick={() => setImageToCrop(null)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <X className="w-6 h-6 text-gray-400" />
               </button>
             </div>
@@ -568,13 +568,13 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex gap-4">
-                <button
+                <button type="button"
                   onClick={() => setImageToCrop(null)}
                   className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 font-bold rounded-2xl hover:bg-gray-200 transition-all active:scale-95"
                 >
                   Hủy
                 </button>
-                <button
+                <button type="button"
                   onClick={handleAvatarUpload}
                   disabled={loading}
                   className="flex-1 py-3 px-6 bg-primary-600 text-white font-bold rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-200 active:scale-95 disabled:opacity-50 flex items-center justify-center"

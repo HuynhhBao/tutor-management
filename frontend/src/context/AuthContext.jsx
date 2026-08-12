@@ -93,8 +93,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const contextValue = React.useMemo(
+    () => ({ user, loading, login, loginWithGoogle, logout, setUserFromLogin: setUser }),
+    [user, loading]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, setUserFromLogin: setUser }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

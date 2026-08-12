@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, BookOpen, Clock, MessageSquare, ChevronRight, GraduationCap, Star, ShieldCheck, Laptop, Tag, Wallet, Calendar, AlertCircle } from 'lucide-react';
+import { X, CheckCircle, Clock, MessageSquare, ChevronRight, GraduationCap, Star, ShieldCheck, Laptop, Tag, Wallet, Calendar, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 
 const daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ Nhật'];
@@ -121,6 +121,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
         {done ? (
           <div className="flex flex-col items-center py-8 text-center relative">
             <button
+              type="button"
               onClick={onClose}
               className="absolute top-0 right-0 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
               aria-label="Đóng hộp thoại"
@@ -143,6 +144,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
               ✔ Học phí Buổi 1 ({totalFee.toLocaleString('vi-VN')}đ) đã được tạm giữ an toàn trong Ví Escrow. Vui lòng chờ gia sư xác nhận.
             </p>
             <button
+              type="button"
               onClick={onClose}
               className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-200"
             >
@@ -155,9 +157,10 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                 <span className="w-2 h-5 bg-blue-600 rounded-full inline-block"></span>
-                Đăng ký & Đặt lịch học
+                {' '}Đăng ký & Đặt lịch học
               </h3>
               <button
+                type="button"
                 onClick={onClose}
                 className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors -mr-1"
                 aria-label="Đóng hộp thoại"
@@ -210,11 +213,12 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
               {/* Môn học + Thời gian học */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  <label htmlFor="subject" className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Môn học <span className="text-red-500">*</span>
                   </label>
                   {subjectList.length > 0 ? (
                     <select
+                      id="subject"
                       value={subject}
                       onChange={e => setSubject(e.target.value)}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm font-medium transition-all"
@@ -226,6 +230,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
                     </select>
                   ) : (
                     <input
+                      id="subject"
                       type="text"
                       value={subject}
                       onChange={e => setSubject(e.target.value)}
@@ -236,12 +241,13 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5" title="Thời điểm bắt đầu buổi học trải nghiệm đầu tiên">
+                  <label htmlFor="scheduleTime" className="block text-sm font-semibold text-slate-700 mb-1.5" title="Thời điểm bắt đầu buổi học trải nghiệm đầu tiên">
                     Thời gian Buổi 1 <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
+                      id="scheduleTime"
                       type="datetime-local"
                       value={scheduleTime}
                       onChange={e => setScheduleTime(e.target.value)}
@@ -254,10 +260,11 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
 
               {/* Thời lượng ca học */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label htmlFor="duration" className="block text-sm font-semibold text-slate-700 mb-1.5">
                   Thời lượng ca học Buổi 1 (Số giờ)
                 </label>
                 <select
+                  id="duration"
                   value={duration}
                   onChange={e => setDuration(Number(e.target.value))}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 text-sm font-semibold text-slate-800 transition-all"
@@ -343,7 +350,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
               {/* Ghi chú & Tag mục tiêu */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-semibold text-slate-700">
+                  <label htmlFor="message" className="block text-sm font-semibold text-slate-700">
                     Ghi chú cho gia sư
                   </label>
                   <span className="text-[11px] text-slate-400">Chọn nhanh mục tiêu bên dưới</span>
@@ -366,6 +373,7 @@ const BookingModal = ({ tutor, onClose, onSuccess }) => {
                 <div className="relative">
                   <MessageSquare className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                   <textarea
+                    id="message"
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     placeholder="Ví dụ: Lời nhắn hoặc chi tiết nội dung bạn cần gia sư hỗ trợ..."

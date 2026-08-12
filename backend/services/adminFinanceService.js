@@ -138,7 +138,7 @@ class AdminFinanceService {
     }
 
     return {
-      commissionRate: parseFloat(settings.commission_rate),
+      commissionRate: Number.parseFloat(settings.commission_rate),
       rawSettings: result.rows
     };
   }
@@ -147,8 +147,8 @@ class AdminFinanceService {
    * Cập nhật tỷ lệ hoa hồng hệ thống
    */
   async updateCommissionRate(commissionRate) {
-    const rate = parseFloat(commissionRate);
-    if (isNaN(rate) || rate < 0 || rate > 100) {
+    const rate = Number.parseFloat(commissionRate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 100) {
       throw new ApiError(400, 'Tỷ lệ hoa hồng phải là một số hợp lệ từ 0 đến 100');
     }
 
@@ -174,25 +174,25 @@ class AdminFinanceService {
     // 1. Thống kê Tổng Doanh Thu & Số lượng Giao dịch
     const summaryResult = await pool.query(config.summarySql);
     const summary = summaryResult.rows[0] || {};
-    const grossRevenue = parseFloat(summary.gross_revenue || 0);
-    const bookingRevenue = parseFloat(summary.booking_revenue || 0);
+    const grossRevenue = Number.parseFloat(summary.gross_revenue || 0);
+    const bookingRevenue = Number.parseFloat(summary.booking_revenue || 0);
     const platformCommission = bookingRevenue * (commissionRate / 100);
-    const totalTransactions = parseInt(summary.total_transactions || 0, 10);
+    const totalTransactions = Number.parseInt(summary.total_transactions || 0, 10);
 
     // 2. Tổng số dư ví học viên hiện tại trong hệ thống
     const userBalanceResult = await pool.query(
       'SELECT COALESCE(SUM(balance), 0) as total_user_balance FROM users'
     );
-    const totalUserBalance = parseFloat(userBalanceResult.rows[0]?.total_user_balance || 0);
+    const totalUserBalance = Number.parseFloat(userBalanceResult.rows[0]?.total_user_balance || 0);
 
     // 3. Chuỗi dữ liệu biểu đồ xu hướng theo thời gian (Area Spline Chart)
     const chartTimelineResult = await pool.query(config.timelineSql, [commissionRate]);
 
     const chartData = chartTimelineResult.rows.map(row => ({
       label: row.label,
-      grossRevenue: Math.round(parseFloat(row.gross_revenue || 0)),
-      commission: Math.round(parseFloat(row.commission || 0)),
-      count: parseInt(row.transactions_count || 0, 10)
+      grossRevenue: Math.round(Number.parseFloat(row.gross_revenue || 0)),
+      commission: Math.round(Number.parseFloat(row.commission || 0)),
+      count: Number.parseInt(row.transactions_count || 0, 10)
     }));
 
     // 4. Phân bổ các loại giao dịch (Donut Chart)
@@ -215,8 +215,8 @@ class AdminFinanceService {
     const breakdown = breakdownResult.rows.map(row => ({
       type: row.type,
       name: typeLabels[row.type] || row.type,
-      count: parseInt(row.count, 10),
-      totalAmount: parseFloat(row.total_amount),
+      count: Number.parseInt(row.count, 10),
+      totalAmount: Number.parseFloat(row.total_amount),
       color: typeColors[row.type] || '#8b5cf6'
     }));
 
@@ -229,7 +229,7 @@ class AdminFinanceService {
         totalTransactions,
         totalUserBalance,
         bookingRevenue,
-        tutorPayouts: parseFloat(summary.tutor_payouts || 0)
+        tutorPayouts: Number.parseFloat(summary.tutor_payouts || 0)
       },
       chartData,
       breakdown
@@ -240,8 +240,8 @@ class AdminFinanceService {
    * Lấy danh sách lịch sử giao dịch kèm thông tin người thực hiện, phân trang và tìm kiếm
    */
   async getTransactions({ page = 1, limit = 10, search = '', type = 'all', startDate = '', endDate = '' }) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+    const pageNum = Math.max(1, Number.parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, Number.parseInt(limit, 10) || 10));
     const offset = (pageNum - 1) * limitNum;
 
     const whereConditions = [];
@@ -286,7 +286,7 @@ class AdminFinanceService {
       ${whereClause}
     `;
     const countResult = await pool.query(countSql, queryParams);
-    const totalItems = parseInt(countResult.rows[0]?.count || 0, 10);
+    const totalItems = Number.parseInt(countResult.rows[0]?.count || 0, 10);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     // Data query
@@ -332,8 +332,8 @@ class AdminFinanceService {
    * Thống kê tổng quan ví và thu nhập của danh sách gia sư
    */
   async getTutorsFinanceOverview({ search = '', page = 1, limit = 10 }) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 10));
+    const pageNum = Math.max(1, Number.parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, Number.parseInt(limit, 10) || 10));
     const offset = (pageNum - 1) * limitNum;
 
     const queryParams = [];
@@ -346,7 +346,7 @@ class AdminFinanceService {
 
     const countSql = `SELECT COUNT(*) FROM tutors ${whereClause}`;
     const countRes = await pool.query(countSql, queryParams);
-    const totalItems = parseInt(countRes.rows[0]?.count || 0, 10);
+    const totalItems = Number.parseInt(countRes.rows[0]?.count || 0, 10);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     const dataSql = `
@@ -363,7 +363,7 @@ class AdminFinanceService {
     return {
       tutors: dataRes.rows.map(r => ({
         ...r,
-        balance: parseFloat(r.balance)
+        balance: Number.parseFloat(r.balance)
       })),
       pagination: { page: pageNum, limit: limitNum, totalItems, totalPages }
     };
@@ -373,8 +373,8 @@ class AdminFinanceService {
    * Lấy danh sách yêu cầu rút tiền của gia sư
    */
   async getPayoutRequests({ status = 'all', page = 1, limit = 20 }) {
-    const pageNum = Math.max(1, parseInt(page, 10) || 1);
-    const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
+    const pageNum = Math.max(1, Number.parseInt(page, 10) || 1);
+    const limitNum = Math.max(1, Math.min(100, Number.parseInt(limit, 10) || 20));
     const offset = (pageNum - 1) * limitNum;
 
     const whereConditions = [];
@@ -387,7 +387,7 @@ class AdminFinanceService {
 
     const countSql = `SELECT COUNT(*) FROM payout_requests p ${whereClause}`;
     const countRes = await pool.query(countSql, queryParams);
-    const totalItems = parseInt(countRes.rows[0]?.count || 0, 10);
+    const totalItems = Number.parseInt(countRes.rows[0]?.count || 0, 10);
     const totalPages = Math.ceil(totalItems / limitNum) || 1;
 
     const dataSql = `
@@ -410,8 +410,8 @@ class AdminFinanceService {
     return {
       requests: dataRes.rows.map(r => ({
         ...r,
-        amount: parseFloat(r.amount),
-        tutor_current_balance: parseFloat(r.tutor_current_balance),
+        amount: Number.parseFloat(r.amount),
+        tutor_current_balance: Number.parseFloat(r.tutor_current_balance),
         bank_snapshot: typeof r.bank_snapshot === 'string' ? JSON.parse(r.bank_snapshot) : r.bank_snapshot
       })),
       pagination: { page: pageNum, limit: limitNum, totalItems, totalPages }
@@ -439,11 +439,11 @@ class AdminFinanceService {
         throw new ApiError(400, 'Yêu cầu này đã được xử lý trước đó');
       }
 
-      const amount = parseFloat(payout.amount);
+      const amount = Number.parseFloat(payout.amount);
 
       if (action === 'approve') {
         const tutorRes = await pool.query('SELECT balance FROM tutors WHERE id = $1', [payout.tutor_id]);
-        const balance = parseFloat(tutorRes.rows[0]?.balance || 0);
+        const balance = Number.parseFloat(tutorRes.rows[0]?.balance || 0);
         if (balance < amount) {
           throw new ApiError(400, `Số dư hiện tại của gia sư (${balance.toLocaleString('vi-VN')} VNĐ) không đủ để duyệt chi ${amount.toLocaleString('vi-VN')} VNĐ!`);
         }
@@ -492,15 +492,15 @@ class AdminFinanceService {
   async getSystemOverviewStats() {
     // 1. Tổng số gia sư
     const tutorRes = await pool.query('SELECT COUNT(*) FROM tutors');
-    const totalTutors = parseInt(tutorRes.rows[0]?.count || 0, 10);
+    const totalTutors = Number.parseInt(tutorRes.rows[0]?.count || 0, 10);
 
     // 2. Tổng số học viên
     const studentRes = await pool.query('SELECT COUNT(*) FROM users');
-    const totalStudents = parseInt(studentRes.rows[0]?.count || 0, 10);
+    const totalStudents = Number.parseInt(studentRes.rows[0]?.count || 0, 10);
 
     // 3. Lớp đang chạy / đã xác nhận
     const activeClassRes = await pool.query("SELECT COUNT(*) FROM bookings WHERE status IN ('confirmed', 'in_progress', 'đã xác nhận')");
-    const activeClasses = parseInt(activeClassRes.rows[0]?.count || 0, 10);
+    const activeClasses = Number.parseInt(activeClassRes.rows[0]?.count || 0, 10);
 
     // 4. Doanh thu tháng
     const revenueRes = await pool.query(`
@@ -509,12 +509,7 @@ class AdminFinanceService {
       WHERE created_at >= NOW() - INTERVAL '30 days' 
         AND type IN ('deposit', 'booking_payment', 'tutor_earning')
     `);
-    const bookingRevRes = await pool.query(`
-      SELECT COALESCE(SUM(total_fee), 0) as completed_fee 
-      FROM bookings 
-      WHERE status = 'completed' AND created_at >= NOW() - INTERVAL '30 days'
-    `);
-    const monthlyRevenue = parseFloat(revenueRes.rows[0]?.total_rev || 0);
+    const monthlyRevenue = Number.parseFloat(revenueRes.rows[0]?.total_rev || 0);
 
     // 5. 10 Lớp học mới kết nối nhất
     const recentClassesRes = await pool.query(`
@@ -533,13 +528,28 @@ class AdminFinanceService {
       LIMIT 10
     `);
 
+    const getStatusText = (status) => {
+      if (status === 'confirmed') return 'Đang chạy';
+      if (status === 'completed') return 'Hoàn thành';
+      if (status === 'pending') return 'Chờ xác nhận';
+      if (status === 'cancelled' || status === 'canceled') return 'Đã hủy';
+      if (status === 'rejected') return 'Bị từ chối';
+      return status;
+    };
+
+    const formatTime = (item) => {
+      return item.schedule_time 
+        ? new Date(item.schedule_time).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) 
+        : new Date(item.created_at).toLocaleDateString('vi-VN');
+    };
+
     const recentClasses = recentClassesRes.rows.map(item => ({
       id: `#${item.id}`,
       tutor: item.tutor_name || 'Gia sư N/A',
       subject: item.subject || 'Môn học chung',
       student: item.student_name || 'Học viên N/A',
-      time: item.schedule_time ? new Date(item.schedule_time).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }) : new Date(item.created_at).toLocaleDateString('vi-VN'),
-      status: item.status === 'confirmed' ? 'Đang chạy' : item.status === 'completed' ? 'Hoàn thành' : item.status === 'pending' ? 'Chờ xác nhận' : (item.status === 'cancelled' || item.status === 'canceled' ? 'Đã hủy' : (item.status === 'rejected' ? 'Bị từ chối' : item.status))
+      time: formatTime(item),
+      status: getStatusText(item.status)
     }));
 
     return {

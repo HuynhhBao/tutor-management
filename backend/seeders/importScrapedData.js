@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pool, { initDb } from '../config/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +41,7 @@ async function seedScrapedTutors() {
     let skippedCount = 0;
 
     for (const tutor of tutors) {
-      const { fullName, gender, age, subject, qualification, gradeLevels, hourlyRate, avatar_url, rating } = tutor;
+      const { fullName, gender, age, subject, qualification, gradeLevels, hourlyRate, rating } = tutor;
 
       // Kiểm tra xem gia sư ảo có cùng họ tên đã tồn tại chưa
       const existingRes = await pool.query('SELECT id FROM tutors WHERE full_name = $1 LIMIT 1', [fullName]);
@@ -82,4 +82,4 @@ async function seedScrapedTutors() {
   }
 }
 
-seedScrapedTutors();
+await seedScrapedTutors();

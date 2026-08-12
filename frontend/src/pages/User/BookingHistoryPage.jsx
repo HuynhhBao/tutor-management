@@ -76,7 +76,7 @@ function CancelModal({ booking, onConfirm, onClose }) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <button
+          <button type="button"
             id="confirm-cancel-btn"
             onClick={() => onConfirm(booking.id)}
             className={`w-full py-4 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-95 ${
@@ -87,7 +87,7 @@ function CancelModal({ booking, onConfirm, onClose }) {
           >
             {isEligibleForRefund ? 'Xác nhận hủy và hoàn tiền' : 'Tôi chấp nhận hủy và mất phí'}
           </button>
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all active:scale-95"
           >
@@ -128,10 +128,11 @@ function DisputeModal({ booking, onConfirm, onClose }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label htmlFor="reason" className="block text-xs font-bold text-slate-700 mb-1">
               Lý do khiếu nại <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="reason"
               rows={3}
               required
               value={reason}
@@ -246,6 +247,123 @@ export default function BookingHistoryPage() {
     } catch { return dt; }
   };
 
+  const renderBookings = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+
+    if (bookings.length === 0) {
+      return (
+        <div className="py-16 text-center">
+          <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <CalendarCheck className="h-8 w-8 text-slate-400" />
+          </div>
+          <h4 className="font-medium text-slate-900">Chưa có lịch đặt nào</h4>
+          <p className="text-sm text-slate-500 mt-1">Hãy tìm gia sư và đặt lịch học nhé!</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="divide-y divide-slate-50">
+        {bookings.map((b) => (
+          <div key={b.id} className="p-6 hover:bg-slate-50 transition-colors">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">
+              <div className="flex items-start gap-4 flex-1">
+                <img
+                  src={b.tutor_avatar
+                    ? `http://localhost:3001${b.tutor_avatar}`
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.tutor_name || 'T')}&background=dbeafe&color=1d4ed8`}
+                  alt={b.tutor_name}
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-bold text-slate-900">{b.tutor_name}</h4>
+                    <StatusBadge status={b.status} />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="font-medium">Môn:</span> {b.subject}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="font-medium">Thời gian Buổi 1:</span> {formatDateTime(b.schedule_time)} ({b.duration || 1}h)
+                  </div>
+                  {b.recurring_days && (
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 shadow-2xs">
+                      🔄 <span>Chu kỳ định kỳ: {b.recurring_days} hàng tuần</span>
+                    </div>
+                  )}
+                  {b.total_fee && (
+                    <div className="text-xs font-bold text-emerald-600">
+                      💳 Học phí Buổi 1: {Number.parseFloat(b.total_fee).toLocaleString('vi-VN')} đ
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    Đặt lúc: {formatDateTime(b.created_at)}
+                  </div>
+                  {b.message && (
+                    <p className="text-xs text-slate-500 italic bg-slate-50 rounded-lg px-3 py-1.5 border-l-2 border-slate-300">
+                      "{b.message}"
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                {b.status === 'completed' && (
+                  <Link
+                    to="/student-dashboard/search"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-200/80 animate-bounce hover:animate-none"
+                    title="Tiếp tục đóng góp chu kỳ hoặc đặt ca mới để bảo lưu vị trí slot học với gia sư này"
+                  >
+                    <span>🔄 Gia hạn & Học tiếp</span>
+                  </Link>
+                )}
+                {b.status === 'confirmed' && (
+                  <Link
+                    to={`/classroom/${b.id}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-100"
+                  >
+                    <Video className="w-4 h-4" />
+                    Vào phòng học
+                  </Link>
+                )}
+                {b.status === 'confirmed' && (
+                  <button type="button"
+                    onClick={() => setDisputeTarget(b)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl transition-colors border border-rose-200"
+                    title="Báo tranh chấp / Khiếu nại lớp học đến Admin"
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                    Báo tranh chấp
+                  </button>
+                )}
+                {(b.status === 'pending' || b.status === 'confirmed') && (
+                  <button type="button"
+                    id={`cancel-booking-${b.id}`}
+                    onClick={() => setCancelTarget(b)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-xs font-medium rounded-xl transition-colors border border-slate-200"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Hủy lịch
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -257,7 +375,7 @@ export default function BookingHistoryPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Theo dõi và quản lý các lịch học của bạn</p>
         </div>
-        <button
+        <button type="button"
           id="refresh-bookings-btn"
           onClick={fetchBookings}
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
@@ -303,112 +421,7 @@ export default function BookingHistoryPage() {
 
       {/* Booking list */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <CalendarCheck className="h-8 w-8 text-slate-400" />
-            </div>
-            <h4 className="font-medium text-slate-900">Chưa có lịch đặt nào</h4>
-            <p className="text-sm text-slate-500 mt-1">Hãy tìm gia sư và đặt lịch học nhé!</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-50">
-            {bookings.map((b) => (
-              <div key={b.id} className="p-6 hover:bg-slate-50 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-start gap-4 justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    <img
-                      src={b.tutor_avatar
-                        ? `http://localhost:3001${b.tutor_avatar}`
-                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.tutor_name || 'T')}&background=dbeafe&color=1d4ed8`}
-                      alt={b.tutor_name}
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-bold text-slate-900">{b.tutor_name}</h4>
-                        <StatusBadge status={b.status} />
-                      </div>
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Môn:</span> {b.subject}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Thời gian Buổi 1:</span> {formatDateTime(b.schedule_time)} ({b.duration || 1}h)
-                      </div>
-                      {b.recurring_days && (
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 shadow-2xs">
-                          🔄 <span>Chu kỳ định kỳ: {b.recurring_days} hàng tuần</span>
-                        </div>
-                      )}
-                      {b.total_fee && (
-                        <div className="text-xs font-bold text-emerald-600">
-                          💳 Học phí Buổi 1: {parseFloat(b.total_fee).toLocaleString('vi-VN')} đ
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <Clock className="w-3.5 h-3.5 shrink-0" />
-                        Đặt lúc: {formatDateTime(b.created_at)}
-                      </div>
-                      {b.message && (
-                        <p className="text-xs text-slate-500 italic bg-slate-50 rounded-lg px-3 py-1.5 border-l-2 border-slate-300">
-                          "{b.message}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="shrink-0 flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                    {b.status === 'completed' && (
-                      <Link
-                        to="/student-dashboard/search"
-                        className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-md shadow-emerald-200/80 animate-bounce hover:animate-none"
-                        title="Tiếp tục đóng góp chu kỳ hoặc đặt ca mới để bảo lưu vị trí slot học với gia sư này"
-                      >
-                        <span>🔄 Gia hạn & Học tiếp</span>
-                      </Link>
-                    )}
-                    {b.status === 'confirmed' && (
-                      <Link
-                        to={`/classroom/${b.id}`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-100"
-                      >
-                        <Video className="w-4 h-4" />
-                        Vào phòng học
-                      </Link>
-                    )}
-                    {b.status === 'confirmed' && (
-                      <button
-                        onClick={() => setDisputeTarget(b)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl transition-colors border border-rose-200"
-                        title="Báo tranh chấp / Khiếu nại lớp học đến Admin"
-                      >
-                        <AlertTriangle className="w-4 h-4" />
-                        Báo tranh chấp
-                      </button>
-                    )}
-                    {(b.status === 'pending' || b.status === 'confirmed') && (
-                      <button
-                        id={`cancel-booking-${b.id}`}
-                        onClick={() => setCancelTarget(b)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 text-xs font-medium rounded-xl transition-colors border border-slate-200"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Hủy lịch
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {renderBookings()}
       </div>
 
       <CancelModal

@@ -1,6 +1,5 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import querystring from 'qs';
-import { ApiError } from '../../../utils/ApiError.js';
 import walletService from './wallet.service.js';
 import pool from '../../../config/db.js';
 
@@ -96,12 +95,7 @@ class PaymentService {
     let hmac = crypto.createHmac('sha512', secretKey);
     let signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');     
     
-    console.log('--- VNPAY IPN DEBUG ---');
-    console.log('SecureHash:', secureHash);
-    console.log('Signed:', signed);
-    console.log('Match?', secureHash === signed);
-    console.log('SignData:', signData);
-    console.log('-----------------------');
+    // Debug logs removed for security (SonarCloud)
 
     if (secureHash === signed) {
       // Xác minh chữ ký thành công
@@ -132,7 +126,7 @@ class PaymentService {
           const walletRes = await client.query('SELECT * FROM wallets WHERE id = $1 FOR UPDATE', [transaction.wallet_id]);
           const wallet = walletRes.rows[0];
           
-          const amountToAdd = parseFloat(transaction.amount);
+          const amountToAdd = Number.parseFloat(transaction.amount);
           
           await client.query(
             'UPDATE wallets SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
@@ -176,9 +170,9 @@ class PaymentService {
       str.push(encodeURIComponent(key));
       }
     }
-    str.sort();
+    str.sort((a, b) => a.localeCompare(b));
     for (key = 0; key < str.length; key++) {
-        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replaceAll('%20', '+');
     }
     return sorted;
   }

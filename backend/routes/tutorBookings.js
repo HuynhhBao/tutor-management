@@ -1,8 +1,6 @@
 import express from 'express';
 import { getTutorBookings, getTutorUnreadCount, confirmBooking, completeBooking } from '../controllers/tutorBookingController.js';
 import { verifyTutor } from '../middlewares/authMiddleware.js';
-import validate from '../middlewares/validate.js';
-import { completeBookingParamsSchema } from '../validations/bookingValidation.js';
 
 const router = express.Router();
 

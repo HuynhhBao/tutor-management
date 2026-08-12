@@ -343,7 +343,7 @@ export default function VirtualClassroom() {
     const canvas = canvasRef.current;
     if (!canvas || !ctx) return;
 
-    const previousState = history[history.length - 1];
+    const previousState = history.at(-1);
     ctx.putImageData(previousState, 0, 0);
     
     setHistory(prev => prev.slice(0, -1));
@@ -466,7 +466,7 @@ export default function VirtualClassroom() {
       {/* Top Classroom Bar */}
       <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button
+          <button type="button"
             onClick={handleLeaveRoom}
             className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all active:scale-95"
             title="Thoát phòng học"
@@ -489,7 +489,7 @@ export default function VirtualClassroom() {
 
         {/* Tab Selector */}
         <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
-          <button
+          <button type="button"
             onClick={() => handleTabChange('whiteboard')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'whiteboard' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
@@ -498,7 +498,7 @@ export default function VirtualClassroom() {
             <PenTool className="w-4 h-4" />
             <span>Bảng vẽ trực tuyến</span>
           </button>
-          <button
+          <button type="button"
             onClick={() => handleTabChange('video')}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               activeTab === 'video' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
@@ -537,7 +537,7 @@ export default function VirtualClassroom() {
                   {/* Colors picker */}
                   <div className="flex flex-col items-center gap-2 pr-3 pl-0.5">
                     {['#2563eb', '#dc2626', '#16a34a', '#0f172a'].map((c) => (
-                      <button
+                      <button type="button"
                         key={c}
                         onClick={() => {
                           setColor(c);
@@ -561,7 +561,7 @@ export default function VirtualClassroom() {
                       min="2"
                       max="12"
                       value={lineWidth}
-                      onChange={(e) => setLineWidth(parseInt(e.target.value, 10))}
+                      onChange={(e) => setLineWidth(Number.parseInt(e.target.value, 10))}
                       className="w-16 accent-blue-500 cursor-pointer -rotate-90"
                       title="Độ dày nét vẽ"
                     />
@@ -571,7 +571,7 @@ export default function VirtualClassroom() {
 
                   {/* Eraser */}
                   <div className="pr-3 pl-0.5">
-                    <button
+                    <button type="button"
                       onClick={() => setIsEraser(!isEraser)}
                       className={`p-2 rounded-xl border transition-all ${
                         isEraser 
@@ -588,7 +588,7 @@ export default function VirtualClassroom() {
 
                   {/* Undo & Clear */}
                   <div className="flex flex-col items-center gap-2 pr-3 pl-0.5">
-                    <button
+                    <button type="button"
                       onClick={undo}
                       disabled={history.length === 0}
                       className="p-2 bg-slate-800 hover:bg-blue-900 border border-slate-700 text-blue-400 hover:text-blue-300 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
@@ -597,7 +597,7 @@ export default function VirtualClassroom() {
                       <Undo2 className="w-4 h-4" />
                     </button>
                     
-                    <button
+                    <button type="button"
                       onClick={clearBoard}
                       className="p-2 bg-slate-800 hover:bg-rose-950 border border-slate-700 hover:border-rose-900 text-rose-400 hover:text-rose-300 rounded-xl transition-all"
                       title="Xóa toàn bộ bảng"
@@ -670,13 +670,13 @@ export default function VirtualClassroom() {
             </div>
             
             <div className="p-4 bg-slate-900/50 border-t border-slate-800 flex gap-3 justify-end">
-              <button
+              <button type="button"
                 onClick={() => setShowLeaveModal(false)}
                 className="flex-1 px-5 py-2.5 rounded-xl font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
               >
                 Hủy bỏ
               </button>
-              <button
+              <button type="button"
                 onClick={confirmLeaveRoom}
                 className="flex-1 px-5 py-2.5 rounded-xl font-semibold text-white bg-rose-600 hover:bg-rose-500 transition-colors shadow-lg shadow-rose-500/20"
               >

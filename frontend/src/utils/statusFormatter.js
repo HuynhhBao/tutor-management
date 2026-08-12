@@ -3,55 +3,63 @@
  * trên toàn bộ nền tảng EduMatch (Admin, Tutor, Student).
  */
 
+const STATUS_MAP = {
+  // Hoàn thành / Giải ngân
+  'completed': { label: 'Hoàn thành', color: 'emerald' },
+  'hoàn thành': { label: 'Hoàn thành', color: 'emerald' },
+  'approved': { label: 'Đã giải ngân', color: 'emerald' },
+  'đã chi': { label: 'Đã giải ngân', color: 'emerald' },
+  'đã giải ngân': { label: 'Đã giải ngân', color: 'emerald' },
+  'thành công': { label: 'Đã giải ngân', color: 'emerald' },
+  'active': { label: 'Hoạt động', color: 'emerald' },
+  'đã duyệt': { label: 'Đã duyệt', color: 'emerald' },
+  'sẵn sàng': { label: 'Sẵn sàng', color: 'emerald' },
+
+  // Đang chạy / Đã xác nhận
+  'confirmed': { label: 'Đã xác nhận', color: 'blue' },
+  'đã xác nhận': { label: 'Đã xác nhận', color: 'blue' },
+  'in_progress': { label: 'Đang chạy', color: 'blue' },
+  'đang chạy': { label: 'Đang chạy', color: 'blue' },
+  'running': { label: 'Đang chạy', color: 'blue' },
+
+  // Chờ xác nhận / Chờ giải ngân
+  'pending': { label: 'Chờ xác nhận', color: 'amber' },
+  'chờ xác nhận': { label: 'Chờ xác nhận', color: 'amber' },
+  'chờ xử lý': { label: 'Chờ xác nhận', color: 'amber' },
+  'waiting': { label: 'Chờ xác nhận', color: 'amber' },
+  'chờ duyệt': { label: 'Chờ xác nhận', color: 'amber' },
+  'chờ giải ngân (pending)': { label: 'Chờ giải ngân', color: 'amber' },
+  'chờ giải ngân': { label: 'Chờ giải ngân', color: 'amber' },
+
+  // Đã hủy / Từ chối / Blocked
+  'cancelled': { label: 'Đã hủy', color: 'rose' },
+  'canceled': { label: 'Đã hủy', color: 'rose' },
+  'đã hủy': { label: 'Đã hủy', color: 'rose' },
+  'huỷ bỏ': { label: 'Đã hủy', color: 'rose' },
+  'hủy': { label: 'Đã hủy', color: 'rose' },
+  'rejected': { label: 'Bị từ chối', color: 'rose' },
+  'bị từ chối': { label: 'Bị từ chối', color: 'rose' },
+  'bị từ chối (rejected)': { label: 'Bị từ chối', color: 'rose' },
+  'blocked': { label: 'Tạm ngưng', color: 'rose' },
+  'khóa': { label: 'Tạm ngưng', color: 'rose' },
+  'tinh chi': { label: 'Đã hủy', color: 'rose' },
+};
+
 export function formatStatus(status) {
-  if (!status) return { label: 'N/A', className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200' };
+  if (!status) {
+    return { 
+      label: 'N/A', 
+      className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-200' 
+    };
+  }
 
   const clean = String(status).toLowerCase().trim();
+  const matched = STATUS_MAP[clean];
 
-  // Nhóm Trạng thái Hoàn thành / Giải ngân / Duyệt chi / Sẵn sàng
-  if (['completed', 'hoàn thành', 'approved', 'đã chi', 'đã duyệt', 'active', 'sẵn sàng', 'đã giải ngân', 'thành công'].includes(clean)) {
-    let label = 'Hoàn thành';
-    if (['approved', 'đã chi', 'đã giải ngân', 'thành công'].includes(clean)) label = 'Đã giải ngân';
-    else if (['active', 'đã duyệt', 'sẵn sàng'].includes(clean)) label = clean === 'active' ? 'Hoạt động' : (clean === 'sẵn sàng' ? 'Sẵn sàng' : 'Đã duyệt');
-    
+  if (matched) {
     return {
-      label,
-      className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200'
-    };
-  }
-
-  // Nhóm Trạng thái Đang chạy / Đang diễn ra / Đã xác nhận
-  if (['confirmed', 'in_progress', 'đang chạy', 'đã xác nhận', 'running'].includes(clean)) {
-    let label = 'Đã xác nhận';
-    if (clean === 'in_progress' || clean === 'đang chạy' || clean === 'running') label = 'Đang chạy';
-    else if (clean === 'confirmed') label = 'Đã xác nhận';
-
-    return {
-      label,
-      className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200'
-    };
-  }
-
-  // Nhóm Trạng thái Chờ xác nhận / Chờ giải ngân / Pending
-  if (['pending', 'chờ giải ngân (pending)', 'chờ xác nhận', 'chờ giải ngân', 'chờ xử lý', 'waiting', 'chờ duyệt'].includes(clean)) {
-    let label = 'Chờ xác nhận';
-    if (clean.includes('giải ngân') || clean === 'chờ giải ngân') label = 'Chờ giải ngân';
-
-    return {
-      label,
-      className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200'
-    };
-  }
-
-  // Nhóm Trạng thái Đã hủy / Từ chối / Blocked
-  if (['cancelled', 'canceled', 'đã hủy', 'huỷ bỏ', 'hủy', 'rejected', 'bị từ chối', 'bị từ chối (rejected)', 'blocked', 'khóa', 'tinh chi'].includes(clean)) {
-    let label = 'Đã hủy';
-    if (clean.includes('từ chối') || clean === 'rejected') label = 'Bị từ chối';
-    if (clean === 'blocked' || clean === 'khóa') label = 'Tạm ngưng';
-
-    return {
-      label,
-      className: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200'
+      label: matched.label,
+      className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${matched.color}-50 text-${matched.color}-700 border border-${matched.color}-200`
     };
   }
 

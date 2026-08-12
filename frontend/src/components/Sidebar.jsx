@@ -85,6 +85,7 @@ export default function Sidebar() {
           />
         )}
         <button 
+          type="button"
           className="w-full flex items-center justify-between p-2 hover:bg-slate-100 rounded-xl transition-all duration-200 group"
           onClick={(e) => {
             e.stopPropagation();

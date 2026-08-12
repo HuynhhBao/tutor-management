@@ -92,7 +92,7 @@ export default function Sidebar() {
               <p className="text-xs text-gray-500 truncate">{user?.email || 'Chưa đăng nhập'}</p>
             </div>
           </div>
-          <button 
+          <button type="button" 
             onClick={async () => {
               await logout();
               navigate('/');

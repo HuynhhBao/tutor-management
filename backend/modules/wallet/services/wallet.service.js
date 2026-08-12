@@ -119,7 +119,7 @@ class WalletService {
       }
 
       // 2. Kiểm tra số dư
-      if (parseFloat(wallet.balance) < amount) {
+      if (Number.parseFloat(wallet.balance) < amount) {
         throw new ApiError(400, 'Số dư không đủ để thực hiện giao dịch');
       }
 
@@ -168,7 +168,7 @@ class WalletService {
         throw new ApiError(404, 'Không tìm thấy ví');
       }
 
-      if (parseFloat(wallet.balance) < amount) {
+      if (Number.parseFloat(wallet.balance) < amount) {
         throw new ApiError(400, 'Số dư không đủ để rút tiền');
       }
 

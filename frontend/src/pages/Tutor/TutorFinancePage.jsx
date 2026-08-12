@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAlert } from '../../context/AlertContext';
 import { 
-  Wallet, DollarSign, ArrowUpRight, Building2, CreditCard, UserCheck, 
-  History, Clock, CheckCircle2, XCircle, AlertCircle, Loader2, Send, ShieldCheck
+  History, Clock, CheckCircle2, XCircle, AlertCircle, Loader2, Send
 } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
 
@@ -101,8 +100,8 @@ export default function TutorFinancePage() {
   };
 
   const handleRequestPayout = async () => {
-    const amt = parseFloat(payoutAmount);
-    if (isNaN(amt) || amt < 200000) {
+    const amt = Number.parseFloat(payoutAmount);
+    if (Number.isNaN(amt) || amt < 200000) {
       return showAlert('Số tiền rút tối thiểu là 200.000 VNĐ');
     }
     if (amt > financeData.balance) {
@@ -139,6 +138,108 @@ export default function TutorFinancePage() {
     );
   }
 
+  const renderTabContent = () => {
+    if (activeTab === 'earnings') {
+      if (financeData.transactions.length === 0) {
+        return (
+          <div className="text-center py-16 text-slate-400">
+            <History className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+            <p className="font-semibold">Chưa có giao dịch thu nhập nào</p>
+            <p className="text-xs text-slate-400 mt-1">Khi bạn dạy xong 1 ca học và bấm "Hoàn thành", tiền thu nhập sẽ hiển thị tại đây.</p>
+          </div>
+        );
+      }
+      return (
+        <div className="space-y-3.5">
+          {financeData.transactions.map((tx) => (
+            <div
+              key={tx.id}
+              className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100/70 transition-colors border border-slate-100"
+            >
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-2xl ${
+                  tx.type === 'tutor_earning' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
+                }`}>
+                  {tx.type === 'tutor_earning' ? <DollarSign className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 text-sm">{tx.description || 'Thu nhập ca học'}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {new Date(tx.created_at).toLocaleString('vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </p>
+                </div>
+              </div>
+              <div className={`text-base font-extrabold ${
+                tx.type === 'tutor_earning' ? 'text-emerald-600' : 'text-rose-600'
+              }`}>
+                {tx.type === 'tutor_earning' ? '+' : '-'}{Number.parseFloat(tx.amount).toLocaleString('vi-VN')} đ
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (financeData.payoutRequests.length === 0) {
+      return (
+        <div className="text-center py-16 text-slate-400">
+          <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+          <p className="font-semibold">Chưa tạo yêu cầu rút tiền nào</p>
+          <p className="text-xs text-slate-400 mt-1">Bấm nút "Yêu cầu Rút Tiền" phía trên để chuyển khoản về ngân hàng VNĐ.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {financeData.payoutRequests.map((pr) => {
+          const snap = typeof pr.bank_snapshot === 'string' ? JSON.parse(pr.bank_snapshot || '{}') : pr.bank_snapshot || {};
+          return (
+            <div
+              key={pr.id}
+              className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base font-black text-slate-900">
+                    {Number.parseFloat(pr.amount).toLocaleString('vi-VN')} VNĐ
+                  </span>
+                  {pr.status === 'pending' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
+                      <Clock className="w-3.5 h-3.5 animate-spin" /> Đang chờ Admin duyệt
+                    </span>
+                  )}
+                  {pr.status === 'approved' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Đã chuyển khoản thành công
+                    </span>
+                  )}
+                  {pr.status === 'rejected' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200">
+                      <XCircle className="w-3.5 h-3.5" /> Bị từ chối
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                  Ngân hàng: <strong className="text-slate-700">{snap.bankName}</strong> - STK: <strong className="text-slate-700">{snap.bankAccountNumber}</strong> ({snap.bankAccountHolder})
+                </p>
+                {pr.admin_note && (
+                  <p className="text-xs font-medium text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+                    💬 <strong>Ghi chú từ Admin:</strong> {pr.admin_note}
+                  </p>
+                )}
+              </div>
+              <div className="text-right text-xs text-slate-400 font-medium shrink-0">
+                Tạo lúc: {new Date(pr.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12 animate-in fade-in duration-500">
       {/* Page Header */}
@@ -153,7 +254,7 @@ export default function TutorFinancePage() {
           </p>
         </div>
         <div>
-          <button
+          <button type="button"
             onClick={() => {
               if (!financeData.bankInfo.bankName || !financeData.bankInfo.bankAccountNumber) {
                 return showAlert('⚠️ Vui lòng cập nhật Tài khoản Ngân hàng bên dưới trước khi tạo yêu cầu rút tiền!');
@@ -250,8 +351,9 @@ export default function TutorFinancePage() {
 
           <form onSubmit={handleSaveBank} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Tên Ngân hàng / Ngân hàng VNĐ</label>
+              <label htmlFor="bankName" className="block text-xs font-bold uppercase text-slate-600 mb-2">Tên Ngân hàng / Ngân hàng VNĐ</label>
               <select
+                id="bankName"
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 required
@@ -265,10 +367,11 @@ export default function TutorFinancePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Số tài khoản Ngân Hàng</label>
+              <label htmlFor="accountNumber" className="block text-xs font-bold uppercase text-slate-600 mb-2">Số tài khoản Ngân Hàng</label>
               <div className="relative">
                 <CreditCard className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
+                  id="accountNumber"
                   type="text"
                   placeholder="VD: 0987654321"
                   value={accountNumber}
@@ -280,10 +383,11 @@ export default function TutorFinancePage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2">Tên chủ tài khoản (Viết Hoa)</label>
+              <label htmlFor="accountHolder" className="block text-xs font-bold uppercase text-slate-600 mb-2">Tên chủ tài khoản (Viết Hoa)</label>
               <div className="relative">
                 <UserCheck className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
+                  id="accountHolder"
                   type="text"
                   placeholder="VD: NGUYEN VAN A"
                   value={accountHolder}
@@ -314,7 +418,7 @@ export default function TutorFinancePage() {
         <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           {/* Tab Headers */}
           <div className="flex items-center border-b border-slate-200 bg-slate-50/50 p-2 gap-2">
-            <button
+            <button type="button"
               onClick={() => setActiveTab('earnings')}
               className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-bold text-sm transition-all ${
                 activeTab === 'earnings'
@@ -325,7 +429,7 @@ export default function TutorFinancePage() {
               <History className="w-4 h-4 text-emerald-600" />
               Lịch sử thu nhập ca dạy ({financeData.transactions.length})
             </button>
-            <button
+            <button type="button"
               onClick={() => setActiveTab('payouts')}
               className={`flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-bold text-sm transition-all ${
                 activeTab === 'payouts'
@@ -340,98 +444,7 @@ export default function TutorFinancePage() {
 
           {/* Tab Content */}
           <div className="p-6 flex-1 overflow-y-auto max-h-[520px]">
-            {activeTab === 'earnings' ? (
-              financeData.transactions.length === 0 ? (
-                <div className="text-center py-16 text-slate-400">
-                  <History className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p className="font-semibold">Chưa có giao dịch thu nhập nào</p>
-                  <p className="text-xs text-slate-400 mt-1">Khi bạn dạy xong 1 ca học và bấm "Hoàn thành", tiền thu nhập sẽ hiển thị tại đây.</p>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {financeData.transactions.map((tx) => (
-                    <div
-                      key={tx.id}
-                      className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100/70 transition-colors border border-slate-100"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-2xl ${
-                          tx.type === 'tutor_earning' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'
-                        }`}>
-                          {tx.type === 'tutor_earning' ? <DollarSign className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900 text-sm">{tx.description || 'Thu nhập ca học'}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {new Date(tx.created_at).toLocaleString('vi-VN', { dateStyle: 'medium', timeStyle: 'short' })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`text-base font-extrabold ${
-                        tx.type === 'tutor_earning' ? 'text-emerald-600' : 'text-rose-600'
-                      }`}>
-                        {tx.type === 'tutor_earning' ? '+' : '-'}{parseFloat(tx.amount).toLocaleString('vi-VN')} đ
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )
-            ) : (
-              financeData.payoutRequests.length === 0 ? (
-                <div className="text-center py-16 text-slate-400">
-                  <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                  <p className="font-semibold">Chưa tạo yêu cầu rút tiền nào</p>
-                  <p className="text-xs text-slate-400 mt-1">Bấm nút "Yêu cầu Rút Tiền" phía trên để chuyển khoản về ngân hàng VNĐ.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {financeData.payoutRequests.map((pr) => {
-                    const snap = typeof pr.bank_snapshot === 'string' ? JSON.parse(pr.bank_snapshot || '{}') : pr.bank_snapshot || {};
-                    return (
-                      <div
-                        key={pr.id}
-                        className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-base font-black text-slate-900">
-                              {parseFloat(pr.amount).toLocaleString('vi-VN')} VNĐ
-                            </span>
-                            {pr.status === 'pending' && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
-                                <Clock className="w-3.5 h-3.5 animate-spin" /> Đang chờ Admin duyệt
-                              </span>
-                            )}
-                            {pr.status === 'approved' && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> Đã chuyển khoản thành công
-                              </span>
-                            )}
-                            {pr.status === 'rejected' && (
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200">
-                                <XCircle className="w-3.5 h-3.5" /> Bị từ chối
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 flex items-center gap-1 font-medium">
-                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                            Ngân hàng: <strong className="text-slate-700">{snap.bankName}</strong> - STK: <strong className="text-slate-700">{snap.bankAccountNumber}</strong> ({snap.bankAccountHolder})
-                          </p>
-                          {pr.admin_note && (
-                            <p className="text-xs font-medium text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-                              💬 <strong>Ghi chú từ Admin:</strong> {pr.admin_note}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right text-xs text-slate-400 font-medium shrink-0">
-                          Tạo lúc: {new Date(pr.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )
-            )}
+            {renderTabContent()}
           </div>
         </div>
       </div>
@@ -461,9 +474,10 @@ export default function TutorFinancePage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Nhập số tiền muốn rút (VNĐ)</label>
+                <label htmlFor="payoutAmount" className="block text-xs font-bold text-slate-700 uppercase mb-2">Nhập số tiền muốn rút (VNĐ)</label>
                 <div className="relative">
                   <input
+                    id="payoutAmount"
                     type="number"
                     step="50000"
                     min="200000"
@@ -485,7 +499,7 @@ export default function TutorFinancePage() {
               </div>
 
               <div className="flex flex-col gap-2.5 pt-2">
-                <button
+                <button type="button"
                   onClick={handleRequestPayout}
                   disabled={submittingPayout}
                   className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-60"
@@ -493,7 +507,7 @@ export default function TutorFinancePage() {
                   {submittingPayout ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                   {submittingPayout ? 'Đang tạo yêu cầu...' : 'Xác Nhận Rút Tiền Ngay'}
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setShowPayoutModal(false)}
                   className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all"
                 >

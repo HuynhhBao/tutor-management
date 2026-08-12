@@ -6,7 +6,7 @@ import TransactionTable from '../../components/admin/TransactionTable';
 import CommissionSettingsModal from '../../components/admin/CommissionSettingsModal';
 import TutorPayoutManagement from '../../components/admin/TutorPayoutManagement';
 import TutorEarningsTable from '../../components/admin/TutorEarningsTable';
-import { DollarSign, Settings, RefreshCw, BarChart3, QrCode, Wallet, ArrowUpRight } from 'lucide-react';
+import { DollarSign, Settings, RefreshCw, BarChart3, QrCode, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function FinanceManagement() {
@@ -179,7 +179,7 @@ export default function FinanceManagement() {
 
       {/* Main Navigation Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 pb-px">
-        <button
+        <button type="button"
           onClick={() => setActiveTab('overview')}
           className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all ${
             activeTab === 'overview'
@@ -191,7 +191,7 @@ export default function FinanceManagement() {
           Thống Kê & Giao Dịch
         </button>
 
-        <button
+        <button type="button"
           onClick={() => setActiveTab('payouts')}
           className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all relative ${
             activeTab === 'payouts'
@@ -208,7 +208,7 @@ export default function FinanceManagement() {
           )}
         </button>
 
-        <button
+        <button type="button"
           onClick={() => setActiveTab('tutors')}
           className={`flex items-center gap-2 py-3 px-6 text-sm font-extrabold border-b-2 transition-all ${
             activeTab === 'tutors'

@@ -53,7 +53,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-        <button 
+        <button type="button" 
           onClick={() => { setStep(1); onClose(); }}
           className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
         >
@@ -175,7 +175,7 @@ const DepositModal = ({ isOpen, onClose, onDeposit, loading }) => {
           /* BƯỚC 2: CHUYỂN KHOẢN NGÂN HÀNG (QR / THỦ CÔNG) */
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-              <button onClick={() => setStep(1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+              <button type="button" onClick={() => setStep(1)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                 <ArrowLeft className="w-5 h-5 text-slate-600" />
               </button>
               <div>

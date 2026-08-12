@@ -21,7 +21,7 @@ class BookingService {
 
       // Kiểm tra số dư ví
       const userResult = await pool.query('SELECT balance FROM users WHERE id = $1', [userId]);
-      const balance = parseFloat(userResult.rows[0]?.balance || 0);
+      const balance = Number.parseFloat(userResult.rows[0]?.balance || 0);
       if (balance < totalFee) {
         throw new ApiError(400, `Số dư ví không đủ. Cần ít nhất ${totalFee.toLocaleString('vi-VN')}đ để đặt lịch (${parsedDuration} giờ). Số dư hiện tại: ${balance.toLocaleString('vi-VN')}đ`);
       }
@@ -131,7 +131,7 @@ class BookingService {
       }
 
       // Hủy khi đang chờ xác nhận: Hoàn tiền 100%
-      const refundAmount = parseFloat(booking.total_fee || BOOKING_FEE);
+      const refundAmount = Number.parseFloat(booking.total_fee || BOOKING_FEE);
       await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [refundAmount, userId]);
       await pool.query(`
         INSERT INTO transactions (user_id, user_type, amount, type, description)
@@ -209,7 +209,7 @@ class BookingService {
       await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', ['cancelled', id]);
 
       if (booking.status === 'pending' || booking.status === 'confirmed') {
-        const adminRefundAmount = parseFloat(booking.total_fee || BOOKING_FEE);
+        const adminRefundAmount = Number.parseFloat(booking.total_fee || BOOKING_FEE);
         await pool.query('UPDATE users SET balance = balance + $1 WHERE id = $2', [adminRefundAmount, booking.user_id]);
         await pool.query(`
           INSERT INTO transactions (user_id, user_type, amount, type, description)
@@ -252,7 +252,7 @@ class BookingService {
       `SELECT COUNT(*) FROM bookings WHERE tutor_id = $1 AND status = 'pending'`,
       [tutorId]
     );
-    return parseInt(result.rows[0].count, 10);
+    return Number.parseInt(result.rows[0].count, 10);
   }
 
   async confirmBookingAsTutor(tutorId, bookingId) {
@@ -299,8 +299,8 @@ class BookingService {
     // Kiểm tra Khóa Thời Gian (Time-gate Validation)
     if (booking.schedule_time) {
       const startTime = new Date(booking.schedule_time).getTime();
-      if (!isNaN(startTime)) {
-        const durationHours = parseFloat(booking.duration || 1);
+      if (!Number.isNaN(startTime)) {
+        const durationHours = Number.parseFloat(booking.duration || 1);
         const endTime = startTime + durationHours * 3600000;
         if (Date.now() < endTime) {
           const formattedEnd = new Date(endTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date(endTime).toLocaleDateString('vi-VN');
@@ -316,8 +316,8 @@ class BookingService {
 
       // Truy vấn tỷ lệ hoa hồng từ system_settings
       const settingsResult = await pool.query(`SELECT value FROM system_settings WHERE key = 'commission_rate'`);
-      const commissionRate = parseFloat(settingsResult.rows[0]?.value || 15);
-      const totalFee = parseFloat(booking.total_fee || 100000);
+      const commissionRate = Number.parseFloat(settingsResult.rows[0]?.value || 15);
+      const totalFee = Number.parseFloat(booking.total_fee || 100000);
       const netEarning = Math.round(totalFee * (1 - (commissionRate / 100)));
 
       // Cộng tiền vào ví gia sư (Tutor Wallet)

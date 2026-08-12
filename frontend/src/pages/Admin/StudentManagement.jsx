@@ -62,7 +62,7 @@ const StudentManagement = () => {
           <p className="text-slate-500 mt-1">Xem danh sách và quản lý tài khoản người học</p>
         </div>
         
-        <button 
+        <button type="button" 
           onClick={fetchStudents}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-sm"
         >

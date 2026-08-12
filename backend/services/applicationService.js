@@ -2,7 +2,7 @@ import pool from '../config/db.js';
 import transporter from '../utils/mailer.js';
 import bcrypt from 'bcryptjs';
 import { ApiError } from '../utils/ApiError.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 // In-memory OTP store dành riêng cho ứng tuyển gia sư
 const applyOtpStore = new Map();

@@ -13,7 +13,7 @@ export default function CommissionSettingsModal({ isOpen, onClose, currentRate, 
   if (!isOpen) return null;
 
   const mockBooking = 1000000;
-  const numRate = parseFloat(rate) || 0;
+  const numRate = Number.parseFloat(rate) || 0;
   const systemCommission = (mockBooking * numRate) / 100;
   const tutorPayout = mockBooking - systemCommission;
 
@@ -61,11 +61,12 @@ export default function CommissionSettingsModal({ isOpen, onClose, currentRate, 
         {/* Modal Form Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+            <label htmlFor="commissionRate" className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
               Phần trăm hoa hồng EduMatch giữ lại (%)
             </label>
             <div className="relative">
               <input
+                id="commissionRate"
                 type="number"
                 min="0"
                 max="100"

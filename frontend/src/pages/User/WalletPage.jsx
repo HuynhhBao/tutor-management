@@ -21,8 +21,8 @@ const WalletPage = () => {
       const res = await apiClient('/wallet');
       const data = await res.json();
       if (data.status === 'ok' || data.status === 'success') {
-        setBalance(data.data.balance);
-        setTransactions(data.data.transactions);
+        setBalance(data.data?.balance || 0);
+        setTransactions(data.data?.transactions || []);
       }
     } catch (err) {
       console.error('Error fetching wallet:', err);
@@ -45,7 +45,7 @@ const WalletPage = () => {
       });
       const data = await res.json();
       if (data.status === 'ok' || data.status === 'success') {
-        const paymentUrl = data.paymentUrl || (data.data && data.data.paymentUrl);
+        const paymentUrl = data.paymentUrl || data.data?.paymentUrl;
         if (paymentUrl) {
           // Redirect to VNPay if a payment URL is provided
           window.location.href = paymentUrl;
@@ -58,8 +58,8 @@ const WalletPage = () => {
           message: data.message || `Nạp thành công ${amount.toLocaleString('vi-VN')}đ vào tài khoản!`
         });
         if (data.data) {
-          setBalance(data.data.walletBalance || data.data.balance);
-          if (data.data.transaction) {
+          setBalance(data.data?.walletBalance ?? data.data?.balance ?? 0);
+          if (data.data?.transaction) {
             setTransactions((prev) => [data.data.transaction, ...prev]);
           }
         }
@@ -143,7 +143,7 @@ const WalletPage = () => {
               <h2 className="text-4xl font-bold mb-8">
                 {fetching ? '...' : `${balance.toLocaleString('vi-VN')} đ`}
               </h2>
-              <button 
+              <button type="button" 
                 onClick={() => setIsModalOpen(true)}
                 className="w-full py-4 bg-white text-blue-600 font-bold rounded-2xl hover:bg-blue-50 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
               >
@@ -205,7 +205,7 @@ const WalletPage = () => {
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">{notification.title}</h3>
             <p className="text-slate-500 text-sm mb-6 whitespace-pre-line leading-relaxed">{notification.message}</p>
-            <button
+            <button type="button"
               onClick={() => setNotification({ ...notification, isOpen: false })}
               className={`w-full py-3.5 font-bold rounded-2xl transition-all active:scale-95 shadow-lg ${
                 notification.type === 'success'

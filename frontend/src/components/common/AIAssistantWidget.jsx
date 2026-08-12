@@ -73,7 +73,7 @@ const AIAssistantWidget = () => {
   const messagesEndRef = useRef(null);
 
   // Tính toán điều kiện student trước, dùng bên trong hook
-  const isStudent = Boolean(user && user.role === 'user');
+  const isStudent = Boolean(user?.role === 'user');
 
   // 1. Tự động cuộn xuống cuối danh sách tin nhắn
   useEffect(() => {
@@ -194,14 +194,14 @@ const AIAssistantWidget = () => {
       
       // Định dạng dòng trống thành thẻ break
       if (content.trim() === '') {
-        return <div key={idx} className="h-2" />;
+        return <div key={`br-${idx}`} className="h-2" />;
       }
 
       // Xử lý danh sách không thứ tự (* hoặc -)
       if (content.startsWith('* ') || content.startsWith('- ')) {
         const itemText = content.substring(2);
         return (
-          <li key={idx} className="list-disc ml-4 my-0.5 text-slate-700">
+          <li key={`ul-${idx}`} className="list-disc ml-4 my-0.5 text-slate-700">
             {renderInlineMarkdown(itemText)}
           </li>
         );
@@ -213,14 +213,14 @@ const AIAssistantWidget = () => {
         const num = matchNumbered[1];
         const rest = matchNumbered[2];
         return (
-          <li key={idx} className="list-decimal ml-4 my-0.5 text-slate-700" value={num}>
+          <li key={`ol-${idx}`} className="list-decimal ml-4 my-0.5 text-slate-700" value={num}>
             {renderInlineMarkdown(rest)}
           </li>
         );
       }
 
       return (
-        <p key={idx} className="my-0.5 leading-relaxed text-slate-700">
+        <p key={`p-${idx}`} className="my-0.5 leading-relaxed text-slate-700">
           {renderInlineMarkdown(content)}
         </p>
       );
@@ -232,7 +232,7 @@ const AIAssistantWidget = () => {
     const parts = text.split(/\*\*([^*]+)\*\*/g);
     return parts.map((part, index) => {
       if (index % 2 === 1) {
-        return <strong key={index} className="font-bold text-slate-900">{part}</strong>;
+        return <strong key={`strong-${index}`} className="font-bold text-slate-900">{part}</strong>;
       }
       return part;
     });
@@ -242,6 +242,7 @@ const AIAssistantWidget = () => {
     <>
       {/* 1. Bong bóng Chatbot AI nổi ở góc dưới bên phải */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 p-4 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 focus:outline-none ring-4 ring-blue-500/20 animate-bounce group"
         style={{ animationDuration: '3s' }}
@@ -269,7 +270,7 @@ const AIAssistantWidget = () => {
               </div>
               <div>
                 <h3 className="font-bold text-sm leading-tight flex items-center gap-1.5">
-                  Trợ lý ảo EduMatch
+                  {'Trợ lý ảo EduMatch '}
                   <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
                 </h3>
                 <p className="text-[10px] text-blue-100 font-medium">Sẵn sàng hỗ trợ 24/7</p>
@@ -278,6 +279,7 @@ const AIAssistantWidget = () => {
             <div className="flex items-center gap-1.5">
               {messages.length > 0 && (
                 <button
+                  type="button"
                   onClick={handleClearHistory}
                   title="Xóa lịch sử trò chuyện"
                   className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/80 hover:text-white"
@@ -286,6 +288,7 @@ const AIAssistantWidget = () => {
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
               >
@@ -311,7 +314,8 @@ const AIAssistantWidget = () => {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-left mb-1.5">Gợi ý câu hỏi nhanh:</p>
                   {suggestions.map((sug, idx) => (
                     <button
-                      key={idx}
+                      key={`sug1-${idx}`}
+                      type="button"
                       onClick={() => handleSendMessage(sug.text)}
                       className="w-full text-left px-4 py-2.5 bg-white border border-slate-100 hover:border-blue-400 hover:bg-blue-50/30 rounded-2xl text-xs text-slate-600 font-medium transition-all shadow-sm flex items-center justify-between group"
                     >
@@ -386,7 +390,8 @@ const AIAssistantWidget = () => {
             <div className="px-4 py-1.5 bg-slate-50/50 border-t border-slate-100 flex gap-2 overflow-x-auto scrollbar-none whitespace-nowrap">
               {suggestions.map((sug, idx) => (
                 <button
-                  key={idx}
+                  key={`sug2-${idx}`}
+                  type="button"
                   onClick={() => handleSendMessage(sug.text)}
                   className="px-3 py-1 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-[10px] text-slate-500 font-bold rounded-full transition-all shadow-sm flex-shrink-0"
                 >

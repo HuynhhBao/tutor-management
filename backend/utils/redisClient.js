@@ -12,8 +12,11 @@ const redisClient = createClient({
 redisClient.on('error', err => console.log('Redis Client Error', err.message));
 
 // KHÔNG dùng await ở đây để tránh việc treo toàn bộ server nếu Redis chưa bật
-redisClient.connect()
-    .then(() => console.log('Redis connected successfully'))
-    .catch(err => console.error('Lỗi khi kết nối Redis (Server vẫn chạy bình thường):', err.message));
+try {
+    await redisClient.connect();
+    console.log('Redis connected successfully');
+} catch (err) {
+    console.error('Lỗi khi kết nối Redis (Server vẫn chạy bình thường):', err.message);
+}
 
 export default redisClient;

@@ -53,17 +53,18 @@ function ConfirmCancelModal({ booking, onConfirm, onClose }) {
           Bạn có chắc chắn muốn hủy lịch học này không?
         </p>
         <p className="text-slate-500 text-center text-sm mb-6">
-          Học viên <strong className="text-slate-700">{booking.student_name}</strong> sẽ được
+          Học viên{' '}
+          <strong className="text-slate-700">{booking.student_name}</strong> sẽ được
           <strong className="text-green-600"> hoàn 100.000đ</strong> vào ví.
         </p>
         <div className="flex flex-col gap-3">
-          <button
+          <button type="button"
             onClick={() => onConfirm(booking.id)}
             className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-red-100 active:scale-95"
           >
             Xác nhận hủy lịch
           </button>
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl transition-all active:scale-95"
           >
@@ -147,6 +148,7 @@ export default function AdminBookingManagement() {
         setCancelTarget(null);
       }
     } catch (err) {
+      console.error('Cancel booking error:', err);
       showToast('Không thể kết nối đến máy chủ', 'error');
       setCancelTarget(null);
     }
@@ -166,6 +168,110 @@ export default function AdminBookingManagement() {
 
   const canCancel = (status) => status === 'pending' || status === 'confirmed';
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    if (bookings.length === 0) {
+      return (
+        <div className="py-16 text-center">
+          <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+            <Calendar className="h-8 w-8 text-slate-400" />
+          </div>
+          <h4 className="font-medium text-slate-900">Không có lịch đặt nào</h4>
+          <p className="text-sm text-slate-500 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+        </div>
+      );
+    }
+    return (
+      <div className="divide-y divide-slate-50">
+        {bookings.map((b) => (
+          <div key={b.id} className="p-6 hover:bg-slate-50 transition-colors">
+            <div className="flex flex-col md:flex-row md:items-start gap-4 justify-between">
+
+              {/* Info block */}
+              <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                {/* Student */}
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <img
+                    src={b.student_avatar
+                      ? `http://localhost:3001${b.student_avatar}`
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.student_name || 'S')}&background=dbeafe&color=1d4ed8`}
+                    alt={b.student_name}
+                    className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Học viên</p>
+                    <p className="font-semibold text-slate-900 truncate">{b.student_name}</p>
+                    <p className="text-xs text-slate-500 truncate">{b.student_email}</p>
+                  </div>
+                </div>
+
+                {/* Tutor */}
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <img
+                    src={b.tutor_avatar
+                      ? `http://localhost:3001${b.tutor_avatar}`
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.tutor_name || 'T')}&background=dcfce7&color=15803d`}
+                    alt={b.tutor_name}
+                    className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Gia sư</p>
+                    <p className="font-semibold text-slate-900 truncate">{b.tutor_name}</p>
+                    <p className="text-xs text-slate-500 truncate">{b.tutor_email}</p>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="font-medium">Môn:</span>
+                    <span className="truncate">{b.subject || '—'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="font-medium">Lịch:</span>
+                    <span>{formatDateTime(b.schedule_time)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-sm text-slate-600">
+                    <User className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="font-medium">Đặt lúc:</span>
+                    <span>{formatDateTime(b.created_at)}</span>
+                  </div>
+                  {b.message && (
+                    <p className="text-xs text-slate-500 italic bg-slate-50 rounded-lg px-3 py-1.5 border-l-2 border-slate-300">
+                      "{b.message}"
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Status & Action */}
+              <div className="flex flex-row md:flex-col items-center md:items-end gap-3 shrink-0">
+                <StatusBadge status={b.status} />
+                {canCancel(b.status) && (
+                  <button type="button"
+                    onClick={() => setCancelTarget(b)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-colors border border-red-100"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Hủy lịch
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -177,7 +283,7 @@ export default function AdminBookingManagement() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Xem và quản lý toàn bộ lịch đặt gia sư của học viên</p>
         </div>
-        <button
+        <button type="button"
           onClick={() => { fetchBookings(); fetchStats(); }}
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
         >
@@ -253,101 +359,7 @@ export default function AdminBookingManagement() {
           </p>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : bookings.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <Calendar className="h-8 w-8 text-slate-400" />
-            </div>
-            <h4 className="font-medium text-slate-900">Không có lịch đặt nào</h4>
-            <p className="text-sm text-slate-500 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-50">
-            {bookings.map((b) => (
-              <div key={b.id} className="p-6 hover:bg-slate-50 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-start gap-4 justify-between">
-
-                  {/* Info block */}
-                  <div className="flex flex-col sm:flex-row gap-4 flex-1">
-                    {/* Student */}
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <img
-                        src={b.student_avatar
-                          ? `http://localhost:3001${b.student_avatar}`
-                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.student_name || 'S')}&background=dbeafe&color=1d4ed8`}
-                        alt={b.student_name}
-                        className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Học viên</p>
-                        <p className="font-semibold text-slate-900 truncate">{b.student_name}</p>
-                        <p className="text-xs text-slate-500 truncate">{b.student_email}</p>
-                      </div>
-                    </div>
-
-                    {/* Tutor */}
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <img
-                        src={b.tutor_avatar
-                          ? `http://localhost:3001${b.tutor_avatar}`
-                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(b.tutor_name || 'T')}&background=dcfce7&color=15803d`}
-                        alt={b.tutor_name}
-                        className="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Gia sư</p>
-                        <p className="font-semibold text-slate-900 truncate">{b.tutor_name}</p>
-                        <p className="text-xs text-slate-500 truncate">{b.tutor_email}</p>
-                      </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <BookOpen className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Môn:</span>
-                        <span className="truncate">{b.subject || '—'}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Lịch:</span>
-                        <span>{formatDateTime(b.schedule_time)}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-sm text-slate-600">
-                        <User className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="font-medium">Đặt lúc:</span>
-                        <span>{formatDateTime(b.created_at)}</span>
-                      </div>
-                      {b.message && (
-                        <p className="text-xs text-slate-500 italic bg-slate-50 rounded-lg px-3 py-1.5 border-l-2 border-slate-300">
-                          "{b.message}"
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status & Action */}
-                  <div className="flex flex-row md:flex-col items-center md:items-end gap-3 shrink-0">
-                    <StatusBadge status={b.status} />
-                    {canCancel(b.status) && (
-                      <button
-                        onClick={() => setCancelTarget(b)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition-colors border border-red-100"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Hủy lịch
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {renderContent()}
       </div>
 
       {/* Confirm Cancel Modal */}
