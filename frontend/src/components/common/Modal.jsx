@@ -7,8 +7,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Overlay */}
-      <div 
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+      <button
+        type="button"
+        aria-label="Đóng modal"
+        className="absolute inset-0 w-full h-full cursor-default bg-slate-900/40 backdrop-blur-sm transition-opacity outline-none" 
         onClick={onClose}
       />
       
