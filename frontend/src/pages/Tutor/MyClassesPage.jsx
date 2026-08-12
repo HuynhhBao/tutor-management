@@ -7,7 +7,6 @@ import { API_BASE_URL } from '../../utils/constants';
 
 
 export default function MyClassesPage() {
-export default function MyClassesPage() {
   const { showAlert } = useAlert();
   const navigate = useNavigate();
 
@@ -54,7 +53,7 @@ export default function MyClassesPage() {
       } else {
         showAlert(json.message || 'Có lỗi xảy ra');
       }
-    } catch {
+    } catch (error) {
       showAlert('Không thể kết nối đến server');
     } finally {
       setCompletingId(null);
