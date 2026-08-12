@@ -166,6 +166,7 @@ const StudentLayout = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={async () => {
                     await logout();
                     navigate('/');
@@ -180,6 +181,7 @@ const StudentLayout = () => {
               {/* Mobile menu button */}
               <div className="flex items-center lg:hidden">
                 <button
+                  type="button"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
                 >
@@ -208,6 +210,7 @@ const StudentLayout = () => {
                 const iconClass = `mr-3 h-5 w-5 ${isActive ? 'text-blue-500' : 'text-slate-400'}`;
                 return (
                   <button
+                    type="button"
                     key={item.path}
                     onClick={() => {
                       navigate(item.path);
@@ -246,6 +249,7 @@ const StudentLayout = () => {
               </div>
               <div className="mt-3 space-y-1">
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="flex items-center w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-800"
                 >
@@ -276,12 +280,14 @@ const StudentLayout = () => {
             </p>
             <div className="flex flex-col gap-3">
               <button
+                type="button"
                 onClick={handleLogout}
                 className="w-full py-4 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-200 active:scale-95"
               >
                 Đăng xuất ngay
               </button>
               <button
+                type="button"
                 onClick={() => setShowLogoutModal(false)}
                 className="w-full py-4 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95"
               >

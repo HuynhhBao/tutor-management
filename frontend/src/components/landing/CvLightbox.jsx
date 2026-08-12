@@ -7,6 +7,7 @@ const CvLightbox = ({ isOpen, previewUrl, onClose }) => {
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-md animate-in fade-in duration-300">
       <button 
+        type="button"
         onClick={onClose}
         className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all border border-white/10"
       >

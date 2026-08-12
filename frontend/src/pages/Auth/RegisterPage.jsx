@@ -55,6 +55,7 @@ const RegisterPage = () => {
         setError(data.message || 'Đăng ký thất bại');
       }
     } catch (err) {
+      console.error('Registration error:', err);
       setError('Không thể kết nối đến server');
     } finally {
       setLoading(false);
@@ -96,11 +97,12 @@ const RegisterPage = () => {
 
           <form className="space-y-6" onSubmit={handleRegister}>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="reg-fullname" className="block text-sm font-medium text-slate-700">
                 Họ và tên
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="reg-fullname"
                   type="text"
                   required
                   value={fullName}
@@ -115,11 +117,12 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="reg-email" className="block text-sm font-medium text-slate-700">
                 Email (Gmail)
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="reg-email"
                   type="email"
                   required
                   value={email}
@@ -134,11 +137,12 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="reg-password" className="block text-sm font-medium text-slate-700">
                 Mật khẩu
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="reg-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
@@ -165,11 +169,12 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="reg-confirm" className="block text-sm font-medium text-slate-700">
                 Xác nhận mật khẩu
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="reg-confirm"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
                   value={confirmPassword}

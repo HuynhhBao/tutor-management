@@ -12,9 +12,10 @@ const GrantAccountModal = ({ isOpen, grantUsername, setGrantUsername, grantStatu
       )}
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Tên tài khoản (Username)</label>
+        <label htmlFor="grant-username" className="block text-sm font-medium text-slate-700 mb-1">Tên tài khoản (Username)</label>
         <div className="relative">
           <input
+            id="grant-username"
             type="text"
             required
             value={grantUsername}

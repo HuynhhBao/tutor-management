@@ -37,6 +37,7 @@ const AdminLoginPage = () => {
         setError(data.message || 'Đăng nhập thất bại');
       }
     } catch (err) {
+      console.error('Admin login error:', err);
       setError('Không thể kết nối đến server');
     } finally {
       setLoading(false);
@@ -78,11 +79,12 @@ const AdminLoginPage = () => {
 
           <form className="space-y-6" onSubmit={handleLogin}>
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="admin-username" className="block text-sm font-medium text-slate-700">
                 Tên đăng nhập
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="admin-username"
                   type="text"
                   required
                   value={username}
@@ -97,11 +99,12 @@ const AdminLoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700">
+              <label htmlFor="admin-password" className="block text-sm font-medium text-slate-700">
                 Mật khẩu
               </label>
               <div className="mt-1 relative">
                 <input
+                  id="admin-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}

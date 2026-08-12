@@ -44,7 +44,7 @@ const ApplyModal = ({
       <div className="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-100/50">
           <h3 className="text-xl font-bold text-slate-900">Ứng tuyển Gia sư</h3>
-          <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
             <X className="h-5 w-5 text-slate-500" />
           </button>
         </div>

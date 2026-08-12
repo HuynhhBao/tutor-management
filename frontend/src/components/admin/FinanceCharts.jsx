@@ -8,8 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   PieChart,
-  Pie,
-  Cell
+  Pie
 } from 'recharts';
 import { Layers, Activity } from 'lucide-react';
 
@@ -230,18 +229,16 @@ export default function FinanceCharts({ chartData = [], breakdown = [], period =
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={breakdown}
+                  data={breakdown.map(entry => ({ ...entry, fill: entry.color }))}
                   cx="50%"
                   cy="50%"
                   innerRadius={65}
                   outerRadius={95}
                   paddingAngle={4}
                   dataKey="count"
-                >
-                  {breakdown.map((entry) => (
-                    <Cell key={`cell-${entry.name}`} fill={entry.color} stroke="#ffffff" strokeWidth={2} />
-                  ))}
-                </Pie>
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                />
                 <Tooltip content={<CustomPieTooltip />} />
               </PieChart>
             </ResponsiveContainer>

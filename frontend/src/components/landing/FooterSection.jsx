@@ -11,7 +11,7 @@ const FooterSection = () => (
         <h3 className="text-white font-bold text-lg mb-6">Liên hệ</h3>
         <ul className="space-y-4">
           {['Về chúng tôi', 'Liên hệ', 'Tuyển dụng', 'Blog'].map(item => (
-            <li key={item}><a href="#" className="hover:text-white transition-colors">{item}</a></li>
+            <li key={item}><a href="#/" className="hover:text-white transition-colors">{item}</a></li>
           ))}
         </ul>
       </div>
@@ -19,7 +19,7 @@ const FooterSection = () => (
         <h3 className="text-white font-bold text-lg mb-6">Hỗ trợ</h3>
         <ul className="space-y-4">
           {['Câu hỏi thường gặp', 'Chính sách bảo mật', 'Điều khoản sử dụng', 'Hướng dẫn sử dụng'].map(item => (
-            <li key={item}><a href="#" className="hover:text-white transition-colors">{item}</a></li>
+            <li key={item}><a href="#/" className="hover:text-white transition-colors">{item}</a></li>
           ))}
         </ul>
       </div>
@@ -27,7 +27,7 @@ const FooterSection = () => (
         <h3 className="text-white font-bold text-lg mb-6">Theo dõi chúng tôi</h3>
         <ul className="space-y-4">
           {['Facebook', 'Instagram', 'YouTube', 'LinkedIn'].map(item => (
-            <li key={item}><a href="#" className="hover:text-white transition-colors">{item}</a></li>
+            <li key={item}><a href="#/" className="hover:text-white transition-colors">{item}</a></li>
           ))}
         </ul>
       </div>

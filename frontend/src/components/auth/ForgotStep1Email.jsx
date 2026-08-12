@@ -12,7 +12,7 @@ const ForgotStep1Email = ({ email, setEmail, loading, onSubmit }) => (
     </div>
 
     <div style={{ marginBottom: '20px' }}>
-      <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Địa chỉ email</label>
+      <label htmlFor="forgot-email" style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '6px' }}>Địa chỉ email</label>
       <div style={{ position: 'relative' }}>
         <input
           id="forgot-email"

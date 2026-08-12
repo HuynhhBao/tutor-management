@@ -73,28 +73,24 @@ export default function VideoCallArea({
       }
     };
 
+    const setVideoSource = (el, stream) => {
+      if (el && el.srcObject !== stream) {
+        el.srcObject = stream;
+      }
+    };
+
     const setupStreams = () => {
-      if (isScreenSharing && screenStreamRef.current) {
-        if (videoEl.srcObject !== screenStreamRef.current) {
-          videoEl.srcObject = screenStreamRef.current;
-        }
-        playVideo(videoEl);
-        
-        if (cameraActive && localStreamRef.current && cameraEl) {
-          if (cameraEl.srcObject !== localStreamRef.current) {
-            cameraEl.srcObject = localStreamRef.current;
-          }
-          playVideo(cameraEl);
-        }
-      } else if (cameraActive && localStreamRef.current) {
-        if (videoEl.srcObject !== localStreamRef.current) {
-          videoEl.srcObject = localStreamRef.current;
-        }
-        playVideo(videoEl);
-        if (cameraEl) cameraEl.srcObject = null;
-      } else {
-        videoEl.srcObject = null;
-        if (cameraEl) cameraEl.srcObject = null;
+      const hasScreen = Boolean(isScreenSharing && screenStreamRef.current);
+      const hasCamera = Boolean(cameraActive && localStreamRef.current);
+
+      const mainStream = hasScreen ? screenStreamRef.current : (hasCamera ? localStreamRef.current : null);
+      setVideoSource(videoEl, mainStream);
+      if (mainStream) playVideo(videoEl);
+
+      const pipStream = (hasScreen && hasCamera) ? localStreamRef.current : null;
+      if (cameraEl) {
+        setVideoSource(cameraEl, pipStream);
+        if (pipStream) playVideo(cameraEl);
       }
     };
 

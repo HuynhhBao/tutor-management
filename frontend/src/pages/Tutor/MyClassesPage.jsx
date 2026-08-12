@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
 import { useAlert } from '../../context/AlertContext';
 import { BookOpen, Clock, User, MessageSquare, CheckCircle, GraduationCap, Search, Loader2, Video } from 'lucide-react';
 import { API_BASE_URL } from '../../utils/constants';
@@ -54,6 +53,7 @@ export default function MyClassesPage() {
         showAlert(json.message || 'Có lỗi xảy ra');
       }
     } catch (error) {
+      console.error('Error completing class:', error);
       showAlert('Không thể kết nối đến server');
     } finally {
       setCompletingId(null);
@@ -220,22 +220,30 @@ export default function MyClassesPage() {
                           : 'bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 shadow-lg shadow-emerald-200'
                       }`}
                     >
-                      {completingId === b.id ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Đang xử lý...
-                        </>
-                      ) : isTimeGated ? (
-                        <>
-                          <Clock className="w-3.5 h-3.5 animate-pulse" />
-                          Mở lúc {unlockTimeStr}
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          Hoàn thành
-                        </>
-                      )}
+                      {(() => {
+                        if (completingId === b.id) {
+                          return (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Đang xử lý...
+                            </>
+                          );
+                        }
+                        if (isTimeGated) {
+                          return (
+                            <>
+                              <Clock className="w-3.5 h-3.5 animate-pulse" />
+                              Mở lúc {unlockTimeStr}
+                            </>
+                          );
+                        }
+                        return (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Hoàn thành
+                          </>
+                        );
+                      })()}
                     </button>
                   </div>
                 </div>
