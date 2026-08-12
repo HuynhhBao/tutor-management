@@ -1,6 +1,134 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Camera, CameraOff, Mic, MicOff, Phone, Monitor, Radio, UserCheck, Clock } from 'lucide-react';
 
+// --- CUSTOM HOOKS TO REDUCE COGNITIVE COMPLEXITY ---
+function useRemoteSocketListeners(socket, classId, micActive, setRemoteScreenFrame, setRemoteMicActive) {
+  useEffect(() => {
+    if (!socket) return;
+    const handleFrame = (data) => setRemoteScreenFrame(data.frame);
+    const handleStop = () => setRemoteScreenFrame(null);
+    const handleRemoteMic = (data) => setRemoteMicActive(data.micActive);
+
+    socket.on('screen-share-frame', handleFrame);
+    socket.on('screen-share-stop', handleStop);
+    socket.on('toggle-mic', handleRemoteMic);
+
+    return () => {
+      socket.off('screen-share-frame', handleFrame);
+      socket.off('screen-share-stop', handleStop);
+      socket.off('toggle-mic', handleRemoteMic);
+    };
+  }, [socket, setRemoteScreenFrame, setRemoteMicActive]);
+
+  useEffect(() => {
+    if (socket && classId) {
+      socket.emit('toggle-mic', { classId: String(classId), micActive });
+    }
+  }, [micActive, socket, classId]);
+}
+
+function useScreenShareCapture(isScreenSharing, socket, classId, cameraActive, localVideoRef, localCameraRef) {
+  useEffect(() => {
+    if (!isScreenSharing || !socket || !classId) return;
+
+    const captureCanvas = document.createElement('canvas');
+    const captureCtx = captureCanvas.getContext('2d');
+
+    const captureFrame = () => {
+      const videoEl = localVideoRef.current;
+      if (!videoEl || (videoEl.videoWidth === 0 && videoEl.readyState < 1)) return;
+      
+      const w = videoEl.videoWidth || 800;
+      const h = videoEl.videoHeight || 450;
+      captureCanvas.width = Math.min(w, 960);
+      captureCanvas.height = Math.min(h, 540);
+      
+      captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
+      
+      const camEl = localCameraRef.current;
+      if (cameraActive && camEl && camEl.readyState >= 1) {
+        const pipW = Math.max(120, captureCanvas.width * 0.2); 
+        const pipH = (camEl.videoHeight / (camEl.videoWidth || 1)) * pipW || (pipW * 0.75);
+        const pipX = captureCanvas.width - pipW - 16;
+        const pipY = captureCanvas.height - pipH - 16;
+        
+        captureCtx.fillStyle = '#1e293b';
+        captureCtx.fillRect(pipX - 2, pipY - 2, pipW + 4, pipH + 4);
+        
+        captureCtx.save();
+        captureCtx.translate(pipX + pipW, pipY);
+        captureCtx.scale(-1, 1);
+        captureCtx.drawImage(camEl, 0, 0, pipW, pipH);
+        captureCtx.restore();
+      }
+
+      const frameData = captureCanvas.toDataURL('image/jpeg', 0.5);
+      socket.emit('screen-share-frame', {
+        classId: String(classId),
+        frame: frameData
+      });
+    };
+
+    const intervalId = setInterval(captureFrame, 150);
+
+    return () => {
+      clearInterval(intervalId);
+      socket.emit('screen-share-stop', { classId: String(classId) });
+    };
+  }, [isScreenSharing, socket, classId, cameraActive, localVideoRef, localCameraRef]);
+}
+
+function useMediaStreamsManager(cameraActive, micActive, localStreamRef, stopAllLocalTracks) {
+  useEffect(() => {
+    async function handleMediaStream() {
+      if (!cameraActive && !micActive) {
+        stopAllLocalTracks();
+        return;
+      }
+
+      try {
+        if (!localStreamRef.current) {
+          const constraints = {
+            video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
+            audio: micActive
+          };
+          localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
+          return;
+        }
+
+        const updateVideoTracks = async (stream) => {
+          const videoTracks = stream.getVideoTracks();
+          if (cameraActive && videoTracks.length === 0) {
+            const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
+            stream.addTrack(videoStream.getVideoTracks()[0]);
+          } else if (!cameraActive && videoTracks.length > 0) {
+            videoTracks.forEach(t => { t.stop(); stream.removeTrack(t); });
+          }
+        };
+
+        const updateAudioTracks = async (stream) => {
+          const audioTracks = stream.getAudioTracks();
+          if (micActive && audioTracks.length === 0) {
+            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.addTrack(audioStream.getAudioTracks()[0]);
+          } else if (audioTracks.length > 0) {
+            audioTracks.forEach(t => { t.enabled = micActive; });
+          }
+        };
+
+        await updateVideoTracks(localStreamRef.current);
+        await updateAudioTracks(localStreamRef.current);
+      } catch (err) {
+        console.error('Lỗi khi truy cập camera/micro:', err);
+      }
+    }
+
+    handleMediaStream();
+  }, [cameraActive, micActive, localStreamRef, stopAllLocalTracks]);
+}
+// ----------------------------------------------------
+
+
 export default function VideoCallArea({ 
   classId, 
   socket,
@@ -27,39 +155,8 @@ export default function VideoCallArea({
   // Kiểm tra xem đối phương (Học viên hoặc Gia sư) đã vào phòng học hay chưa
   const isPartnerOnline = (roomMembers || []).some(m => m && (m.userRole !== userRole || (m.userName && m.userName !== userName)));
 
-  // 1. Lắng nghe sự kiện truyền phát màn hình & trạng thái Micro từ đối phương qua Socket.io
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleFrame = (data) => {
-      setRemoteScreenFrame(data.frame);
-    };
-
-    const handleStop = () => {
-      setRemoteScreenFrame(null);
-    };
-
-    const handleRemoteMic = (data) => {
-      setRemoteMicActive(data.micActive);
-    };
-
-    socket.on('screen-share-frame', handleFrame);
-    socket.on('screen-share-stop', handleStop);
-    socket.on('toggle-mic', handleRemoteMic);
-
-    return () => {
-      socket.off('screen-share-frame', handleFrame);
-      socket.off('screen-share-stop', handleStop);
-      socket.off('toggle-mic', handleRemoteMic);
-    };
-  }, [socket]);
-
-  // Đồng bộ trạng thái Mic cá nhân sang đối phương khi micActive thay đổi
-  useEffect(() => {
-    if (socket && classId) {
-      socket.emit('toggle-mic', { classId: String(classId), micActive });
-    }
-  }, [micActive, socket, classId]);
+  // 1. Lắng nghe sự kiện truyền phát màn hình & trạng thái Micro từ đối phương
+  useRemoteSocketListeners(socket, classId, micActive, setRemoteScreenFrame, setRemoteMicActive);
 
   // 2. Gán stream media vào thẻ <video> khi thẻ <video> được React mount
   useEffect(() => {
@@ -115,59 +212,8 @@ export default function VideoCallArea({
     };
   }, [isScreenSharing, cameraActive, isActive]);
 
-  // 3. Quản lý việc chụp & phát khung hình màn hình cá nhân sang đối phương qua Socket.io
-  useEffect(() => {
-    if (!isScreenSharing || !socket || !classId) return;
-
-    const captureCanvas = document.createElement('canvas');
-    const captureCtx = captureCanvas.getContext('2d');
-
-    const captureFrame = () => {
-      const videoEl = localVideoRef.current;
-      if (!videoEl || (videoEl.videoWidth === 0 && videoEl.readyState < 1)) return;
-      
-      const w = videoEl.videoWidth || 800;
-      const h = videoEl.videoHeight || 450;
-      captureCanvas.width = Math.min(w, 960);
-      captureCanvas.height = Math.min(h, 540);
-      
-      // Vẽ màn hình được share
-      captureCtx.drawImage(videoEl, 0, 0, captureCanvas.width, captureCanvas.height);
-      
-      // Vẽ thêm camera (PiP) nếu camera đang bật
-      const camEl = localCameraRef.current;
-      if (cameraActive && camEl && camEl.readyState >= 1) {
-        const pipW = Math.max(120, captureCanvas.width * 0.2); // 20% chiều rộng
-        const pipH = (camEl.videoHeight / (camEl.videoWidth || 1)) * pipW || (pipW * 0.75);
-        const pipX = captureCanvas.width - pipW - 16;
-        const pipY = captureCanvas.height - pipH - 16;
-        
-        // Vẽ viền cho PiP
-        captureCtx.fillStyle = '#1e293b';
-        captureCtx.fillRect(pipX - 2, pipY - 2, pipW + 4, pipH + 4);
-        
-        // Vẽ camera (lật ngang)
-        captureCtx.save();
-        captureCtx.translate(pipX + pipW, pipY);
-        captureCtx.scale(-1, 1);
-        captureCtx.drawImage(camEl, 0, 0, pipW, pipH);
-        captureCtx.restore();
-      }
-
-      const frameData = captureCanvas.toDataURL('image/jpeg', 0.5);
-      socket.emit('screen-share-frame', {
-        classId: String(classId),
-        frame: frameData
-      });
-    };
-
-    const intervalId = setInterval(captureFrame, 150);
-
-    return () => {
-      clearInterval(intervalId);
-      socket.emit('screen-share-stop', { classId: String(classId) });
-    };
-  }, [isScreenSharing, socket, classId, cameraActive]);
+  // 3. Quản lý việc chụp & phát khung hình màn hình cá nhân sang đối phương
+  useScreenShareCapture(isScreenSharing, socket, classId, cameraActive, localVideoRef, localCameraRef);
 
   const stopAllLocalTracks = useCallback(() => {
     if (localStreamRef.current) {
@@ -177,52 +223,7 @@ export default function VideoCallArea({
   }, []);
 
   // 4. Quản lý luồng Camera & Micro local
-  useEffect(() => {
-    async function handleMediaStream() {
-      if (!cameraActive && !micActive) {
-        stopAllLocalTracks();
-        return;
-      }
-
-      try {
-        if (!localStreamRef.current) {
-          const constraints = {
-            video: cameraActive ? { width: 640, height: 480, frameRate: 20 } : false,
-            audio: micActive
-          };
-          localStreamRef.current = await navigator.mediaDevices.getUserMedia(constraints);
-          return;
-        }
-
-        const updateVideoTracks = async (stream) => {
-          const videoTracks = stream.getVideoTracks();
-          if (cameraActive && videoTracks.length === 0) {
-            const videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, frameRate: 20 } });
-            stream.addTrack(videoStream.getVideoTracks()[0]);
-          } else if (!cameraActive && videoTracks.length > 0) {
-            videoTracks.forEach(t => { t.stop(); stream.removeTrack(t); });
-          }
-        };
-
-        const updateAudioTracks = async (stream) => {
-          const audioTracks = stream.getAudioTracks();
-          if (micActive && audioTracks.length === 0) {
-            const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.addTrack(audioStream.getAudioTracks()[0]);
-          } else if (audioTracks.length > 0) {
-            audioTracks.forEach(t => { t.enabled = micActive; });
-          }
-        };
-
-        await updateVideoTracks(localStreamRef.current);
-        await updateAudioTracks(localStreamRef.current);
-      } catch (err) {
-        console.error('Lỗi khi truy cập camera/micro:', err);
-      }
-    }
-
-    handleMediaStream();
-  }, [cameraActive, micActive, stopAllLocalTracks]);
+  useMediaStreamsManager(cameraActive, micActive, localStreamRef, stopAllLocalTracks);
 
   // 5. Chức năng chia sẻ màn hình
   const toggleScreenShare = async () => {
@@ -263,9 +264,6 @@ export default function VideoCallArea({
 
   // 6. Chức năng rời phòng
   const handleLeave = () => {
-    // Chỉ gọi callback để VirtualClassroom hiển thị Modal xác nhận
-    // Các thao tác dọn dẹp (tắt cam, tắt mic, ngắt socket) sẽ tự động chạy 
-    // khi component thực sự bị unmount (khi người dùng bấm Đồng ý rời).
     if (onLeaveRoom) {
       onLeaveRoom();
     }
