@@ -62,7 +62,7 @@ const TutorTable = ({ tutors, loading, searchTerm, onEdit, onDelete, onGrant }) 
         </td>
         <td className="px-6 py-4">
           <div className="flex flex-wrap gap-1">
-            {tutor.subjects.split(',').map(sub => (
+            {(tutor.subjects || '').split(',').map(sub => sub.trim() && (
               <span key={sub} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-blue-800 border border-indigo-100">
                 {sub.trim()}
               </span>

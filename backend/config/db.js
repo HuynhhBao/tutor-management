@@ -202,14 +202,56 @@ export const initDb = async () => {
       `);
     }
 
-    // Tạo bảng transactions nếu chưa có
+    // Tạo bảng wallets
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS wallets (
+        id SERIAL PRIMARY KEY,
+        owner_id INTEGER NOT NULL,
+        owner_type VARCHAR(50) NOT NULL,
+        balance BIGINT DEFAULT 0 CHECK (balance >= 0),
+        currency VARCHAR(10) DEFAULT 'VND',
+        status VARCHAR(50) DEFAULT 'ACTIVE',
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(owner_id, owner_type)
+      )
+    `);
+
+    // Tự động tạo ví cho users và tutors hiện có
+    await pool.query(`
+      INSERT INTO wallets (owner_id, owner_type, balance)
+      SELECT id, 'user', COALESCE(balance, 0) FROM users
+      ON CONFLICT (owner_id, owner_type) DO NOTHING;
+    `);
+
+    await pool.query(`
+      INSERT INTO wallets (owner_id, owner_type, balance)
+      SELECT id, 'tutor', COALESCE(balance, 0) FROM tutors
+      ON CONFLICT (owner_id, owner_type) DO NOTHING;
+    `);
+
+    // Rename old transactions table if it exists and doesn't have wallet_id
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='transactions' AND column_name='user_id') THEN
+          ALTER TABLE transactions RENAME TO legacy_transactions;
+        END IF;
+      END
+      $$;
+    `);
+
+    // Tạo bảng transactions mới cho ví
     await pool.query(`
       CREATE TABLE IF NOT EXISTS transactions (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        user_type VARCHAR(20) NOT NULL,
-        amount DECIMAL(12,2) NOT NULL,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        wallet_id INTEGER REFERENCES wallets(id) ON DELETE CASCADE,
         type VARCHAR(50) NOT NULL,
+        amount BIGINT NOT NULL,
+        balance_after BIGINT NOT NULL,
+        status VARCHAR(50) DEFAULT 'PENDING',
+        payment_method VARCHAR(50) DEFAULT 'SYSTEM',
+        reference_id VARCHAR(255),
         description TEXT,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       )

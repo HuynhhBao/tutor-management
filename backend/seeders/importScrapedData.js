@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from '../config/db.js';
+import pool, { initDb } from '../config/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +21,7 @@ async function seedScrapedTutors() {
   console.log(`📦 Đã đọc thành công ${tutors.length} hồ sơ gia sư sạch từ Python Pandas.`);
 
   try {
+    await initDb();
     // Đảm bảo cột hourly_rate có sẵn trên bảng tutors
     await pool.query(`
       DO $$

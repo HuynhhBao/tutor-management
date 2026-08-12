@@ -203,7 +203,7 @@ class ApplicationService {
       throw new ApiError(400, 'Tên tài khoản này đã được sử dụng');
     }
 
-    const rawPassword = crypto.randomBytes(4).toString('hex'); // VD: a1b2c3d4
+    const rawPassword = '123456'; // Đã sửa cứng mật khẩu để dễ demo
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     await pool.query(

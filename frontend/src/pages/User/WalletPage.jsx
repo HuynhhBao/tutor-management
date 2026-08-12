@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, ArrowUpRight, ArrowDownLeft, Clock, ShieldCheck, CheckCircle, XCircle } from 'lucide-react';
 import DepositModal from '../../components/common/DepositModal';
+import apiClient from '../../services/apiClient';
 
 const WalletPage = () => {
   const [balance, setBalance] = useState(0);
@@ -17,11 +18,9 @@ const WalletPage = () => {
 
   const fetchWallet = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/wallet', {
-        credentials: 'include'
-      });
+      const res = await apiClient('/wallet');
       const data = await res.json();
-      if (data.status === 'ok') {
+      if (data.status === 'ok' || data.status === 'success') {
         setBalance(data.data.balance);
         setTransactions(data.data.transactions);
       }
@@ -39,22 +38,31 @@ const WalletPage = () => {
   const handleDeposit = async (amount, paymentMethod) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/wallet/deposit', {
+      const res = await apiClient('/wallet/deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ amount, paymentMethod })
       });
       const data = await res.json();
-      if (data.status === 'ok') {
+      if (data.status === 'ok' || data.status === 'success') {
+        const paymentUrl = data.paymentUrl || (data.data && data.data.paymentUrl);
+        if (paymentUrl) {
+          // Redirect to VNPay if a payment URL is provided
+          window.location.href = paymentUrl;
+          return;
+        }
         setNotification({
           isOpen: true,
           type: 'success',
           title: 'Thành công',
           message: data.message || `Nạp thành công ${amount.toLocaleString('vi-VN')}đ vào tài khoản!`
         });
-        setBalance(data.data.balance);
-        setTransactions((prev) => [data.data.transaction, ...prev]);
+        if (data.data) {
+          setBalance(data.data.walletBalance || data.data.balance);
+          if (data.data.transaction) {
+            setTransactions((prev) => [data.data.transaction, ...prev]);
+          }
+        }
         setIsModalOpen(false);
       } else {
         setNotification({
@@ -93,7 +101,7 @@ const WalletPage = () => {
     return (
       <div className="divide-y divide-slate-100">
         {transactions.map((tx) => {
-          const isDeposit = tx.type === 'deposit';
+          const isDeposit = tx.type === 'deposit' || tx.type === 'DEPOSIT';
           return (
             <div key={tx.id} className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
               <div className="flex items-center gap-4">
