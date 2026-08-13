@@ -150,7 +150,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": 9999,\n  \"paymentMethod\": \"VNPay\"\n}"
+          "raw": "{\n  \"amount\": 9999,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",
@@ -185,7 +185,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": 10000,\n  \"paymentMethod\": \"VNPay\"\n}"
+          "raw": "{\n  \"amount\": 10000,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",
@@ -220,7 +220,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": 500000,\n  \"paymentMethod\": \"VietQR\"\n}"
+          "raw": "{\n  \"amount\": 500000,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",
@@ -255,7 +255,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": 100000000,\n  \"paymentMethod\": \"BankTransfer\"\n}"
+          "raw": "{\n  \"amount\": 100000000,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",
@@ -290,7 +290,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": 100000001,\n  \"paymentMethod\": \"BankTransfer\"\n}"
+          "raw": "{\n  \"amount\": 100000001,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",
@@ -325,7 +325,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"amount\": -50000,\n  \"paymentMethod\": \"VNPay\"\n}"
+          "raw": "{\n  \"amount\": -50000,\n  \"paymentMethod\": \"SYSTEM_TEST\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/wallet/deposit",

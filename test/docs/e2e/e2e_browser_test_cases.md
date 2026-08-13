@@ -59,7 +59,7 @@ Xác minh hành trình làm việc và quản trị giảng dạy của Gia Sư,
 | 20 | E2E-4.5 | Đánh giá tính kiên cố của cụm phím điều khiển Lớp học | Soát xét duy trì phòng học ảo trên các thao tác âm thanh, hình ảnh và tương tác chuột | Lớp học ảo duy trì trạng thái ổn định tuyệt đối trong thời gian thực, không phát sinh lỗi trang trắng (Fatal DOM Crash) | **PASS** |
 
 ### Module 5: Trung Tâm Điều Hành Quản Trị Viên & Thao Tác Trình Đơn (05_admin_executive_suite.spec.js)
-Bảo đảm tính toàn diện và trân trọng trong khả năng kiểm tra của Ban Giám Đốc (Super Admin) trên các phân khu phê duyệt gia sư, theo dõi người dùng, thu nhập doanh thu và an ninh đăng xuất.
+Bảo đảm tính toàn diện và trân trọng trong khả năng kiểm tra của Ban Giám Đốc (Admin) trên các phân khu phê duyệt gia sư, theo dõi người dùng, thu nhập doanh thu và an ninh đăng xuất.
 
 | STT | ID Kịch Bản | Tên Kịch Bản Kiểm Định (Test Scenario) | Phương Pháp & Thao Tác Kiểm Thử (Actions) | Kết Quả Mong Đợi (Expected Assertions) | Trạng Thái |
 |:---:|:---|:---|:---|:---|:---:|

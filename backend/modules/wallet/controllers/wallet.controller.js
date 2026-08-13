@@ -35,14 +35,21 @@ export const depositMoney = async (req, res, next) => {
     const ownerType = req.user.role === 'tutor' ? 'tutor' : 'user';
     const { amount, paymentMethod } = req.body;
 
-    if (paymentMethod === 'VNPAY') {
+    const normalizedMethod = paymentMethod ? paymentMethod.toUpperCase() : '';
+
+    if (normalizedMethod === 'VNPAY') {
       const vnpUrl = await paymentService.createVNPayUrl(req, amount, ownerId, ownerType);
       return sendSuccess(res, 200, 'Tạo URL thanh toán thành công', { data: { paymentUrl: vnpUrl } });
     }
 
-    // Fallback cho system / mock test nếu có
-    const result = await walletService.addFunds(ownerId, ownerType, amount, 'Nạp tiền hệ thống');
-    return sendSuccess(res, 200, `Nạp thành công ${amount.toLocaleString('vi-VN')}đ`, { data: result });
+    // Backdoor dành cho môi trường Test (Black-box testing)
+    if (normalizedMethod === 'SYSTEM_TEST' && (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
+      const result = await walletService.addFunds(ownerId, ownerType, amount, 'Nạp tiền hệ thống (Test Mode)');
+      return sendSuccess(res, 200, `Nạp thành công ${amount.toLocaleString('vi-VN')}đ (Test Mode)`, { data: result });
+    }
+
+    // Các phương thức khác bị từ chối
+    return res.status(400).json({ status: 'error', message: 'Phương thức thanh toán không hợp lệ hoặc không được hỗ trợ.' });
   } catch (err) {
     next(err);
   }

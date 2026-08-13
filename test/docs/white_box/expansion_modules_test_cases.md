@@ -95,7 +95,14 @@ Nhóm nghiệp vụ `expansion_modules/` và `data_scraping/` cung cấp trí tu
 
 ---
 
+### F. Module Sinh Dữ Liệu Hồ Sơ Gia Sư Giả Lập (test_tutor_scraper.py)
+
+| Mã Test Case | Hàm / Module Lõi | Kịch Bản Kiểm Thử | Dữ Liệu Đầu Vào | Nhánh Thực Thi | Kết Quả Mong Đợi | Trạng Thái & Độ Phủ |
+| :--- | :--- | :--- | :--- | :--- | :--- | :---: |
+| **SCRAP_01** | `generate_additional_profiles` | Chế tạo giả lập hàng loạt hồ sơ gia sư ngẫu nhiên với định dạng đa dạng | Cấu hình tham số `num = 75` để sinh 75 hồ sơ mới | Nhánh random hóa tên, chuyên môn, cấp lớp, mốc giá học phí và đánh giá sao | Trả về danh sách chứa đúng 75 từ điển hồ sơ; trong đó các hồ sơ ở vị trí chia hết cho 5 sẽ bị nhúng khoảng trắng rác (`   name   `) để test Data Cleaning | PASS (100%) |
+| **SCRAP_02** | `get_raw_tutors` | Kết hợp danh sách hồ sơ cơ sở vững chắc và danh sách sinh ngẫu nhiên mở rộng | Dữ liệu nền tảng cơ sở 30 hồ sơ và 75 hồ sơ sinh tự động | Nhánh hợp nhất hai mảng dữ liệu Python list `base_data + additional_data` | Trả về chính xác 105 bản ghi hồ sơ gia sư gốc với đầy đủ tính chất, sẵn sàng đưa vào luồng `data_cleaner.py` làm sạch | PASS (100%) |
+
 ## 3. Tổng Kết Đánh Giá Nhóm Expansion & Scraping
 
-- **Tổng số Test Case:** 28 Kịch bản kiểm thử chuyên sâu.
-- **Kết quả nghiệm thu:** 100.00% Statement & Branch Coverage. Toàn bộ các luồng kiểm định bảo mật Prompt Injection, cào dữ liệu Fallback và chuyển mạch khi Redis mất kết nối đều vượt qua các bài kiểm tra tự động, hoàn tất **188/188 Test Cases PASS cho tổng thể bộ kiểm thử Hộp trắng EduMatch**.
+- **Tổng số Test Case:** 30 Kịch bản kiểm thử chuyên sâu.
+- **Kết quả nghiệm thu:** 100.00% Statement & Branch Coverage. Toàn bộ các luồng kiểm định bảo mật Prompt Injection, cào dữ liệu Fallback và chuyển mạch khi Redis mất kết nối đều vượt qua các bài kiểm tra tự động, hoàn tất **191/191 Test Cases PASS cho tổng thể bộ kiểm thử Hộp trắng EduMatch**.

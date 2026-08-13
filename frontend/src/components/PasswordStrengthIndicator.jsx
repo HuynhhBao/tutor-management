@@ -23,6 +23,7 @@ const PasswordStrengthIndicator = ({ password }) => {
     switch (score) {
       case 0:
       case 1:
+      default:
         return { label: 'Rất yếu', color: 'bg-red-500', width: '20%', textColor: 'text-red-500' };
       case 2:
         return { label: 'Yếu', color: 'bg-orange-500', width: '40%', textColor: 'text-orange-500' };
@@ -32,8 +33,6 @@ const PasswordStrengthIndicator = ({ password }) => {
         return { label: 'Mạnh', color: 'bg-green-500', width: '80%', textColor: 'text-green-600' };
       case 5:
         return { label: 'Rất mạnh', color: 'bg-emerald-600', width: '100%', textColor: 'text-emerald-600' };
-      default:
-        return { label: '', color: 'bg-slate-200', width: '0%', textColor: 'text-slate-500' };
     }
   };
 

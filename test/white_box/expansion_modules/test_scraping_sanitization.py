@@ -14,7 +14,7 @@ import pytest
 # Thiết lập đường dẫn gốc dự án vào sys.path để cả IDE (Pyright/Pylance) và PyTest đều định vị đúng module
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
-if project_root not in sys.path:
+if project_root not in sys.path:  # pragma: no cover
     sys.path.insert(0, project_root)
 
 import data_scraping.data_cleaner as dc

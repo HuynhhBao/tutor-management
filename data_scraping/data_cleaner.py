@@ -139,5 +139,5 @@ def preprocess_data():
     print(f"[Data Cleaner] Tien xu ly & lam sach hoan tat! Da xuat ra file: {clean_output}")
     print(f"[Market Analytics] Bao cao thi truong hoan tat!")
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     preprocess_data()

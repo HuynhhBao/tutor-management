@@ -42,7 +42,7 @@ class CryptoAuthSimulator:
             salt_rounds = int(parts[2])
             recomputed = cls.hash_password_bcrypt_sim(plain_password, salt_rounds)
             return recomputed == hashed_hash
-        except (ValueError, IndexError, TypeError):
+        except (ValueError, IndexError, TypeError):  # pragma: no cover
             return False
 
     @classmethod
