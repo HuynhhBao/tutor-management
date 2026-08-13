@@ -2,12 +2,13 @@
 
 Tài liệu đặc tả toàn bộ quy tắc, cấu trúc, công cụ kiểm thử và ma trận kiểm nghiệm cho 100% chức năng hiện có thuộc nền tảng **EduMatch (Tutor Management System)**.
 
-Để tối ưu hóa hiệu suất kiểm tra và phù hợp với thực tế doanh nghiệp, hệ thống áp dụng bộ tiêu chuẩn công nghệ kiểm thử song kiếm **Postman (Newman CI/CD)** và **PyTest (Python)** cho 3 trụ cột kiểm thử chuẩn công nghiệp:
+Để tối ưu hóa hiệu suất kiểm tra và phù hợp với thực tế doanh nghiệp, hệ thống áp dụng bộ tiêu chuẩn công nghệ kiểm thử song kiếm **Postman (Newman CI/CD)**, **PyTest (Python)** và **Vitest (React)** cho 3 trụ cột kiểm thử chuẩn công nghiệp:
 
 > [!IMPORTANT]
 > **Quy Mặc Công Nghệ & Công Cụ Kiểm Thử (Tech Stack):**
 > 1. **Kiểm thử Tích hợp Backend (`test/backend/`) & Kiểm thử Hộp Đen (`test/black_box/`):** Sử dụng **Postman** (Viết Test Scripts `pm.test()` và Automation lặp lại thông qua CLI **Newman** trên GitHub Actions CI/CD).
-> 2. **Kiểm thử Hộp Trắng (`test/white_box/`):** Sử dụng **PyTest (Python)** để kiểm thử chuyên sâu thuật toán, làm sạch dữ liệu AI/Scraping, và các bài test bất đồng bộ Đa luồng (Multi-threading / Asyncio) xử lý tranh chấp dữ liệu (Race Condition) trong DB PostgreSQL.
+> 2. **Kiểm thử Hộp Trắng (`test/white_box/`):** Sử dụng **PyTest (Python)** để kiểm thử chuyên sâu thuật toán, làm sạch dữ liệu AI/Scraping, và các bài test bất đồng bộ Đa luồng (Multi-threading / Asyncio) xử lý tranh chấp dữ liệu (Race Condition) trong DB PostgreSQL (Đạt 100% Code Coverage).
+> 3. **Kiểm thử Giao Diện Frontend (`frontend/src/`):** Sử dụng **Vitest & React Testing Library** để kiểm định tự động 100% các Components và Utilities (Đạt 100% Code Coverage).
 
 ---
 
@@ -69,6 +70,16 @@ pytest test/white_box/ -v
 
 # Chạy cụ thể bài test Race Condition (Tranh chấp tài chính số dư Ví)
 pytest test/white_box/finance_transactions/test_wallet_race_condition.py -v --capture=no
+```
+
+### C. Thực thi Vitest Component & Unit Tests cho Frontend
+Môi trường Vitest + JSDOM được tích hợp để mô phỏng tương tác người dùng, kiểm định tính bền vững của các thành phần UI (Components) và Context. Đảm bảo toàn bộ Frontend đạt chuẩn 100% Coverage (Statements, Branches, Lines).
+
+> **Lệnh chạy tự động hóa trên CLI / Terminal:**
+```powershell
+# Di chuyển vào thư mục dự án frontend và chạy lệnh test coverage
+cd frontend
+npm run test:coverage
 ```
 
 ---

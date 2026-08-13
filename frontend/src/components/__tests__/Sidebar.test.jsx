@@ -70,5 +70,25 @@ describe('Sidebar component unit tests', () => {
     // Menu should open and show role/logout options
     expect(screen.getByText('Đăng xuất')).toBeInTheDocument();
     expect(screen.getByText('Bảng điều khiển')).toBeInTheDocument();
+    
+    // Click logout to trigger onClose
+    fireEvent.click(screen.getByText('Đăng xuất'));
+    expect(screen.queryByText('Bảng điều khiển')).toBeNull();
+  });
+
+  it('logs error when fetchStats fails', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = vi.fn().mockRejectedValue(new Error('Fetch failed'));
+
+    render(
+      <MemoryRouter>
+        <Sidebar />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Error fetching sidebar stats:', expect.any(Error));
+    });
+    consoleSpy.mockRestore();
   });
 });

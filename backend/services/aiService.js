@@ -13,15 +13,15 @@ function removeAccents(str = '') {
 class AIService {
   getSimulatedResponse(userMessage) {
     const msg = userMessage.toLowerCase();
-    
+
     if (msg.includes('chào') || msg.includes('hello') || msg.includes('hi')) {
       return 'Xin chào! Tôi là **Trợ lý ảo EduMatch AI**. Rất vui được hỗ trợ bạn ngày hôm nay! Bạn cần tôi giúp gì về việc tìm gia sư, đặt lịch học hay nạp tiền ví?';
     }
-    
+
     if (msg.includes('nạp tiền') || msg.includes('ví') || msg.includes('nạp tiền thế nào')) {
       return 'Để nạp tiền vào tài khoản EduMatch, bạn vui lòng làm theo các bước sau:\n\n1. Vào mục **Ví tiền** trên thanh menu.\n2. Chọn số tiền bạn muốn nạp hoặc nhập số tiền tùy chọn.\n3. Nhấn **Nạp tiền ngay**.\n4. Thực hiện chuyển khoản ngân hàng quét mã QR hiển thị trên màn hình với nội dung chuyển khoản được ghi sẵn.\n\nHệ thống sẽ tự động cộng số dư cho bạn sau 1-3 phút!';
     }
-    
+
     if (msg.includes('đặt lịch') || msg.includes('thuê') || msg.includes('book') || msg.includes('tìm') || msg.includes('gia sư')) {
       return 'Quy trình đặt lịch gia sư trên EduMatch rất đơn giản:\n\n1. Truy cập trang **Tìm gia sư**.\n2. Lọc gia sư theo Môn học, Trình độ hoặc tìm kiếm theo tên.\n3. Nhấp vào hồ sơ gia sư để xem thông tin chi tiết chi phí và lịch sử.\n4. Nhấn nút **Đặt lịch học ngay**, chọn môn học, khung giờ rảnh và điền lời nhắn cho gia sư.\n5. Đảm bảo ví tiền của bạn đủ số dư, sau đó xác nhận thanh toán đặt lịch.';
     }
@@ -167,21 +167,21 @@ Dưới đây là lịch sử cuộc trò chuyện gần đây giữa bạn và 
       'gemini-pro'
     ].filter(Boolean);
 
-    const evalPrompt = \`
+    const evalPrompt = `
 Bạn là hệ thống AI Matchmaker thông minh của ứng dụng EduMatch.
-Yêu cầu của học viên: "\${promptText}"
+Yêu cầu của học viên: "${promptText}"
 
 Danh sách tất cả gia sư hiện có trong hệ thống:
-\${JSON.stringify(tutors.map(t => ({
-  id: t.id,
-  full_name: t.full_name,
-  gender: t.gender,
-  age: t.age,
-  subjects: t.subjects,
-  qualification: t.qualification,
-  rating: t.rating,
-  grade_levels: t.grade_levels,
-  hourly_rate: t.hourly_rate ? \`\${t.hourly_rate.toLocaleString('vi-VN')} VND/h\` : undefined
+${JSON.stringify(tutors.map(t => ({
+      id: t.id,
+      full_name: t.full_name,
+      gender: t.gender,
+      age: t.age,
+      subjects: t.subjects,
+      qualification: t.qualification,
+      rating: t.rating,
+      grade_levels: t.grade_levels,
+      hourly_rate: t.hourly_rate ? (t.hourly_rate.toLocaleString('vi-VN') + ' VND/h') : undefined
 })))}
 
 Nhiệm vụ: Phân tích nhu cầu của học viên. Chọn ra top tối đa 4 gia sư phù hợp nhất.
@@ -194,7 +194,7 @@ Trả về định dạng JSON array chuẩn chứa danh sách gia sư phù hợ
   }
 ]
 CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
-\`;
+`;
 
     let rawText = null;
     for (const modelName of candidateModels) {
@@ -206,14 +206,14 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
           break;
         }
       } catch (mErr) {
-        console.warn(\`Model \${modelName} matchmaker error:\`, mErr.message);
+        console.warn(`Model ${modelName} matchmaker error:`, mErr.message);
       }
     }
 
     if (!rawText) return null;
 
-    if (rawText.startsWith('\`\`\`json')) rawText = rawText.replace(/^\`\`\`json\s+/, '').replace(/\s+\`\`\`$/, '');
-    else if (rawText.startsWith('\`\`\`')) rawText = rawText.replace(/^\`\`\`\s+/, '').replace(/\s+\`\`\`$/, '');
+    if (rawText.startsWith('```json')) rawText = rawText.replace(/^```json\s+/, '').replace(/\s+```$/, '');
+    else if (rawText.startsWith('```')) rawText = rawText.replace(/^```\s+/, '').replace(/\s+```$/, '');
 
     try {
       const matches = JSON.parse(rawText);
@@ -224,7 +224,7 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
           return {
             ...tutor,
             matchScore: m.matchScore || 88,
-            matchReason: m.matchReason || \`Phù hợp với nhu cầu "\${promptText}".\`
+            matchReason: m.matchReason || `Phù hợp với nhu cầu "${promptText}".`
           };
         }).filter(Boolean);
 
@@ -286,19 +286,19 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
       const ageDiff = Math.abs(tutorAge - targetExactAge);
       if (ageDiff === 0) {
         score += 22;
-        ageMatchText = \`khớp hoàn toàn độ tuổi \${targetExactAge} tuổi\`;
+        ageMatchText = `khớp hoàn toàn độ tuổi ${targetExactAge} tuổi`;
       } else if (ageDiff <= 2) {
         score += 10;
-        ageMatchText = \`độ tuổi \${tutorAge} gần khớp với \${targetExactAge} tuổi\`;
+        ageMatchText = `độ tuổi ${tutorAge} gần khớp với ${targetExactAge} tuổi`;
       } else {
         score -= 15;
-        ageMatchText = \`\${tutorAge} tuổi (khác yêu cầu \${targetExactAge} tuổi)\`;
+        ageMatchText = `${tutorAge} tuổi (khác yêu cầu ${targetExactAge} tuổi)`;
       }
     } else {
       if (maxAge) {
         if (tutorAge < maxAge) {
           score += 12;
-          ageMatchText = \`\${tutorAge} tuổi (dưới \${maxAge} tuổi)\`;
+          ageMatchText = `${tutorAge} tuổi (dưới ${maxAge} tuổi)`;
         } else {
           score -= 15;
         }
@@ -306,7 +306,7 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
       if (minAge) {
         if (tutorAge > minAge) {
           score += 12;
-          ageMatchText = \`\${tutorAge} tuổi (trên \${minAge} tuổi)\`;
+          ageMatchText = `${tutorAge} tuổi (trên ${minAge} tuổi)`;
         } else {
           score -= 15;
         }
@@ -327,22 +327,22 @@ CHỈ TRẢ VỀ JSON ARRAY THUẦN, KHÔNG CÓ MARKDOWN HOẶC TEXT KHÁC.
     }
 
     const finalScore = Math.min(Math.max(Math.round(score), 50), 98);
-    const matchedGradeText = t.grade_levels ? \`dạy \${t.grade_levels}\` : '';
-    const matchedSubjectText = [t.subjects ? \`chuyên dạy \${t.subjects}\` : '', matchedGradeText].filter(Boolean).join(' - ') || 'trình độ chuyên môn cao';
+    const matchedGradeText = t.grade_levels ? `dạy ${t.grade_levels}` : '';
+    const matchedSubjectText = [t.subjects ? `chuyên dạy ${t.subjects}` : '', matchedGradeText].filter(Boolean).join(' - ') || 'trình độ chuyên môn cao';
 
-    let reason = \`AI đánh giá phù hợp \${finalScore}%: Gia sư \${t.full_name} (\${t.age ? t.age.toString() + ' tuổi' : ''}, \${t.qualification || 'Kinh nghiệm'}), \${matchedSubjectText}.\`;
+    let reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} (${t.age ? t.age.toString() + ' tuổi' : ''}, ${t.qualification || 'Kinh nghiệm'}), ${matchedSubjectText}.`;
     if (isThisTutorNameMatched) {
-      reason = \`AI đánh giá phù hợp \${finalScore}%: Gia sư \${t.full_name} khớp chính xác từ khóa tên bạn đang tìm kiếm.\`;
+      reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} khớp chính xác từ khóa tên bạn đang tìm kiếm.`;
     } else if (isAnyTutorNameMatched && !isThisTutorNameMatched) {
-      reason = \`Độ tương thích \${finalScore}%: Gia sư \${t.full_name} (\${matchedSubjectText}) khác tên với từ khóa bạn tìm kiếm.\`;
+      reason = `Độ tương thích ${finalScore}%: Gia sư ${t.full_name} (${matchedSubjectText}) khác tên với từ khóa bạn tìm kiếm.`;
     } else if (matchedGradeObj && hasGradeMatch && matchedSubjectObj && hasSubjectMatch) {
-      reason = \`AI đánh giá phù hợp \${finalScore}%: Gia sư \${t.full_name} hoàn toàn khớp chuyên môn môn \${matchedSubjectObj.key.toUpperCase()} và khối \${matchedGradeObj.key.toUpperCase()}!\`;
+      reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} hoàn toàn khớp chuyên môn môn ${matchedSubjectObj.key.toUpperCase()} và khối ${matchedGradeObj.key.toUpperCase()}!`;
     } else if (targetExactAge && ageMatchText) {
-      reason = \`AI đánh giá phù hợp \${finalScore}%: Gia sư \${t.full_name} (\${ageMatchText}), \${matchedSubjectText}.\`;
+      reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} (${ageMatchText}), ${matchedSubjectText}.`;
     } else if (matchedSubjectObj && hasSubjectMatch) {
-      reason = \`AI đánh giá phù hợp \${finalScore}%: Gia sư \${t.full_name} (\${t.qualification || 'Kinh nghiệm'}), \${matchedSubjectText}.\`;
+      reason = `AI đánh giá phù hợp ${finalScore}%: Gia sư ${t.full_name} (${t.qualification || 'Kinh nghiệm'}), ${matchedSubjectText}.`;
     } else if (matchedSubjectObj && !hasSubjectMatch) {
-      reason = \`Độ tương thích \${finalScore}%: Gia sư \${t.full_name} (\${matchedSubjectText}) không đăng ký dạy môn \${matchedSubjectObj.key.toUpperCase()}.\`;
+      reason = `Độ tương thích ${finalScore}%: Gia sư ${t.full_name} (${matchedSubjectText}) không đăng ký dạy môn ${matchedSubjectObj.key.toUpperCase()}.`;
     }
 
     return {

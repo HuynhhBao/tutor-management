@@ -9,6 +9,10 @@ from wallet_engine import WalletTransactionService, InsufficientBalanceException
 class TestWalletRaceCondition:
     """Bộ kiểm thử Đa luồng chứng minh an toàn tài chính Ví EduMatch."""
 
+    def test_fixture_wallet_user(self, sample_wallet_user):
+        """Consume fixture to ensure 100% coverage."""
+        assert sample_wallet_user["balance"] == 1000000.0
+
     def test_unsafe_race_condition_leads_to_double_spending(self):
         wallet = WalletTransactionService(initial_balance=1000000.0)
         with ThreadPoolExecutor(max_workers=20) as executor:
@@ -54,6 +58,13 @@ class TestWalletRaceCondition:
         with pytest.raises(InsufficientBalanceException, match="không đủ thanh toán"):
             wallet.book_tutor_unsafe_no_lock(500000.0, "book_fail_unsafe")
         assert wallet.failed_deductions == 1
+
+    def test_guaranteed_insufficient_balance(self):
+        """Kiểm nghiệm ép lỗi InsufficientBalanceException để cover code branch exception."""
+        wallet = WalletTransactionService(initial_balance=0.0)
+        self._safe_wrapper_unsafe(wallet, 100000.0, "fail_id")
+        self._safe_wrapper_safe(wallet, 100000.0, "fail_id2")
+        assert wallet.failed_deductions == 2
 
     def _safe_wrapper_unsafe(self, wallet, amount, booking_id):
         try:

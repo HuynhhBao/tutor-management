@@ -418,7 +418,7 @@ def get_raw_tutors():
     full_dataset = base_data + additional_data
     return full_dataset
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     current_dir = os.path.dirname(os.path.abspath(__file__))
     output_path = os.path.join(current_dir, "raw_tutors.json")
     

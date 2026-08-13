@@ -1,17 +1,17 @@
-# TÀI LIỆU KHẢO SÁT & KỊCH BẢN KIỂM TRỌNG HỢP GIAO DIỆN FRONTEND EDUMATCH (PILLAR 4: FRONTEND COMPONENT & UNIT QA)
+# TÀI LIỆU KHẢO SÁT & KỊCH BẢN KIỂM TRỌNG HỢP GIAO DIỆN FRONTEND EDUMATCH (PILLAR 3: FRONTEND COMPONENT & UNIT QA)
 
-Tài liệu này đặc tả tường tận và trung thực nhất toàn bộ **39 Test Cases Kiểm Định Tự Động (Unit & Component Assertions)** được triển khai trên tầng Frontend (React/Vite) của dự án EduMatch. Cỗ máy chạy khảo thử sử dụng công nghệ tối tân nhất: **Vitest + React Testing Library + JSDOM + V8 Code Coverage**, bảo đảm mọi logic định dạng số tiền, ngày tháng, ảnh Avatar, cùng các component UI cốt lõi (Thanh đo độ mạnh mật khẩu, Thanh phân quyền Sidebar, Menu tài khoản người dùng) hoạt động chính xác 100%, không xảy ra tình trạng vỡ layout hay crash trắng màn hình.
+Tài liệu này đặc tả tường tận và trung thực nhất toàn bộ **50 Test Cases Kiểm Định Tự Động (Unit & Component Assertions)** được triển khai trên tầng Frontend (React/Vite) của dự án EduMatch. Cỗ máy chạy khảo thử sử dụng công nghệ tối tân nhất: **Vitest + React Testing Library + JSDOM + V8 Code Coverage**, bảo đảm mọi logic định dạng số tiền, ngày tháng, ảnh Avatar, cùng các component UI cốt lõi (Thanh đo độ mạnh mật khẩu, Thanh phân quyền Sidebar, Menu tài khoản người dùng, Bối cảnh xác thực AuthContext) hoạt động chính xác 100%, không xảy ra tình trạng vỡ layout hay crash trắng màn hình.
 
 ---
 
 ## 1. Kết Quả Đo Lường Độ Phủ Mã Nguồn Thực Trị (V8 Code Coverage Report)
-* **Tầng Utility (Hàm Logic):** Đạt tuyệt đối **100% Statements, 100% Functions, 100% Lines Coverage**.
-* **Tầng Components (Giao Diện):** Đạt ngưỡng siêu cao **96.00% Statements, 93.33% Functions, 95.16% Lines Coverage**.
-* **Trang Thái Chung Cộc:** **39 / 39 Test Cases PASSED 100% (Zero-Defects)**.
+* **Tầng Utility (Hàm Logic) & Contexts:** Đạt tuyệt đối **100% Statements, 100% Functions, 100% Lines Coverage**.
+* **Tầng Components (Giao Diện):** Đạt ngưỡng hoàn hảo **100% Statements, 100% Functions, 100% Lines Coverage**.
+* **Trạng Thái Chung Cuộc:** **50 / 50 Test Cases PASSED 100% (Zero-Defects)**.
 
 ---
 
-## 2. Ma Trận Chi Tiết Trọn Vẹn 39 Test Cases Kiểm Định Tự Động (Full 39 Assertions Table)
+## 2. Ma Trận Chi Tiết Trọn Vẹn 50 Test Cases Kiểm Định Tự Động (Full 50 Assertions Table)
 
 | STT | Phân Hệ / Tệp Tin Kiểm Thử | Tên Test Case (Kịch Bản Kiểm Định Chi Tiết) | Phương Pháp & Thao Tác Kiểm Thử (Method & Actions) | Kết Quả Mong Đợi (Expected Assertions) | Trạng Thái |
 |:---:|:---|:---|:---|:---|:---:|
@@ -49,11 +49,22 @@ Tài liệu này đặc tả tường tận và trung thực nhất toàn bộ *
 | 32| `PasswordStrengthIndicator.test.jsx`| `renders "Rất mạnh" for complex secure passwords (score 5)`| Render với `password = "P@ssw0rd_123!"` (Thêm ký tự đặc biệt)| Thanh đo đạt 100%, xuất hiện thông điệp an ninh số một: **"Rất mạnh"** | **PASS** |
 | 33| `Sidebar.test.jsx` | `renders admin sidebar title and navigation links correctly`| Render `<Sidebar />` bên trong `MemoryRouter` với AuthContext role = 'admin'| Xuất hiện đầy đủ logo **"TutorAdmin"** và 5 tab chức năng (Tổng quan, Gia sư, Học viên,...) | **PASS** |
 | 34| `Sidebar.test.jsx` | `displays pending applications badge when API returns positive count`| Mock `fetch('http://localhost:3001/api/tutors/stats')` trả về `{ pendingApplications: 5 }`| Thẻ màu đỏ hiển thị đúng con số **"5"** báo tin hồ sơ chờ duyệt trên tab Quản lý Gia sư | **PASS** |
-| 35| `Sidebar.test.jsx` | `toggles UserAccountMenu dropdown when clicking user account profile button`| Mô phỏng sự kiện click của người dùng `fireEvent.click(profileButton)`| Trước click: menu bồi rỗng; Sau click: xổ ra menu có chứa nút **"Đăng xuất"** và cấu hình| **PASS** |
-| 36| `UserAccountMenu.test.jsx`| `renders correct label and links for admin role`| Render `<UserAccountMenu user={{ role: 'admin', fullName: 'Super Admin' }} />`| Hiển thị nhãn **"Quản trị viên"** (Title Case) và dẫn liên kết về `/admin` | **PASS** |
-| 37| `UserAccountMenu.test.jsx`| `renders correct dashboard link for tutor role`| Render với `role = 'tutor'` và tên `'Gia Sư Toán'` | Hiển thị nhãn **"Gia sư"**, nút Bảng điều khiển dẫn về `/tutor-dashboard` | **PASS** |
-| 38| `UserAccountMenu.test.jsx`| `renders default user label for student role` | Render với `role = 'student'` | Hiển thị nhãn **"Tài khoản cá nhân"**, nút Bảng điều khiển dẫn về `/student-dashboard` | **PASS** |
-| 39| `UserAccountMenu.test.jsx`| `triggers onLogout and onClose when clicking logout button`| Mô phỏng nhấp chuột `userEvent.click(logoutBtn)` bằng con trỏ tương tác thực | Hàm callback `onLogout` và `onClose` đều được kích hoạt thành công đúng 1 lần (`Times(1)`) | **PASS** |
+| 35| `Sidebar.test.jsx` | `toggles UserAccountMenu dropdown when clicking user account profile button`| Mô phỏng sự kiện click của người dùng `fireEvent.click(profileButton)`, sau đó nhấp tiếp 'Đăng xuất'| Xổ ra menu tài khoản, và sau khi click Đăng xuất menu phải đóng lại tức thời| **PASS** |
+| 36| `Sidebar.test.jsx` | `logs error when fetchStats fails`| Cấu hình ngắt tín hiệu HTTP `fetch.mockRejectedValue`, render `Sidebar`| Gọi `console.error` an toàn dưới nền để chặn crash giao diện| **PASS** |
+| 37| `UserAccountMenu.test.jsx`| `renders correct label and links for admin role`| Render `<UserAccountMenu user={{ role: 'admin', fullName: 'Admin' }} />`| Hiển thị nhãn **"Quản trị viên"** (Title Case) và dẫn liên kết về `/admin` | **PASS** |
+| 38| `UserAccountMenu.test.jsx`| `renders correct dashboard link for tutor role`| Render với `role = 'tutor'` và tên `'Gia Sư Toán'` | Hiển thị nhãn **"Gia sư"**, nút Bảng điều khiển dẫn về `/tutor-dashboard` | **PASS** |
+| 39| `UserAccountMenu.test.jsx`| `renders default user label for student role` | Render với `role = 'student'` | Hiển thị nhãn **"Tài khoản cá nhân"**, nút Bảng điều khiển dẫn về `/student-dashboard` | **PASS** |
+| 40| `UserAccountMenu.test.jsx`| `triggers onLogout and onClose when clicking logout button`| Mô phỏng nhấp chuột `userEvent.click(logoutBtn)` bằng con trỏ tương tác thực | Hàm callback `onLogout` và `onClose` đều được kích hoạt thành công đúng 1 lần (`Times(1)`) | **PASS** |
+| 41| `AuthContext.test.jsx`| `checks auth on mount successfully`| Cấu hình `fetch` trả về {ok: true, user: {...}} và render `AuthProvider`| Loading chuyển về False, AuthContext chứa chính xác dữ liệu người dùng | **PASS** |
+| 42| `AuthContext.test.jsx`| `checks auth on mount with failed response`| Cấu hình HTTP trả về `ok: false` do Token giả| Xóa bỏ phiên đăng nhập hờ, user state trả về `null` | **PASS** |
+| 43| `AuthContext.test.jsx`| `checks auth on mount with network error`| Bóp nghẹt HTTP với lỗi ngắt kết nối (Network error)| Xử lý ngoại lệ mượt mà, loading tắt và user state an toàn là `null` | **PASS** |
+| 44| `AuthContext.test.jsx`| `login user successfully`| Gọi hàm `login()` với `email`, `password`, `role=user`| Nhận JWT, Context update state user thành công theo role tương ứng | **PASS** |
+| 45| `AuthContext.test.jsx`| `login user fails`| Gọi `login()` với sai tài khoản (Mock API trả về lỗi)| User state duy trì `null`, bắt exception không làm gián đoạn UX | **PASS** |
+| 46| `AuthContext.test.jsx`| `login tutor successfully`| Gọi hàm `login()` định danh role `tutor` qua mock API| Cập nhật user state thành công cùng nhãn xác thực Gia sư | **PASS** |
+| 47| `AuthContext.test.jsx`| `login with google successfully`| Truyền token xác thực ngoài `loginWithGoogle(token)`| Phê duyệt Token an toàn và nạp User vào context gốc | **PASS** |
+| 48| `AuthContext.test.jsx`| `login with google fails`| Token hết hạn từ Google khiến `loginWithGoogle` bị khước từ| Xóa trạng thái, trả về lỗi Auth mà không đóng băng trang | **PASS** |
+| 49| `AuthContext.test.jsx`| `logout successfully`| Bấm gọi hàm `logout()` của AuthProvider trên frontend| Xóa cookie/localStorage liên đới, reset state `user = null` lập tức | **PASS** |
+| 50| `AuthContext.test.jsx`| `logout with error`| Cố ý mô phỏng đứt mạng khi hệ thống đang gọi API log out| Bắt an toàn Exception, đảm bảo quy trình dọn dẹp state vẫn vận hành mượt mà | **PASS** |
 
 ---
 
@@ -63,4 +74,4 @@ Bạn có thể tự tay nghiệm thu chất lượng phần Giao Diện bất c
 cd frontend
 npm run test:coverage
 ```
-Hệ thống sẽ chạy qua 39 bài kiểm tra chỉ trong ~2 giây và tạo hồ sơ thống kê chi tiết HTML ngay trong folder `frontend/coverage_report/index.html`.
+Hệ thống sẽ chạy qua trọn vẹn 50 bài kiểm tra chỉ trong ~2 giây và tạo hồ sơ thống kê chi tiết HTML ngay trong folder `frontend/coverage_report/index.html`.

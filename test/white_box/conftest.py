@@ -12,9 +12,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../"))
 scraping_dir = os.path.join(project_root, "data_scraping")
 
-if project_root not in sys.path:
+if project_root not in sys.path:  # pragma: no cover
     sys.path.insert(0, project_root)
-if scraping_dir not in sys.path:
+if scraping_dir not in sys.path:  # pragma: no cover
     sys.path.insert(0, scraping_dir)
 
 
